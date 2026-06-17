@@ -13,6 +13,7 @@ class UptoxApp(App):
         ("1", "switch_tab('dashboard')", "Dashboard"),
         ("2", "switch_tab('orders')", "Orders"),
         ("3", "switch_tab('option-chain')", "Option Chain"),
+        ("t", "cycle_tf", "Cycle TF"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -29,8 +30,25 @@ class UptoxApp(App):
     def on_mount(self) -> None:
         if settings.access_token:
             self.run_worker(self._start_feed(), exclusive=True, name="market-feed")
+            self.run_worker(self._prime_smas(), name="sma-prime")
 
     async def _start_feed(self) -> None:
         from uptox.api.feed_client import run_feed
         from uptox.services.tick_handler import on_tick
         await run_feed(on_tick)
+
+    def action_cycle_tf(self) -> None:
+        try:
+            from uptox.ui.screens.dashboard import SMAPanel
+            self.query_one(SMAPanel).cycle_tf()
+        except Exception:
+            pass
+
+    async def _prime_smas(self) -> None:
+        from uptox.api.feed_client import DEFAULT_INSTRUMENTS
+        from uptox.services.sma_service import fetch_and_prime
+        import asyncio
+        await asyncio.gather(*(
+            fetch_and_prime(key, settings.access_token)
+            for key in DEFAULT_INSTRUMENTS
+        ))

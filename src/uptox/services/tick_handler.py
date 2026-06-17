@@ -1,6 +1,6 @@
 """Converts raw proto Feed → TickData and writes to feed_store."""
 from uptox.api import market_feed_pb2 as proto
-from uptox.services import feed_store
+from uptox.services import feed_store, sma_service
 from uptox.services.feed_store import TickData
 
 
@@ -57,3 +57,5 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         tick.close = feed.ltpc.cp
 
     feed_store.update(instrument_key, tick)
+    if tick.ltp:
+        sma_service.update_realtime(instrument_key, tick.ltp)

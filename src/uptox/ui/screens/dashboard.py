@@ -1,7 +1,10 @@
 from textual.app import ComposeResult
+from textual.containers import ScrollableContainer
+from textual.reactive import reactive
 from textual.widgets import Static, DataTable
-from uptox.services import feed_store
+from uptox.services import feed_store, sma_service
 from uptox.services.feed_store import TickData
+from uptox.services.sma_service import TimeFrame, ALL_TFS
 
 NIFTY = "NSE_INDEX|Nifty 50"
 BANK  = "NSE_INDEX|Nifty Bank"
@@ -30,7 +33,7 @@ def _kv(title: str, rows: list[tuple[str, str, str]]) -> str:
     return "\n".join(lines)
 
 
-class SMAPanel(Static):
+class OverallAnalysisPanel(Static):
     def on_mount(self) -> None:
         self._refresh()
         self.set_interval(1.0, self._refresh)
@@ -38,27 +41,94 @@ class SMAPanel(Static):
     def _refresh(self) -> None:
         t = feed_store.get(NIFTY)
         ltp = t.ltp if t else 0.0
+
+        # ATM strike (nearest 50)
+        atm = round(ltp / 50) * 50 if ltp else 0
+
+        # SMA trend score from 5min (most responsive)
+        smas  = sma_service.get_smas(NIFTY, TimeFrame.M5)
+        sma20 = smas.get(20)
+        sma50 = smas.get(50)
+        sma_score = 0
+        if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
+        if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
+
+        # Order flow score
+        cum       = feed_store.cum_delta(NIFTY)
+        raw_delta = (t.tbq - t.tsq) if t else 0.0
+        oi_chg    = t.change_oi if t else 0.0
+        flow_score = (
+            (1 if raw_delta > 0 else -1 if raw_delta < 0 else 0)
+            + (1 if cum > 0 else -1 if cum < 0 else 0)
+            + (1 if oi_chg > 0 else -1 if oi_chg < 0 else 0)
+        )
+
+        total = sma_score + flow_score  # range: -5 … +5
+
+        if total >= 4:
+            trend, trend_color, option = "STRONG BULL", "green",      "CE"
+        elif total >= 2:
+            trend, trend_color, option = "BULLISH",     "green",      "CE"
+        elif total <= -4:
+            trend, trend_color, option = "STRONG BEAR", "red",        "PE"
+        elif total <= -2:
+            trend, trend_color, option = "BEARISH",     "red",        "PE"
+        else:
+            trend, trend_color, option = "NEUTRAL",     "yellow",     "—"
+
+        opt_color    = "green" if option == "CE" else "red" if option == "PE" else "dim white"
+        strike_str   = f"{atm} {option}" if atm and option != "—" else (f"{atm}" if atm else "—")
+        ltp_str      = f"{ltp:,.2f}" if ltp else "—"
+
+        lines = [
+            f"[bold cyan]▸ Overall Analysis[/]  [dim]LTP:[/] [yellow]{ltp_str}[/]",
+            f"[dim]{'Strike':<12}[/] [yellow]{strike_str}[/]",
+            f"[dim]{'Option':<12}[/] [bold {opt_color}]{option}[/]",
+            f"[dim]{'Buy Price':<12}[/] [dim white]— (pending OC)[/]",
+            f"[dim]{'Trend':<12}[/] [bold {trend_color}]{trend}[/]",
+            f"[dim]{'Score':<12}[/] [dim white]{total:+d} / 5  (SMA {sma_score:+d}  Flow {flow_score:+d})[/]",
+        ]
+        self.update("\n".join(lines))
+
+
+class SMAPanel(Static):
+    current_tf: reactive[TimeFrame] = reactive(TimeFrame.M5)
+
+    def on_mount(self) -> None:
+        self._refresh()
+        self.set_interval(1.0, self._refresh)
+
+    def cycle_tf(self) -> None:
+        idx = ALL_TFS.index(self.current_tf)
+        self.current_tf = ALL_TFS[(idx + 1) % len(ALL_TFS)]
+
+    def watch_current_tf(self, _: TimeFrame) -> None:
+        self._refresh()
+
+    def _refresh(self) -> None:
+        t = feed_store.get(NIFTY)
+        ltp = t.ltp if t else 0.0
         status = feed_store.get_status()
         status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "red"
+        tf = self.current_tf
 
-        def vs(sma: float) -> tuple[str, str]:
-            if not ltp or not sma:
+        def vs(sma: float | None) -> tuple[str, str]:
+            if not ltp or sma is None:
                 return "—", "dim white"
             if ltp > sma:
                 return f"{sma:,.1f}  ↑", "green"
             return f"{sma:,.1f}  ↓", "red"
 
-        # SMA computed from LTP placeholder until historical API wired
-        # Using LTP as reference; real SMA needs candle history
-        v10, c10   = vs(ltp * 0.998)
-        v20, c20   = vs(ltp * 0.995)
-        v50, c50   = vs(ltp * 0.988)
-        v100, c100 = vs(ltp * 0.975)
-        v200, c200 = vs(ltp * 0.940)
+        smas = sma_service.get_smas(NIFTY, tf)
+        v10,  c10  = vs(smas[10])
+        v20,  c20  = vs(smas[20])
+        v50,  c50  = vs(smas[50])
+        v100, c100 = vs(smas[100])
+        v200, c200 = vs(smas[200])
 
         ltp_str = f"{ltp:,.2f}" if ltp else "—"
         self.update(_kv(
-            f"▸ SMA  [{status_color}]{status}[/]  LTP:[yellow]{ltp_str}[/]",
+            f"▸ SMA [{tf.value}]  [{status_color}]{status}[/]  LTP:[yellow]{ltp_str}[/]",
             [
                 ("SMA 10",  v10,  c10),
                 ("SMA 20",  v20,  c20),
@@ -131,12 +201,10 @@ class TechnicalPanel(Static):
         chg_str = f"{chg:+.2f} ({chg_p:+.2f}%)" if ltp else "—"
 
         self.update(_kv("▸ Technical", [
-            ("LTP",     f"{ltp:,.2f}" if ltp else "—",  "white"),
-            ("Change",  chg_str,                          chg_color),
-            ("Prev Close", f"{close:,.2f}" if close else "—", "dim white"),
-            ("Pattern", "Pending hist API",               "dim white"),
-            ("RSI 14",  "Pending hist API",               "dim white"),
-            ("MACD",    "Pending hist API",               "dim white"),
+            ("LTP",        f"{ltp:,.2f}" if ltp else "—",      "white"),
+            ("Change",     chg_str,                              chg_color),
+            ("Prev Close", f"{close:,.2f}" if close else "—",   "dim white"),
+            ("Pattern",    "—",                                  "dim white"),
         ]))
 
 
@@ -164,8 +232,8 @@ class BestEntryPanel(Static):
 
 class GreeksTable(Static):
     DEFAULT_CSS = """
-    GreeksTable { height: 1fr; }
-    GreeksTable DataTable { height: 1fr; }
+    GreeksTable { height: auto; }
+    GreeksTable DataTable { height: auto; }
     """
 
     def compose(self) -> ComposeResult:
@@ -190,27 +258,28 @@ class GreeksTable(Static):
         pass
 
 
-class DashboardScreen(Static):
+class DashboardScreen(ScrollableContainer):
     DEFAULT_CSS = """
     DashboardScreen {
         height: 1fr;
-        layout: grid;
-        grid-size: 3 2;
-        grid-rows: auto 1fr;
-        grid-columns: 1fr 1fr 1fr;
+        layout: vertical;
     }
     DashboardScreen > * {
         border: solid $primary-darken-2;
         padding: 0 1;
+        width: 100%;
         height: auto;
     }
     GreeksTable {
-        column-span: 2;
-        height: 1fr;
+        height: auto;
+    }
+    GreeksTable DataTable {
+        height: auto;
     }
     """
 
     def compose(self) -> ComposeResult:
+        yield OverallAnalysisPanel()
         yield SMAPanel()
         yield OrderFlowPanel()
         yield BestEntryPanel()
