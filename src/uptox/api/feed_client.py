@@ -22,6 +22,19 @@ DEFAULT_INSTRUMENTS = [
     "NSE_INDEX|Nifty Bank",
 ]
 
+# Queue for dynamically sending subscribe messages to the live WSS connection.
+# put() from any coroutine; run_feed's sender task drains it.
+_send_queue: asyncio.Queue = asyncio.Queue()
+# Option keys subscribed dynamically (so we can re-subscribe on reconnect)
+_extra_keys: list[str] = []
+
+
+async def subscribe(instrument_keys: list[str], mode: str = "full") -> None:
+    """Queue additional instruments to subscribe on the active WSS connection."""
+    global _extra_keys
+    _extra_keys = list(instrument_keys)
+    await _send_queue.put(_subscribe_msg(instrument_keys, mode))
+
 
 async def _get_wss_url(access_token: str) -> str:
     async with httpx.AsyncClient() as client:
@@ -75,17 +88,31 @@ async def run_feed(
                 ping_timeout=10,
             ) as ws:
                 await ws.send(_subscribe_msg(keys, mode))
+                if _extra_keys:
+                    await ws.send(_subscribe_msg(_extra_keys, mode))
                 feed_store.set_status("connected")
-                print(f"[feed] Subscribed {len(keys)} instruments in '{mode}' mode")
+                print(f"[feed] Subscribed {len(keys) + len(_extra_keys)} instruments in '{mode}' mode")
 
-                async for raw in ws:
-                    if isinstance(raw, bytes):
+                async def _sender() -> None:
+                    while True:
+                        msg = await _send_queue.get()
                         try:
-                            response = _decode(raw)
-                            for key, feed in response.feeds.items():
-                                await on_tick(key, feed)
-                        except Exception as e:
-                            print(f"[feed] Decode error: {e}")
+                            await ws.send(msg)
+                        finally:
+                            _send_queue.task_done()
+
+                sender = asyncio.ensure_future(_sender())
+                try:
+                    async for raw in ws:
+                        if isinstance(raw, bytes):
+                            try:
+                                response = _decode(raw)
+                                for key, feed in response.feeds.items():
+                                    await on_tick(key, feed)
+                            except Exception as e:
+                                print(f"[feed] Decode error: {e}")
+                finally:
+                    sender.cancel()
 
         except Exception as e:
             feed_store.set_status("disconnected")

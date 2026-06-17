@@ -1,9 +1,8 @@
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer
 from textual.reactive import reactive
-from textual.widgets import Static, DataTable
-from uptox.services import feed_store, sma_service
-from uptox.services.feed_store import TickData
+from textual.widgets import Static
+from uptox.services import feed_store, sma_service, option_chain_service
 from uptox.services.sma_service import TimeFrame, ALL_TFS
 
 NIFTY = "NSE_INDEX|Nifty 50"
@@ -49,6 +48,7 @@ class OverallAnalysisPanel(Static):
         smas  = sma_service.get_smas(NIFTY, TimeFrame.M5)
         sma20 = smas.get(20)
         sma50 = smas.get(50)
+        sma_ready = sma20 is not None and sma50 is not None
         sma_score = 0
         if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
         if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
@@ -65,28 +65,63 @@ class OverallAnalysisPanel(Static):
 
         total = sma_score + flow_score  # range: -5 … +5
 
+        # ── trend label ───────────────────────────────────────────────────
         if total >= 4:
-            trend, trend_color, option = "STRONG BULL", "green",      "CE"
+            trend, trend_color, option = "STRONG BULL", "green",  "CE"
         elif total >= 2:
-            trend, trend_color, option = "BULLISH",     "green",      "CE"
+            trend, trend_color, option = "BULLISH",     "green",  "CE"
         elif total <= -4:
-            trend, trend_color, option = "STRONG BEAR", "red",        "PE"
+            trend, trend_color, option = "STRONG BEAR", "red",    "PE"
         elif total <= -2:
-            trend, trend_color, option = "BEARISH",     "red",        "PE"
+            trend, trend_color, option = "BEARISH",     "red",    "PE"
         else:
-            trend, trend_color, option = "NEUTRAL",     "yellow",     "—"
+            trend, trend_color, option = "NEUTRAL",     "yellow", "—"
 
-        opt_color    = "green" if option == "CE" else "red" if option == "PE" else "dim white"
-        strike_str   = f"{atm} {option}" if atm and option != "—" else (f"{atm}" if atm else "—")
-        ltp_str      = f"{ltp:,.2f}" if ltp else "—"
+        # ── trade validity ────────────────────────────────────────────────
+        no_trade_reason = None
+
+        if not ltp:
+            no_trade_reason = "No live data"
+        elif not sma_ready:
+            no_trade_reason = "SMA loading..."
+        elif option == "—":
+            no_trade_reason = "Trend too weak"
+        elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
+            # SMA and order flow point opposite directions
+            no_trade_reason = f"SMA vs Flow divergence"
+        elif abs(flow_score) == 1 and abs(sma_score) <= 1:
+            # Both barely pointing one way — not enough conviction
+            no_trade_reason = "Weak conviction"
+
+        tradeable = no_trade_reason is None
+
+        # ── render ────────────────────────────────────────────────────────
+        opt_color  = "green" if option == "CE" else "red" if option == "PE" else "dim white"
+        strike_str = f"{atm} {option}" if atm and tradeable else (f"{atm}" if atm else "—")
+        ltp_str    = f"{ltp:,.2f}" if ltp else "—"
+
+        # Live buy price — WSS only, no REST fallback
+        buy_price = 0.0
+        if tradeable and atm:
+            key = option_chain_service.get_key(atm, option)
+            live = feed_store.get(key) if key else None
+            buy_price = live.ltp if live else 0.0
+
+        buy_str = f"{buy_price:.1f}" if buy_price else "—"
+
+        if tradeable:
+            action_line = f"[dim]{'Action':<12}[/] [bold {opt_color}]BUY {option} @ {atm}[/]"
+        else:
+            action_line = f"[dim]{'Action':<12}[/] [bold red]NO TRADE — {no_trade_reason}[/]"
 
         lines = [
             f"[bold cyan]▸ Overall Analysis[/]  [dim]LTP:[/] [yellow]{ltp_str}[/]",
-            f"[dim]{'Strike':<12}[/] [yellow]{strike_str}[/]",
-            f"[dim]{'Option':<12}[/] [bold {opt_color}]{option}[/]",
-            f"[dim]{'Buy Price':<12}[/] [dim white]— (pending OC)[/]",
+            action_line,
+            f"[dim]{'Strike':<12}[/] [yellow]{strike_str if tradeable else '—'}[/]",
+            f"[dim]{'Option':<12}[/] [bold {opt_color}]{option if tradeable else '—'}[/]",
+            f"[dim]{'Buy Price':<12}[/] [{opt_color}]{buy_str}[/]",
             f"[dim]{'Trend':<12}[/] [bold {trend_color}]{trend}[/]",
-            f"[dim]{'Score':<12}[/] [dim white]{total:+d} / 5  (SMA {sma_score:+d}  Flow {flow_score:+d})[/]",
+            f"[dim]{'Score':<12}[/] [dim white]{total:+d}/5  SMA {sma_score:+d}  Flow {flow_score:+d}[/]",
         ]
         self.update("\n".join(lines))
 
@@ -145,7 +180,7 @@ class OrderFlowPanel(Static):
         self.set_interval(1.0, self._refresh)
 
     def _refresh(self) -> None:
-        t: TickData | None = feed_store.get(NIFTY)
+        t = feed_store.get(NIFTY)
 
         if t:
             raw_delta = t.tbq - t.tsq
@@ -216,46 +251,98 @@ class BestEntryPanel(Static):
     def _refresh(self) -> None:
         t = feed_store.get(NIFTY)
         ltp = t.ltp if t else 0.0
-        # Nearest ATM strike (rounded to nearest 50)
         atm = round(ltp / 50) * 50 if ltp else 0
-        atm_str = f"{atm} CE" if atm else "—"
+
+        # Determine CE or PE from order flow + SMA (same logic as OverallAnalysisPanel)
+        smas = sma_service.get_smas(NIFTY, TimeFrame.M5)
+        sma20, sma50 = smas.get(20), smas.get(50)
+        sma_score = 0
+        if ltp and sma20: sma_score += 1 if ltp > sma20 else -1
+        if ltp and sma50: sma_score += 1 if ltp > sma50 else -1
+        cum = feed_store.cum_delta(NIFTY)
+        raw_delta = (t.tbq - t.tsq) if t else 0.0
+        flow_score = (1 if raw_delta > 0 else -1 if raw_delta < 0 else 0) + \
+                     (1 if cum > 0 else -1 if cum < 0 else 0)
+        opt_type = "CE" if (sma_score + flow_score) > 0 else "PE" if (sma_score + flow_score) < 0 else None
+
+        # Live option LTP — WSS only
+        buy_price = 0.0
+        if atm and opt_type:
+            key = option_chain_service.get_key(atm, opt_type)
+            live = feed_store.get(key) if key else None
+            buy_price = live.ltp if live else 0.0
+
+        target = round(buy_price * 1.5, 1) if buy_price else 0.0
+        sl     = round(buy_price * 0.6, 1) if buy_price else 0.0
+        expiry = option_chain_service.get_expiry() or "—"
+
+        opt_color = "green" if opt_type == "CE" else "red" if opt_type == "PE" else "dim white"
 
         self.update(_kv("▸ Best Entry", [
-            ("Spot",     f"{ltp:,.2f}" if ltp else "—",  "white"),
-            ("ATM Strike", atm_str,                        "yellow"),
-            ("Buy Price", "Pending OC feed",               "dim white"),
-            ("Target",    "Pending OC feed",               "dim white"),
-            ("SL",        "Pending OC feed",               "dim white"),
-            ("Expiry",    "27-Jun-2026",                   "dim white"),
+            ("Spot",       f"{ltp:,.2f}" if ltp else "—",                    "white"),
+            ("ATM Strike", f"{atm} {opt_type}" if atm and opt_type else "—",  "yellow"),
+            ("Option",     opt_type or "—",                                   opt_color),
+            ("Buy Price",  f"{buy_price:.1f}" if buy_price else "—",          opt_color),
+            ("Target",     f"{target:.1f}" if target else "—",                "green"),
+            ("SL",         f"{sl:.1f}" if sl else "—",                        "red"),
+            ("Expiry",     expiry if expiry else "—",                          "dim white"),
         ]))
 
 
 class GreeksTable(Static):
-    DEFAULT_CSS = """
-    GreeksTable { height: auto; }
-    GreeksTable DataTable { height: auto; }
-    """
-
-    def compose(self) -> ComposeResult:
-        yield Static("[bold cyan]▸ Greeks — 24500 CE  |  27-Jun-2026[/]", id="greeks-title")
-        yield DataTable(id="greeks-table", show_cursor=False)
-
     def on_mount(self) -> None:
-        table = self.query_one("#greeks-table", DataTable)
-        table.add_columns("Strike", "Delta", "Gamma", "Theta", "Vega", "IV%", "OI", "OI Chg")
-        table.add_rows([
-            ("24200 CE", "0.68", "0.0031", "-18.2", "12.4", "18.5%", "2,12,500", "+18,900"),
-            ("24300 CE", "0.61", "0.0034", "-19.5", "13.1", "17.9%", "1,56,000", "+12,400"),
-            ("24400 CE", "0.54", "0.0038", "-20.8", "13.8", "17.2%", "1,89,000", "+9,600"),
-            ("24500 CE", "0.45", "0.0041", "-22.1", "14.2", "16.8%", "2,45,600", "+21,200"),
-            ("24600 CE", "0.37", "0.0039", "-21.4", "13.9", "17.1%", "1,45,200", "+6,800"),
-        ])
-        # Greeks will update from option chain feed once NFO instruments subscribed
+        self._refresh()
         self.set_interval(1.0, self._refresh)
 
     def _refresh(self) -> None:
-        # placeholder until option chain WSS instruments are wired
-        pass
+        t = feed_store.get(NIFTY)
+        ltp = t.ltp if t else 0.0
+        expiry = option_chain_service.get_expiry()
+
+        if not ltp or not expiry:
+            self.update("[bold cyan]▸ Option Chain[/]\n[dim white]Waiting for data...[/]")
+            return
+
+        atm = round(ltp / 50) * 50
+        strikes = option_chain_service.get_atm_strikes(ltp, n=5)
+
+        hdr = (
+            f"[bold cyan]▸ Option Chain[/]  "
+            f"[dim]ATM:[/][yellow]{atm}[/]  "
+            f"[dim]Expiry:[/][white]{expiry}[/]\n"
+            f"[dim]{'CE LTP':>8} {'CΔ':>6} {'C OI':>7}  {'Strike':^6}  {'PE LTP':>8} {'PΔ':>6} {'P OI':>7}[/]"
+        )
+        rows = [hdr]
+
+        for strike in sorted(strikes):
+            ce_key = option_chain_service.get_key(strike, "CE")
+            pe_key = option_chain_service.get_key(strike, "PE")
+
+            # WSS live ticks only — show "—" until first tick received
+            ce_t = feed_store.get(ce_key) if ce_key else None
+            pe_t = feed_store.get(pe_key) if pe_key else None
+
+            ce_ltp   = ce_t.ltp   if ce_t else None
+            ce_delta = ce_t.delta if ce_t else None
+            ce_oi    = ce_t.oi    if ce_t else None
+            pe_ltp   = pe_t.ltp   if pe_t else None
+            pe_delta = pe_t.delta if pe_t else None
+            pe_oi    = pe_t.oi    if pe_t else None
+
+            atm_mark = "bold yellow" if strike == atm else "white"
+
+            def _ltp(v):  return f"{v:8.1f}"   if v is not None else f"{'—':>8}"
+            def _dlt(v):  return f"{v:+6.3f}"  if v is not None else f"{'—':>6}"
+            def _oi(v):   return f"{v/1e5:6.1f}L" if v is not None else f"{'—':>7}"
+
+            row = (
+                f"[green]{_ltp(ce_ltp)} {_dlt(ce_delta)} {_oi(ce_oi)}[/]"
+                f"  [{atm_mark}]{strike:^6}[/]  "
+                f"[red]{_ltp(pe_ltp)} {_dlt(pe_delta)} {_oi(pe_oi)}[/]"
+            )
+            rows.append(row)
+
+        self.update("\n".join(rows))
 
 
 class DashboardScreen(ScrollableContainer):

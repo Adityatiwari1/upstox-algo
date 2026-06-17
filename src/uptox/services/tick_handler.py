@@ -1,7 +1,10 @@
 """Converts raw proto Feed → TickData and writes to feed_store."""
+import asyncio
 from uptox.api import market_feed_pb2 as proto
-from uptox.services import feed_store, sma_service
+from uptox.services import feed_store, sma_service, option_chain_service
 from uptox.services.feed_store import TickData
+
+_NIFTY = "NSE_INDEX|Nifty 50"
 
 
 async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
@@ -59,3 +62,8 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
     feed_store.update(instrument_key, tick)
     if tick.ltp:
         sma_service.update_realtime(instrument_key, tick.ltp)
+        if instrument_key == _NIFTY and option_chain_service.atm_changed(tick.ltp):
+            keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
+            if keys:
+                from uptox.api.feed_client import subscribe
+                asyncio.create_task(subscribe(keys))

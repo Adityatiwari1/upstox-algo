@@ -31,6 +31,7 @@ class UptoxApp(App):
         if settings.access_token:
             self.run_worker(self._start_feed(), exclusive=True, name="market-feed")
             self.run_worker(self._prime_smas(), name="sma-prime")
+            self.run_worker(self._prime_option_chain(), name="oc-prime")
 
     async def _start_feed(self) -> None:
         from uptox.api.feed_client import run_feed
@@ -52,3 +53,15 @@ class UptoxApp(App):
             fetch_and_prime(key, settings.access_token)
             for key in DEFAULT_INSTRUMENTS
         ))
+
+    async def _prime_option_chain(self) -> None:
+        from uptox.services.option_chain_service import fetch_and_prime, get_keys_for_atm
+        from uptox.services import feed_store
+        from uptox.api.feed_client import subscribe
+        await fetch_and_prime(settings.access_token)
+        # Subscribe ATM ±5 immediately using current LTP (if feed already running)
+        t = feed_store.get("NSE_INDEX|Nifty 50")
+        if t and t.ltp:
+            keys = get_keys_for_atm(t.ltp, n=5)
+            if keys:
+                await subscribe(keys)
