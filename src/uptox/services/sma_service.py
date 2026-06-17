@@ -57,7 +57,7 @@ _FETCH_DAYS: dict[TimeFrame, int] = {
     TimeFrame.M5:  10,    # ~5 trading days → 375 one-min bars/day → 1875 bars
     TimeFrame.M15: 25,    # ~15 trading days → plenty for 200 fifteen-min bars
     TimeFrame.H1:  80,    # ~55 trading days
-    TimeFrame.H4:  300,   # ~200 trading days
+    TimeFrame.H4:  180,   # fetched in 2×90-day chunks (Upstox 30min limit ~93 days)
 }
 
 # Candle = (open, high, low, close)
@@ -105,12 +105,16 @@ def _compute(candles: list[Candle]) -> dict[int, float | None]:
 
 # ── API fetch ─────────────────────────────────────────────────────────────────
 
-async def _fetch_raw(
-    instrument_key: str, interval: str, days_back: int, access_token: str
+_30MIN_CHUNK = 90  # Upstox rejects 30minute requests beyond ~93 calendar days
+
+import logging as _logging
+_log = _logging.getLogger(__name__)
+
+
+async def _fetch_range(
+    instrument_key: str, interval: str, to_d: date, frm_d: date, access_token: str
 ) -> list:
-    to_d  = date.today()
-    frm_d = to_d - timedelta(days=days_back)
-    url   = _HIST_URL.format(
+    url = _HIST_URL.format(
         key=quote(instrument_key, safe=""),
         interval=interval,
         to=to_d.isoformat(),
@@ -120,19 +124,35 @@ async def _fetch_raw(
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(
                 url,
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Accept": "application/json",
-                },
+                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
             )
-        import logging; _log = logging.getLogger(__name__)
         if resp.status_code != 200:
             _log.warning("hist %s %s for %s: %s", interval, resp.status_code, instrument_key, resp.text[:200])
             return []
         return resp.json().get("data", {}).get("candles", [])
     except Exception as e:
-        import logging; logging.getLogger(__name__).error("fetch %s %s: %s", instrument_key, interval, e)
+        _log.error("fetch %s %s: %s", instrument_key, interval, e)
         return []
+
+
+async def _fetch_raw(
+    instrument_key: str, interval: str, days_back: int, access_token: str
+) -> list:
+    today = date.today()
+    if interval == "30minute" and days_back > _30MIN_CHUNK:
+        # Fetch in chunks and merge (Upstox rejects >~93-day range for 30min)
+        all_rows: list = []
+        cur_to = today
+        remaining = days_back
+        while remaining > 0:
+            chunk = min(_30MIN_CHUNK, remaining)
+            cur_frm = cur_to - timedelta(days=chunk)
+            rows = await _fetch_range(instrument_key, interval, cur_to, cur_frm, access_token)
+            all_rows.extend(rows)
+            cur_to = cur_frm - timedelta(days=1)
+            remaining -= chunk
+        return all_rows
+    return await _fetch_range(instrument_key, interval, today, today - timedelta(days=days_back), access_token)
 
 
 # ── public API ────────────────────────────────────────────────────────────────
@@ -180,6 +200,34 @@ def update_realtime(instrument_key: str, ltp: float) -> None:
 
 def get_smas(instrument_key: str, tf: TimeFrame) -> dict[int, float | None]:
     return _smas.get((instrument_key, tf), {p: None for p in PERIODS})
+
+
+_current_tf: TimeFrame = TimeFrame.M5
+
+
+def set_current_tf(tf: TimeFrame) -> None:
+    global _current_tf
+    _current_tf = tf
+
+
+def get_current_tf() -> TimeFrame:
+    return _current_tf
+
+
+def get_last_close(instrument_key: str, tf: TimeFrame = TimeFrame.M5) -> float:
+    """Last bar close for given timeframe — fallback price when feed is offline."""
+    candles = _candles.get((instrument_key, tf))
+    if candles:
+        return candles[-1][3]  # (O, H, L, C) → index 3
+    return 0.0
+
+
+def get_prev_close(instrument_key: str, tf: TimeFrame = TimeFrame.M5) -> float:
+    """Second-to-last bar close — previous period's close for change calculation."""
+    candles = _candles.get((instrument_key, tf))
+    if candles and len(candles) >= 2:
+        return candles[-2][3]
+    return 0.0
 
 
 def get_sma(instrument_key: str, tf: TimeFrame, period: int) -> float | None:

@@ -58,7 +58,7 @@ class OptionChainScreen(Static):
 
     def _refresh(self) -> None:
         t = feed_store.get(NIFTY)
-        ltp = t.ltp if t else 0.0
+        ltp = (t.ltp if t else 0.0) or option_chain_service.get_spot()
         expiry = option_chain_service.get_expiry()
         expiries = option_chain_service.get_all_expiries()
 
@@ -70,10 +70,11 @@ class OptionChainScreen(Static):
                 sel.value = expiry
             self._expiries_loaded = True
 
-        # Update spot label
-        self.query_one("#spot-label", Label).update(
-            f"{ltp:,.2f}" if ltp else "—"
-        )
+        # Update spot label (mark snapshot when no live feed)
+        spot_str = f"{ltp:,.2f}" if ltp else "—"
+        if ltp and not (t and t.ltp):
+            spot_str += " [snap]"
+        self.query_one("#spot-label", Label).update(spot_str)
 
         if not ltp or not expiry:
             return
@@ -88,24 +89,31 @@ class OptionChainScreen(Static):
             ce_key = option_chain_service.get_key(strike, "CE")
             pe_key = option_chain_service.get_key(strike, "PE")
 
-            ce = feed_store.get(ce_key) if ce_key else None
-            pe = feed_store.get(pe_key) if pe_key else None
+            # Live feed preferred; fall back to REST chain snapshot
+            ce_t  = feed_store.get(ce_key) if ce_key else None
+            pe_t  = feed_store.get(pe_key) if pe_key else None
+            ce_sn = option_chain_service.get_option(strike, "CE") or {}
+            pe_sn = option_chain_service.get_option(strike, "PE") or {}
 
-            def _ltp(v):    return f"{v:.1f}"   if v else "—"
+            def _get(tick, sn, field):
+                live = getattr(tick, field, None) if tick else None
+                return live if live else sn.get(field)
+
+            def _ltp(v):    return f"{v:.1f}"       if v else "—"
             def _oi(v):     return f"{v/1000:.1f}K" if v else "—"
-            def _oichg(v):  return f"{v:+,.0f}" if v else "—"
-            def _iv(v):     return f"{v:.1f}%"  if v else "—"
+            def _oichg(v):  return f"{v:+,.0f}"     if v else "—"
+            def _iv(v):     return f"{v:.1f}%"       if v else "—"
 
             strike_label = f"★ {strike} ATM" if strike == atm else str(strike)
 
             table.add_row(
-                _oi(ce.oi if ce else None),
-                _oichg(ce.change_oi if ce else None),
-                _ltp(ce.ltp if ce else None),
-                _iv(ce.iv if ce else None),
+                _oi(_get(ce_t, ce_sn, "oi")),
+                _oichg(_get(ce_t, ce_sn, "change_oi")),
+                _ltp(_get(ce_t, ce_sn, "ltp")),
+                _iv(_get(ce_t, ce_sn, "iv")),
                 strike_label,
-                _iv(pe.iv if pe else None),
-                _ltp(pe.ltp if pe else None),
-                _oichg(pe.change_oi if pe else None),
-                _oi(pe.oi if pe else None),
+                _iv(_get(pe_t, pe_sn, "iv")),
+                _ltp(_get(pe_t, pe_sn, "ltp")),
+                _oichg(_get(pe_t, pe_sn, "change_oi")),
+                _oi(_get(pe_t, pe_sn, "oi")),
             )

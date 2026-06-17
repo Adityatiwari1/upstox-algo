@@ -2,7 +2,7 @@
 Upstox WebSocket market data feed client.
 
 Flow:
-  1. GET /feed/market-data-feed/authorize  → wss URL (one-time)
+  1. GET /v3/feed/market-data-feed/authorize  → wss URL (one-time)
   2. Connect WSS → send subscribe message
   3. Receive protobuf frames → decode → emit via callback
 """
@@ -15,7 +15,7 @@ from uptox.api import market_feed_pb2 as proto
 from uptox.config.settings import settings
 from uptox.services import feed_store
 
-AUTHORIZE_URL = "https://api.upstox.com/v2/feed/market-data-feed/authorize"
+AUTHORIZE_URL = "https://api.upstox.com/v3/feed/market-data-feed/authorize"
 
 DEFAULT_INSTRUMENTS = [
     "NSE_INDEX|Nifty 50",

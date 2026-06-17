@@ -43,9 +43,9 @@ Create a `.env` file in the project root:
 API_KEY=
 API_SECRET=
 REDIRECT_URL=http://127.0.0.1:8000/callback
-MOBILE=
-PASSWORD=
-TOTP_SECRET=        # optional — enables headless login
+MOBILE=             # 10-digit mobile number
+PASSWORD=           # 6-digit Upstox PIN (not account password)
+TOTP_SECRET=        # base32 TOTP seed — enables fully headless login
 ACCESS_TOKEN=       # auto-filled after first login
 ```
 

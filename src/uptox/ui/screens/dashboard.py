@@ -41,13 +41,22 @@ class OverallAnalysisPanel(Static):
     _last_tradeable: bool | None = None
     _last_option: str | None = None
 
+    # ── breakout-watch state ───────────────────────────────────────────────────
+    _watch: str   = "IDLE"   # "IDLE" | "WATCH_CE" | "WATCH_PE"
+    _bk_ltp: float = 0.0    # Nifty LTP at the moment score crossed ±2
+    _bk_t: float   = 0.0    # time.time() when watch started
+    _RETEST_PTS: int = 20   # Nifty must return within 20pts of breakout level
+    _MAX_WAIT:   int = 45   # seconds before momentum entry kicks in
+
     def on_mount(self) -> None:
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
     def _refresh(self) -> None:
+        import time
         t = feed_store.get(NIFTY)
-        ltp = t.ltp if t else 0.0
+        live_ltp = t.ltp if t else 0.0
+        ltp = live_ltp or option_chain_service.get_spot()
 
         # ATM strike (nearest 50)
         atm = round(ltp / 50) * 50 if ltp else 0
@@ -87,18 +96,15 @@ class OverallAnalysisPanel(Static):
 
         # ── trade validity ────────────────────────────────────────────────
         no_trade_reason = None
-
-        if not ltp:
+        if not live_ltp:
             no_trade_reason = "No live data"
         elif not sma_ready:
             no_trade_reason = "SMA loading..."
         elif option == "—":
             no_trade_reason = "Trend too weak"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
-            # SMA and order flow point opposite directions
-            no_trade_reason = f"SMA vs Flow divergence"
+            no_trade_reason = "SMA vs Flow divergence"
         elif abs(flow_score) == 1 and abs(sma_score) <= 1:
-            # Both barely pointing one way — not enough conviction
             no_trade_reason = "Weak conviction"
 
         tradeable = no_trade_reason is None
@@ -111,59 +117,102 @@ class OverallAnalysisPanel(Static):
                      "TRADE" if tradeable else "NO TRADE", total)
         self._last_tradeable = tradeable
 
-        # ── auto paper trade ──────────────────────────────────────────────
-        key  = option_chain_service.get_key(atm, option) if (atm and option != "—") else None
+        # ── option key + live price ───────────────────────────────────────
+        key      = option_chain_service.get_key(atm, option) if (atm and option != "—") else None
         live_opt = feed_store.get(key) if key else None
         cur_price = live_opt.ltp if live_opt else 0.0
 
+        # ── breakout watch + retest entry logic ───────────────────────────
+        watch_tag = ""   # status line shown in panel
+        entry_type: str | None = None  # "retest" | "momentum" | None
+
         if tradeable and cur_price:
             direction_flip = (self._last_option is not None and self._last_option != option)
-            if direction_flip and trade_book.has_open_trade():
-                trade_book.close_trade(cur_price, "direction_change")
+            if direction_flip:
+                if trade_book.has_open_trade():
+                    trade_book.close_trade(cur_price, "direction_change")
+                self._watch = "IDLE"  # reset watch on direction flip
+
             if not trade_book.has_open_trade():
-                delta = live_opt.delta if live_opt else None
-                lvl   = capital_service.levels(cur_price, delta)
-                sz    = capital_service.sizing(cur_price)
-                trade_book.open_trade(
-                    strike=atm, option=option,
-                    expiry=option_chain_service.get_expiry() or "—",
-                    entry_price=cur_price,
-                    lots=sz["lots"], invested=sz["invested"],
-                    sl=lvl["sl"], target=lvl["target"],
-                    option_key=key or "", delta=delta, spot=ltp,
-                )
-        elif not tradeable and trade_book.has_open_trade() and self._last_tradeable:
-            ot = trade_book.get_open_trade()
-            exit_key  = ot.get("option_key", "") if ot else ""
-            exit_live = feed_store.get(exit_key) if exit_key else None
-            exit_p    = exit_live.ltp if exit_live else (ot["entry_price"] if ot else 0.0)
-            trade_book.close_trade(exit_p, "signal_flip")
+                watch_dir = f"WATCH_{option}"
+
+                if self._watch == "IDLE":
+                    # Breakout just confirmed — start watching for retest
+                    self._watch  = watch_dir
+                    self._bk_ltp = ltp
+                    self._bk_t   = time.time()
+                    log.info("Breakout watch started: %s @ Nifty %.1f", option, ltp)
+
+                elif self._watch == watch_dir:
+                    elapsed  = time.time() - self._bk_t
+                    retest   = abs(ltp - self._bk_ltp) <= self._RETEST_PTS
+                    timed_out = elapsed >= self._MAX_WAIT
+
+                    if retest:
+                        entry_type = "retest"
+                    elif timed_out:
+                        entry_type = "momentum"
+                    else:
+                        remaining = int(self._MAX_WAIT - elapsed)
+                        dist = abs(ltp - self._bk_ltp)
+                        watch_tag = (
+                            f"  [bold yellow]⟳ WATCH {option}[/]"
+                            f" [dim]retest <{self._RETEST_PTS}pt ({dist:.0f}pt away)"
+                            f"  {remaining}s[/]"
+                        )
+
+                    if entry_type:
+                        delta = live_opt.delta if live_opt else None
+                        lvl   = capital_service.levels(cur_price, delta)
+                        sz    = capital_service.sizing(cur_price)
+                        trade_book.open_trade(
+                            strike=atm, option=option,
+                            expiry=option_chain_service.get_expiry() or "—",
+                            entry_price=cur_price,
+                            lots=sz["lots"], invested=sz["invested"],
+                            sl=lvl["sl"], target=lvl["target"],
+                            option_key=key or "", delta=delta, spot=ltp,
+                        )
+                        log.info("Trade opened (%s): %s @ %.1f", entry_type, option, cur_price)
+                        self._watch = "IDLE"
+
+        elif not tradeable:
+            if self._watch != "IDLE":
+                log.info("Breakout watch cancelled — signal dropped")
+                self._watch = "IDLE"
+            if trade_book.has_open_trade() and self._last_tradeable:
+                ot = trade_book.get_open_trade()
+                exit_key  = ot.get("option_key", "") if ot else ""
+                exit_live = feed_store.get(exit_key) if exit_key else None
+                exit_p    = exit_live.ltp if exit_live else (ot["entry_price"] if ot else 0.0)
+                trade_book.close_trade(exit_p, "signal_flip")
 
         self._last_option = option if tradeable else self._last_option
 
         # ── live buy price ────────────────────────────────────────────────
         buy_price = 0.0
         if tradeable and atm:
-            key  = option_chain_service.get_key(atm, option)
-            live = feed_store.get(key) if key else None
+            live = feed_store.get(option_chain_service.get_key(atm, option) or "") if atm else None
             buy_price = live.ltp if live else 0.0
 
         # ── PCR + Max Pain ────────────────────────────────────────────────
-        pcr      = option_chain_service.get_pcr()
-        max_pain = option_chain_service.get_max_pain()
-        pcr_str  = f"{pcr:.2f}" if pcr else "—"
-        pcr_color = ("green" if pcr and pcr > 1.2
-                     else "red" if pcr and pcr < 0.8
-                     else "yellow")
-        mp_str  = str(max_pain) if max_pain else "—"
+        pcr       = option_chain_service.get_pcr()
+        max_pain  = option_chain_service.get_max_pain()
+        pcr_str   = f"{pcr:.2f}" if pcr else "—"
+        pcr_color = ("green" if pcr and pcr > 1.2 else "red" if pcr and pcr < 0.8 else "yellow")
+        mp_str    = str(max_pain) if max_pain else "—"
 
         # ── render ────────────────────────────────────────────────────────
         opt_color  = "green" if option == "CE" else "red" if option == "PE" else "dim white"
         strike_str = f"{atm} {option}" if atm and tradeable else (f"{atm}" if atm else "—")
-        ltp_str    = f"{ltp:,.2f}" if ltp else "—"
+        ltp_str    = (f"{ltp:,.2f}" if live_ltp else f"{ltp:,.2f} [snap]") if ltp else "—"
         buy_str    = f"{buy_price:.1f}" if buy_price else "—"
 
-        if tradeable:
+        if self._watch != "IDLE" and not entry_type:
+            action_line = (
+                f"[dim]{'Action':<12}[/] [bold {opt_color}]BUY {option} @ {atm}[/]{watch_tag}"
+            )
+        elif tradeable:
             action_line = f"[dim]{'Action':<12}[/] [bold {opt_color}]BUY {option} @ {atm}[/]"
         else:
             action_line = f"[dim]{'Action':<12}[/] [bold red]NO TRADE — {no_trade_reason}[/]"
@@ -192,6 +241,7 @@ class SMAPanel(Static):
     def cycle_tf(self) -> None:
         idx = ALL_TFS.index(self.current_tf)
         self.current_tf = ALL_TFS[(idx + 1) % len(ALL_TFS)]
+        sma_service.set_current_tf(self.current_tf)
 
     def watch_current_tf(self, _: TimeFrame) -> None:
         self._refresh()
@@ -204,8 +254,10 @@ class SMAPanel(Static):
         tf = self.current_tf
 
         def vs(sma: float | None) -> tuple[str, str]:
-            if not ltp or sma is None:
+            if sma is None:
                 return "—", "dim white"
+            if not ltp:
+                return f"{sma:,.1f}", "dim white"  # historical value, no live comparison
             if ltp > sma:
                 return f"{sma:,.1f}  ↑", "green"
             return f"{sma:,.1f}  ↓", "red"
@@ -285,27 +337,35 @@ class TechnicalPanel(Static):
         self.set_interval(1.0, self._refresh)
 
     def _refresh(self) -> None:
-        t = feed_store.get(NIFTY)
-        ltp   = t.ltp if t else 0.0
-        close = t.close if t else 0.0
-        chg   = ltp - close if (ltp and close) else 0.0
-        chg_p = (chg / close * 100) if close else 0.0
-        chg_color = "green" if chg >= 0 else "red"
-        chg_str = f"{chg:+.2f} ({chg_p:+.2f}%)" if ltp else "—"
+        tf  = sma_service.get_current_tf()
+        t   = feed_store.get(NIFTY)
 
-        from uptox.services.sma_service import TimeFrame as TF
-        pattern = pattern_service.detect(NIFTY, TF.M5)
+        live_ltp   = t.ltp   if (t and t.ltp)   else 0.0
+        live_close = t.close if (t and t.close)  else 0.0
+
+        # Fallback to candle history when offline
+        ltp   = live_ltp   or sma_service.get_last_close(NIFTY, tf)
+        prev  = live_close or sma_service.get_prev_close(NIFTY, tf)
+        is_live = bool(live_ltp)
+
+        chg   = ltp - prev if (ltp and prev) else 0.0
+        chg_p = (chg / prev * 100) if prev else 0.0
+        chg_color = "green" if chg >= 0 else "red"
+        chg_str = f"{chg:+.2f} ({chg_p:+.2f}%)" if (ltp and prev) else "—"
+        ltp_str = (f"{ltp:,.2f}" if is_live else f"{ltp:,.2f} [dim](last)[/]") if ltp else "—"
+
+        pattern = pattern_service.detect(NIFTY, tf)
         pat_color = (
             "green" if "Bull" in pattern or "Hammer" in pattern else
-            "red"   if "Bear" in pattern or "Shoot" in pattern  else
+            "red"   if "Bear" in pattern or "Shoot"  in pattern else
             "yellow"
         )
 
-        self.update(_kv("▸ Technical", [
-            ("LTP",        f"{ltp:,.2f}" if ltp else "—",      "white"),
-            ("Change",     chg_str,                              chg_color),
-            ("Prev Close", f"{close:,.2f}" if close else "—",   "dim white"),
-            ("Pattern",    pattern,                              pat_color),
+        self.update(_kv(f"▸ Technical  [dim]({tf.value})[/]", [
+            ("LTP",        ltp_str,                               "white"),
+            ("Change",     chg_str,                               chg_color),
+            ("Prev Close", f"{prev:,.2f}" if prev else "—",       "dim white"),
+            ("Pattern",    pattern,                                pat_color),
         ]))
 
 
@@ -316,7 +376,7 @@ class BestEntryPanel(Static):
 
     def _refresh(self) -> None:
         t = feed_store.get(NIFTY)
-        ltp = t.ltp if t else 0.0
+        ltp = (t.ltp if t else 0.0) or option_chain_service.get_spot()
         atm = round(ltp / 50) * 50 if ltp else 0
 
         # Determine CE or PE from order flow + SMA (same logic as OverallAnalysisPanel)
@@ -391,20 +451,24 @@ class GreeksTable(Static):
 
     def _refresh(self) -> None:
         t = feed_store.get(NIFTY)
-        ltp = t.ltp if t else 0.0
+        ltp = (t.ltp if t else 0.0) or option_chain_service.get_spot()
         expiry = option_chain_service.get_expiry()
 
-        if not ltp or not expiry:
+        if not expiry:
             self.update("[bold cyan]▸ Option Chain[/]\n[dim white]Waiting for data...[/]")
+            return
+        if not ltp:
+            self.update("[bold cyan]▸ Option Chain[/]\n[dim white]Waiting for spot price...[/]")
             return
 
         atm = round(ltp / 50) * 50
         strikes = option_chain_service.get_atm_strikes(ltp, n=5)
 
+        spot_label = "" if (t and t.ltp) else "  [dim](snapshot)[/]"
         hdr = (
             f"[bold cyan]▸ Option Chain[/]  "
             f"[dim]ATM:[/][yellow]{atm}[/]  "
-            f"[dim]Expiry:[/][white]{expiry}[/]\n"
+            f"[dim]Expiry:[/][white]{expiry}[/]{spot_label}\n"
             f"[dim]{'CE LTP':>8} {'CΔ':>6} {'C OI':>7}  {'Strike':^6}  {'PE LTP':>8} {'PΔ':>6} {'P OI':>7}[/]"
         )
         rows = [hdr]
@@ -413,16 +477,18 @@ class GreeksTable(Static):
             ce_key = option_chain_service.get_key(strike, "CE")
             pe_key = option_chain_service.get_key(strike, "PE")
 
-            # WSS live ticks only — show "—" until first tick received
-            ce_t = feed_store.get(ce_key) if ce_key else None
-            pe_t = feed_store.get(pe_key) if pe_key else None
+            # Live tick preferred; fall back to REST chain snapshot
+            ce_t  = feed_store.get(ce_key) if ce_key else None
+            pe_t  = feed_store.get(pe_key) if pe_key else None
+            ce_sn = option_chain_service.get_option(strike, "CE") or {}
+            pe_sn = option_chain_service.get_option(strike, "PE") or {}
 
-            ce_ltp   = ce_t.ltp   if ce_t else None
-            ce_delta = ce_t.delta if ce_t else None
-            ce_oi    = ce_t.oi    if ce_t else None
-            pe_ltp   = pe_t.ltp   if pe_t else None
-            pe_delta = pe_t.delta if pe_t else None
-            pe_oi    = pe_t.oi    if pe_t else None
+            ce_ltp   = (ce_t.ltp   if ce_t else None) or (ce_sn.get("ltp") or None)
+            ce_delta = (ce_t.delta if ce_t else None) or (ce_sn.get("delta") or None)
+            ce_oi    = (ce_t.oi    if ce_t else None) or (ce_sn.get("oi") or None)
+            pe_ltp   = (pe_t.ltp   if pe_t else None) or (pe_sn.get("ltp") or None)
+            pe_delta = (pe_t.delta if pe_t else None) or (pe_sn.get("delta") or None)
+            pe_oi    = (pe_t.oi    if pe_t else None) or (pe_sn.get("oi") or None)
 
             atm_mark = "bold yellow" if strike == atm else "white"
 
@@ -455,19 +521,28 @@ class LivePricePanel(Static):
         nt  = feed_store.get(NIFTY)
         bnt = feed_store.get(BANK)
 
-        def _price_block(label: str, tick) -> str:
-            if not tick or not tick.ltp:
+        def _price_block(label: str, key: str, tick) -> str:
+            live_ltp  = tick.ltp if (tick and tick.ltp) else 0.0
+            chain_spot = option_chain_service.get_spot() if key == NIFTY else 0.0
+            fallback   = chain_spot or sma_service.get_last_close(key)
+            ltp        = live_ltp or fallback
+            if not ltp:
                 return f"[dim]{label}:[/] [dim white]—[/]"
-            ltp   = tick.ltp
-            close = tick.close or 0.0
-            chg   = ltp - close if close else 0.0
-            pct   = chg / close * 100 if close else 0.0
-            col   = "bold green" if chg >= 0 else "bold red"
-            arrow = "▲" if chg >= 0 else "▼"
+            is_live = bool(live_ltp)
+            close   = (tick.close if (tick and tick.close) else 0.0)
+            chg     = ltp - close if (is_live and close) else 0.0
+            pct     = chg / close * 100 if close else 0.0
+            col     = "bold green" if chg >= 0 else "bold red"
+            arrow   = "▲" if chg >= 0 else "▼"
+            if is_live:
+                return (
+                    f"[dim]{label}[/]  "
+                    f"[{col}]{ltp:,.2f}[/]"
+                    f"  [{col}]{arrow} {chg:+.2f}  ({pct:+.2f}%)[/]"
+                )
             return (
                 f"[dim]{label}[/]  "
-                f"[{col}]{ltp:,.2f}[/]"
-                f"  [{col}]{arrow} {chg:+.2f}  ({pct:+.2f}%)[/]"
+                f"[dim white]{ltp:,.2f}[/] [dim](last)[/]"
             )
 
         status       = feed_store.get_status()
@@ -475,8 +550,8 @@ class LivePricePanel(Static):
 
         self.update(
             f"[{status_color}]●[/] [dim]{now}[/]"
-            f"     {_price_block('NIFTY 50', nt)}"
-            f"     {_price_block('BANK NIFTY', bnt)}"
+            f"     {_price_block('NIFTY 50',   NIFTY, nt)}"
+            f"     {_price_block('BANK NIFTY', BANK,  bnt)}"
         )
 
 

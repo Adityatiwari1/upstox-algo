@@ -7,8 +7,11 @@ Option chain service.
 """
 from __future__ import annotations
 
+import logging
 import httpx
 from datetime import date
+
+_log = logging.getLogger(__name__)
 
 NIFTY_KEY = "NSE_INDEX|Nifty 50"
 _OC_URL       = "https://api.upstox.com/v2/option/chain"
@@ -22,6 +25,7 @@ _key_map: dict[str, tuple[int, str]] = {}
 _expiry: str = ""
 _all_expiries: list[str] = []
 _subscribed_atm: int = 0
+_spot_price: float = 0.0  # last underlying_spot_price from REST chain response
 
 
 # ── fetch helpers ─────────────────────────────────────────────────────────────
@@ -34,13 +38,23 @@ async def _fetch_expiries(access_token: str) -> list[str]:
             headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
         )
     r.raise_for_status()
-    all_exp: list[str] = r.json().get("data", [])
+    raw = r.json().get("data", [])
     today = date.today().isoformat()
-    return sorted(e for e in all_exp if e >= today)
+    # API returns list of contract objects with an "expiry" field (not bare strings)
+    if raw and isinstance(raw[0], dict):
+        expiries = sorted(set(
+            item["expiry"] for item in raw
+            if item.get("expiry", "") >= today
+        ))
+    else:
+        expiries = sorted(e for e in raw if isinstance(e, str) and e >= today)
+    _log.info("Fetched %d future expiries: %s", len(expiries), expiries[:5])
+    return expiries
 
 
 async def _load_chain(expiry: str, access_token: str) -> None:
     """Fetch and replace _chain/_key_map for the given expiry."""
+    global _spot_price
     async with httpx.AsyncClient(timeout=20) as c:
         r = await c.get(
             _OC_URL,
@@ -52,7 +66,11 @@ async def _load_chain(expiry: str, access_token: str) -> None:
     _chain.clear()
     _key_map.clear()
 
-    for row in r.json().get("data", []):
+    rows = r.json().get("data", [])
+    if rows:
+        _spot_price = float(rows[0].get("underlying_spot_price", 0) or 0)
+
+    for row in rows:
         strike = int(row["strike_price"])
         for opt_type, field in (("CE", "call_options"), ("PE", "put_options")):
             opt = row.get(field) or {}
@@ -76,7 +94,7 @@ async def _load_chain(expiry: str, access_token: str) -> None:
             if key:
                 _key_map[key] = (strike, opt_type)
 
-    print(f"[oc] loaded {len(_chain) // 2} strikes, expiry={expiry}")
+    _log.info("oc loaded %d strikes, expiry=%s", len(_chain) // 2, expiry)
 
 
 async def fetch_and_prime(access_token: str) -> None:
@@ -84,12 +102,12 @@ async def fetch_and_prime(access_token: str) -> None:
     try:
         _all_expiries = await _fetch_expiries(access_token)
         if not _all_expiries:
-            print("[oc] no expiries found")
+            _log.warning("oc no expiries found")
             return
         _expiry = _all_expiries[0]
         await _load_chain(_expiry, access_token)
     except Exception as e:
-        print(f"[oc] fetch_and_prime error: {e}")
+        _log.exception("oc fetch_and_prime error: %s", e)
 
 
 async def switch_expiry(expiry: str, access_token: str) -> None:
@@ -108,13 +126,18 @@ async def switch_expiry(expiry: str, access_token: str) -> None:
             if keys:
                 await subscribe(keys)
     except Exception as e:
-        print(f"[oc] switch_expiry error: {e}")
+        _log.exception("oc switch_expiry error: %s", e)
 
 
 # ── public helpers ─────────────────────────────────────────────────────────────
 
 def get_expiry() -> str:
     return _expiry
+
+
+def get_spot() -> float:
+    """Last underlying spot price from the chain REST snapshot (fallback when feed is offline)."""
+    return _spot_price
 
 
 def get_all_expiries() -> list[str]:
