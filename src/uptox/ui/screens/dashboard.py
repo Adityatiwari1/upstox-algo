@@ -440,6 +440,46 @@ class GreeksTable(Static):
         self.update("\n".join(rows))
 
 
+class LivePricePanel(Static):
+    def on_mount(self) -> None:
+        self._refresh()
+        self.set_interval(0.5, self._refresh)
+
+    def _refresh(self) -> None:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        IST = ZoneInfo("Asia/Kolkata")
+        now = datetime.now(IST).strftime("%H:%M:%S")
+
+        nt  = feed_store.get(NIFTY)
+        bnt = feed_store.get(BANK)
+
+        def _price_block(label: str, tick) -> str:
+            if not tick or not tick.ltp:
+                return f"[dim]{label}:[/] [dim white]—[/]"
+            ltp   = tick.ltp
+            close = tick.close or 0.0
+            chg   = ltp - close if close else 0.0
+            pct   = chg / close * 100 if close else 0.0
+            col   = "bold green" if chg >= 0 else "bold red"
+            arrow = "▲" if chg >= 0 else "▼"
+            return (
+                f"[dim]{label}[/]  "
+                f"[{col}]{ltp:,.2f}[/]"
+                f"  [{col}]{arrow} {chg:+.2f}  ({pct:+.2f}%)[/]"
+            )
+
+        status       = feed_store.get_status()
+        status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "red"
+
+        self.update(
+            f"[{status_color}]●[/] [dim]{now}[/]"
+            f"     {_price_block('NIFTY 50', nt)}"
+            f"     {_price_block('BANK NIFTY', bnt)}"
+        )
+
+
 class CapitalPanel(Widget):
     DEFAULT_CSS = """
     CapitalPanel { layout: vertical; height: auto; }
@@ -555,6 +595,7 @@ class DashboardScreen(ScrollableContainer):
     """
 
     def compose(self) -> ComposeResult:
+        yield LivePricePanel()
         yield CapitalPanel()
         yield OverallAnalysisPanel()
         yield SMAPanel()
