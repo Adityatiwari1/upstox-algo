@@ -1,6 +1,6 @@
 import logging
 from textual.app import ComposeResult
-from textual.containers import ScrollableContainer
+from textual.containers import ScrollableContainer, Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static, Input
@@ -30,11 +30,11 @@ def _signal(delta: float, cum: float, oi_chg: float) -> tuple[str, str]:
     return "◐ NEUTRAL", "yellow"
 
 
-def _kv(title: str, rows: list[tuple[str, str, str]]) -> str:
-    lines = [f"[bold cyan]{title}[/]"]
-    for label, value, color in rows:
-        lines.append(f"[dim]{label:<12}[/] [{color}]{value}[/]")
-    return "\n".join(lines)
+def _kv(rows: list[tuple[str, str, str]]) -> str:
+    return "\n".join(
+        f"[dim]{label:<12}[/] [{color}]{value}[/]"
+        for label, value, color in rows
+    )
 
 
 class OverallAnalysisPanel(Static):
@@ -49,6 +49,7 @@ class OverallAnalysisPanel(Static):
     _MAX_WAIT:   int = 45   # seconds before momentum entry kicks in
 
     def on_mount(self) -> None:
+        self.border_title = "Overall Analysis"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -217,8 +218,8 @@ class OverallAnalysisPanel(Static):
         else:
             action_line = f"[dim]{'Action':<12}[/] [bold red]NO TRADE — {no_trade_reason}[/]"
 
+        self.border_subtitle = ltp_str
         lines = [
-            f"[bold cyan]▸ Overall Analysis[/]  [dim]LTP:[/] [yellow]{ltp_str}[/]",
             action_line,
             f"[dim]{'Strike':<12}[/] [yellow]{strike_str if tradeable else '—'}[/]",
             f"[dim]{'Option':<12}[/] [bold {opt_color}]{option if tradeable else '—'}[/]",
@@ -235,6 +236,7 @@ class SMAPanel(Static):
     current_tf: reactive[TimeFrame] = reactive(TimeFrame.M5)
 
     def on_mount(self) -> None:
+        self.border_title = "SMA  (t = cycle)"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -270,20 +272,20 @@ class SMAPanel(Static):
         v200, c200 = vs(smas[200])
 
         ltp_str = f"{ltp:,.2f}" if ltp else "—"
-        self.update(_kv(
-            f"▸ SMA [{tf.value}]  [{status_color}]{status}[/]  LTP:[yellow]{ltp_str}[/]",
-            [
-                ("SMA 10",  v10,  c10),
-                ("SMA 20",  v20,  c20),
-                ("SMA 50",  v50,  c50),
-                ("SMA 100", v100, c100),
-                ("SMA 200", v200, c200),
-            ]
-        ))
+        self.border_title = f"SMA ({tf.value})  t=cycle"
+        self.border_subtitle = f"[{status_color}]{status}[/]  {ltp_str}"
+        self.update(_kv([
+            ("SMA 10",  v10,  c10),
+            ("SMA 20",  v20,  c20),
+            ("SMA 50",  v50,  c50),
+            ("SMA 100", v100, c100),
+            ("SMA 200", v200, c200),
+        ]))
 
 
 class OrderFlowPanel(Static):
     def on_mount(self) -> None:
+        self.border_title = "Order Flow"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -310,7 +312,6 @@ class OrderFlowPanel(Static):
             return (label, value, color)
 
         lines = [
-            "[bold cyan]▸ Order Flow Analysis[/]",
             "[dim]── Delta ──────────────────────[/]",
             f"[dim]{'Delta':<12}[/] [{delta_color}]{_fmt(raw_delta, 0)}[/]",
             f"[dim]{'Cum. Delta':<12}[/] [{cum_color}]{_fmt(cum, 0)}[/]",
@@ -333,6 +334,7 @@ class OrderFlowPanel(Static):
 
 class TechnicalPanel(Static):
     def on_mount(self) -> None:
+        self.border_title = "Technical"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -361,7 +363,8 @@ class TechnicalPanel(Static):
             "yellow"
         )
 
-        self.update(_kv(f"▸ Technical  [dim]({tf.value})[/]", [
+        self.border_title = f"Technical  {tf.value}"
+        self.update(_kv([
             ("LTP",        ltp_str,                               "white"),
             ("Change",     chg_str,                               chg_color),
             ("Prev Close", f"{prev:,.2f}" if prev else "—",       "dim white"),
@@ -371,6 +374,7 @@ class TechnicalPanel(Static):
 
 class BestEntryPanel(Static):
     def on_mount(self) -> None:
+        self.border_title = "Best Entry  (e=set  x=exit)"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -430,7 +434,7 @@ class BestEntryPanel(Static):
         else:
             trail_rows = [("── Trail SL ──", "press e to set entry", "dim white")]
 
-        self.update(_kv("▸ Best Entry  [dim]( e = set entry  x = exit )[/]", [
+        self.update(_kv([
             ("Spot",       f"{ltp:,.2f}" if ltp else "—",                    "white"),
             ("ATM Strike", f"{atm} {opt_type}" if atm and opt_type else "—",  "yellow"),
             ("Option",     opt_type or "—",                                   opt_color),
@@ -446,6 +450,7 @@ class BestEntryPanel(Static):
 
 class GreeksTable(Static):
     def on_mount(self) -> None:
+        self.border_title = "Option Chain"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -464,13 +469,9 @@ class GreeksTable(Static):
         atm = round(ltp / 50) * 50
         strikes = option_chain_service.get_atm_strikes(ltp, n=5)
 
-        spot_label = "" if (t and t.ltp) else "  [dim](snapshot)[/]"
-        hdr = (
-            f"[bold cyan]▸ Option Chain[/]  "
-            f"[dim]ATM:[/][yellow]{atm}[/]  "
-            f"[dim]Expiry:[/][white]{expiry}[/]{spot_label}\n"
-            f"[dim]{'CE LTP':>8} {'CΔ':>6} {'C OI':>7}  {'Strike':^6}  {'PE LTP':>8} {'PΔ':>6} {'P OI':>7}[/]"
-        )
+        snap = "" if (t and t.ltp) else "  [dim](snap)[/]"
+        self.border_subtitle = f"ATM [yellow]{atm}[/]  {expiry}{snap}"
+        hdr = f"[dim]{'CE LTP':>8} {'CΔ':>6} {'C OI':>7}  {'Strike':^6}  {'PE LTP':>8} {'PΔ':>6} {'P OI':>7}[/]"
         rows = [hdr]
 
         for strike in sorted(strikes):
@@ -508,6 +509,7 @@ class GreeksTable(Static):
 
 class LivePricePanel(Static):
     def on_mount(self) -> None:
+        self.border_title = "Market"
         self._refresh()
         self.set_interval(0.5, self._refresh)
 
@@ -548,6 +550,8 @@ class LivePricePanel(Static):
         status       = feed_store.get_status()
         status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "red"
 
+        # Dynamically colour the panel border by feed status
+        self.styles.border = ("round", "green" if status == "connected" else "yellow" if status == "reconnecting" else "red")
         self.update(
             f"[{status_color}]●[/] [dim]{now}[/]"
             f"     {_price_block('NIFTY 50',   NIFTY, nt)}"
@@ -556,17 +560,7 @@ class LivePricePanel(Static):
 
 
 class CapitalPanel(Widget):
-    DEFAULT_CSS = """
-    CapitalPanel { layout: vertical; height: auto; }
-    CapitalPanel #cap-input {
-        display: none;
-        height: 3;
-        background: $surface;
-        color: $text;
-        border: tall $primary;
-    }
-    CapitalPanel #cap-input.active { display: block; }
-    """
+    DEFAULT_CSS = "CapitalPanel { layout: vertical; height: auto; }"
 
     def compose(self) -> ComposeResult:
         yield Static(id="cap-display")
@@ -576,6 +570,7 @@ class CapitalPanel(Widget):
         )
 
     def on_mount(self) -> None:
+        self.border_title = "Capital & Risk  (]/] = ±5K  c=set  r=RR)"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -607,10 +602,6 @@ class CapitalPanel(Widget):
         sz   = capital_service.sizing(live.ltp if live else 0.0)
 
         lines = [
-            f"[bold cyan]▸ Capital & Risk[/]  "
-            "[dim]( [/][dim white][[/][yellow]][[/][dim white]/[/][yellow]]][/]"
-            "[dim] = ±₹5K  [/][dim white]c[/][dim] = set capital  [/]"
-            "[dim white]r[/][dim] = cycle RR )[/]",
             f"[dim]{'Capital':<12}[/] [yellow]₹{cap:,.0f}[/]",
             f"[dim]{'RR (user)':<12}[/] [{rr_color}]1:{rr}[/]",
             f"[dim]{'RR (sys)':<12}[/] [dim white]1:{suggested_rr}[/]",
@@ -654,27 +645,65 @@ class DashboardScreen(ScrollableContainer):
     DashboardScreen {
         height: 1fr;
         layout: vertical;
+        background: $background;
     }
-    DashboardScreen > * {
-        border: solid $primary-darken-2;
-        padding: 0 1;
+
+    /* ── top bar ── */
+    LivePricePanel {
+        border: round green;
+        border-title-color: $text-muted;
+        padding: 0 2;
+        height: auto;
         width: 100%;
+    }
+
+    /* ── two-column body ── */
+    #col-row {
+        height: auto;
+        width: 100%;
+    }
+    #left-col  { width: 2fr; height: auto; layout: vertical; }
+    #right-col { width: 3fr; height: auto; layout: vertical; }
+
+    /* ── shared panel style ── */
+    CapitalPanel, OverallAnalysisPanel, BestEntryPanel,
+    SMAPanel, OrderFlowPanel, TechnicalPanel, GreeksTable {
+        border: round $primary;
+        border-title-color: $accent;
+        border-title-style: bold;
+        border-subtitle-color: $text-muted;
+        padding: 0 1;
         height: auto;
     }
-    GreeksTable {
-        height: auto;
+
+    /* ── per-panel accent colours ── */
+    CapitalPanel         { border: round #d7af5f; border-title-color: #d7af5f; }
+    OverallAnalysisPanel { border: round #5f87ff; border-title-color: #5f87ff; }
+    BestEntryPanel       { border: round #d7875f; border-title-color: #d7875f; }
+    SMAPanel             { border: round #5fafaf; border-title-color: #5fafaf; }
+    OrderFlowPanel       { border: round #875faf; border-title-color: #875faf; }
+    TechnicalPanel       { border: round #5f87af; border-title-color: #5f87af; }
+    GreeksTable          { border: round #5faf87; border-title-color: #5faf87; }
+
+    /* ── capital input ── */
+    CapitalPanel #cap-input {
+        display: none;
+        height: 3;
+        background: $surface;
+        color: $text;
+        border: tall $primary;
     }
-    GreeksTable DataTable {
-        height: auto;
-    }
+    CapitalPanel #cap-input.active { display: block; }
     """
 
     def compose(self) -> ComposeResult:
         yield LivePricePanel()
-        yield CapitalPanel()
-        yield OverallAnalysisPanel()
-        yield SMAPanel()
-        yield OrderFlowPanel()
-        yield BestEntryPanel()
-        yield TechnicalPanel()
-        yield GreeksTable()
+        with Horizontal(id="col-row"):
+            with Vertical(id="left-col"):
+                yield CapitalPanel()
+                yield OverallAnalysisPanel()
+                yield TechnicalPanel()
+            with Vertical(id="right-col"):
+                yield BestEntryPanel()
+                yield SMAPanel()
+                yield OrderFlowPanel()
