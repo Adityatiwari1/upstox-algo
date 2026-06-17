@@ -3,17 +3,26 @@ from textual.widgets import Header, Footer, TabbedContent, TabPane
 from uptox.ui.screens.dashboard import DashboardScreen
 from uptox.ui.screens.orders import OrdersScreen
 from uptox.ui.screens.option_chain import OptionChainScreen
+from uptox.ui.screens.trade_book import TradeBookScreen
 from uptox.config.settings import settings
+from uptox.services import capital_service
 
 
 class UptoxApp(App):
     TITLE = "Uptox Trading"
     BINDINGS = [
-        ("q", "quit", "Quit"),
-        ("1", "switch_tab('dashboard')", "Dashboard"),
-        ("2", "switch_tab('orders')", "Orders"),
-        ("3", "switch_tab('option-chain')", "Option Chain"),
-        ("t", "cycle_tf", "Cycle TF"),
+        ("q",     "quit",                      "Quit"),
+        ("1",     "switch_tab('dashboard')",   "Dashboard"),
+        ("2",     "switch_tab('orders')",      "Orders"),
+        ("3",     "switch_tab('option-chain')", "Option Chain"),
+        ("4",     "switch_tab('trade-book')",  "Trade Book"),
+        ("t",     "cycle_tf",                  "Cycle TF"),
+        ("]",     "capital_up",                "Capital +5K"),
+        ("[",     "capital_down",              "Capital -5K"),
+        ("c",     "capital_input",             "Set Capital"),
+        ("r",     "cycle_rr",                  "Cycle RR"),
+        ("e",     "set_entry",                 "Set Entry"),
+        ("x",     "exit_trade",                "Exit Trade"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -25,6 +34,8 @@ class UptoxApp(App):
                 yield OrdersScreen()
             with TabPane("Option Chain [3]", id="option-chain"):
                 yield OptionChainScreen()
+            with TabPane("Trade Book [4]", id="trade-book"):
+                yield TradeBookScreen()
         yield Footer()
 
     def on_mount(self) -> None:
@@ -44,6 +55,51 @@ class UptoxApp(App):
             self.query_one(SMAPanel).cycle_tf()
         except Exception:
             pass
+
+    def action_capital_up(self) -> None:
+        capital_service.set_capital(capital_service.get_capital() + 5000)
+
+    def action_capital_down(self) -> None:
+        capital_service.set_capital(max(5000, capital_service.get_capital() - 5000))
+
+    def action_cycle_rr(self) -> None:
+        capital_service.cycle_rr()
+
+    def action_capital_input(self) -> None:
+        try:
+            from uptox.ui.screens.dashboard import CapitalPanel
+            self.query_one(CapitalPanel).open_input()
+        except Exception:
+            pass
+
+    def action_set_entry(self) -> None:
+        from uptox.services import feed_store, option_chain_service, trailing_sl_service
+        from uptox.services import sma_service
+        from uptox.services.sma_service import TimeFrame
+        import logging
+        _log = logging.getLogger(__name__)
+        t = feed_store.get("NSE_INDEX|Nifty 50")
+        if not t or not t.ltp:
+            return
+        ltp  = t.ltp
+        atm  = round(ltp / 50) * 50
+        smas = sma_service.get_smas("NSE_INDEX|Nifty 50", TimeFrame.M5)
+        s20, s50 = smas.get(20), smas.get(50)
+        sc  = (1 if ltp > s20 else -1 if s20 else 0) + (1 if ltp > s50 else -1 if s50 else 0)
+        cum = feed_store.cum_delta("NSE_INDEX|Nifty 50")
+        fc  = (1 if t.tbq > t.tsq else -1) + (1 if cum > 0 else -1)
+        side = "CE" if (sc + fc) > 0 else "PE" if (sc + fc) < 0 else None
+        if not side:
+            return
+        key  = option_chain_service.get_key(atm, side)
+        live = feed_store.get(key) if key else None
+        if live and live.ltp:
+            trailing_sl_service.set_entry(live.ltp, side, option_key=key)
+            _log.info("Entry locked: %s @ %.1f", side, live.ltp)
+
+    def action_exit_trade(self) -> None:
+        from uptox.services import trailing_sl_service
+        trailing_sl_service.exit_trade()
 
     async def _prime_smas(self) -> None:
         from uptox.api.feed_client import DEFAULT_INSTRUMENTS

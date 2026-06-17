@@ -160,3 +160,51 @@ def get_option(strike: int, opt_type: str) -> dict | None:
 def get_key(strike: int, opt_type: str) -> str | None:
     d = _chain.get((strike, opt_type))
     return d.get("key") if d else None
+
+
+def get_pcr() -> float | None:
+    """Total PE OI / Total CE OI across all strikes in current chain."""
+    ce_oi = sum(d["oi"] for (_, t), d in _chain.items() if t == "CE" and d["oi"])
+    pe_oi = sum(d["oi"] for (_, t), d in _chain.items() if t == "PE" and d["oi"])
+    return round(pe_oi / ce_oi, 2) if ce_oi else None
+
+
+def get_max_pain() -> int | None:
+    """Strike that minimises total ITM value (max pain to option buyers)."""
+    strikes = sorted({s for s, _ in _chain.keys()})
+    if not strikes:
+        return None
+    min_val, mp = float("inf"), strikes[0]
+    for S in strikes:
+        pain = sum(
+            max(0, S - K) * (_chain.get((K, "CE")) or {}).get("oi", 0)
+            + max(0, K - S) * (_chain.get((K, "PE")) or {}).get("oi", 0)
+            for K in strikes
+        )
+        if pain < min_val:
+            min_val, mp = pain, S
+    return mp
+
+
+def get_oi_signal(ltp: float, n: int = 3) -> str:
+    """Interpret cumulative OI change across ATM ±n strikes."""
+    if not ltp or not _chain:
+        return "—"
+    from uptox.services import feed_store
+    atm = round(ltp / 50) * 50
+    ce_chg = pe_chg = 0.0
+    for i in range(-n, n + 1):
+        s = atm + i * 50
+        for opt_type in ("CE", "PE"):
+            key = (_chain.get((s, opt_type)) or {}).get("key", "")
+            tick = feed_store.get(key) if key else None
+            chg  = tick.change_oi if tick else (_chain.get((s, opt_type)) or {}).get("change_oi", 0.0)
+            if opt_type == "CE":
+                ce_chg += chg
+            else:
+                pe_chg += chg
+    if ce_chg > 0 and pe_chg < 0:  return "BULLISH  (CE↑ PE↓)"
+    if ce_chg < 0 and pe_chg > 0:  return "BEARISH  (CE↓ PE↑)"
+    if ce_chg > 0 and pe_chg > 0:  return "SIDEWAYS (CE↑ PE↑)"
+    if ce_chg < 0 and pe_chg < 0:  return "UNWIND   (CE↓ PE↓)"
+    return "NEUTRAL"

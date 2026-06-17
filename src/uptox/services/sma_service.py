@@ -60,10 +60,13 @@ _FETCH_DAYS: dict[TimeFrame, int] = {
     TimeFrame.H4:  300,   # ~200 trading days
 }
 
-# (instrument_key, tf) → deque of closed bar closes, maxlen=_MAX
-_closes: dict[tuple[str, TimeFrame], deque] = {}
+# Candle = (open, high, low, close)
+Candle = tuple[float, float, float, float]
+
+# (instrument_key, tf) → deque of closed OHLCV bars, maxlen=_MAX
+_candles: dict[tuple[str, TimeFrame], deque] = {}
 # (instrument_key, tf) → {period: sma | None}
-_smas:   dict[tuple[str, TimeFrame], dict[int, float | None]] = {}
+_smas:    dict[tuple[str, TimeFrame], dict[int, float | None]] = {}
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -76,27 +79,26 @@ def _floor_to(dt: datetime, interval_min: int) -> datetime:
                       second=0, microsecond=0)
 
 
-def _aggregate(raw_oldest_first: list, interval_min: int) -> list[float]:
+def _aggregate(raw_oldest_first: list, interval_min: int) -> list[Candle]:
     """
     Aggregate raw candles [[ts_iso, o, h, l, c, v, oi], ...] (oldest first)
-    into interval_min-minute bars. Returns list of bar closes, oldest first.
+    into interval_min-minute bars. Returns list of (O,H,L,C) tuples, oldest first.
     """
     bars: dict[datetime, list[float]] = {}
     for row in raw_oldest_first:
         ts = datetime.fromisoformat(row[0]).astimezone(IST)
         bar_ts = _floor_to(ts, interval_min)
-        c = float(row[4])
         if bar_ts not in bars:
-            # [open, high, low, close]
-            bars[bar_ts] = [float(row[1]), float(row[2]), float(row[3]), c]
+            bars[bar_ts] = [float(row[1]), float(row[2]), float(row[3]), float(row[4])]
         else:
             bars[bar_ts][1] = max(bars[bar_ts][1], float(row[2]))
             bars[bar_ts][2] = min(bars[bar_ts][2], float(row[3]))
-            bars[bar_ts][3] = c  # last tick = close of bar
-    return [v[3] for _, v in sorted(bars.items())]
+            bars[bar_ts][3] = float(row[4])
+    return [(v[0], v[1], v[2], v[3]) for _, v in sorted(bars.items())]
 
 
-def _compute(closes: list[float]) -> dict[int, float | None]:
+def _compute(candles: list[Candle]) -> dict[int, float | None]:
+    closes = [c[3] for c in candles]
     n = len(closes)
     return {p: (sum(closes[-p:]) / p if n >= p else None) for p in PERIODS}
 
@@ -123,12 +125,13 @@ async def _fetch_raw(
                     "Accept": "application/json",
                 },
             )
+        import logging; _log = logging.getLogger(__name__)
         if resp.status_code != 200:
-            print(f"[sma] hist {interval} {resp.status_code} for {instrument_key}: {resp.text[:200]}")
+            _log.warning("hist %s %s for %s: %s", interval, resp.status_code, instrument_key, resp.text[:200])
             return []
         return resp.json().get("data", {}).get("candles", [])
     except Exception as e:
-        print(f"[sma] fetch error {instrument_key} {interval}: {e}")
+        import logging; logging.getLogger(__name__).error("fetch %s %s: %s", instrument_key, interval, e)
         return []
 
 
@@ -147,13 +150,15 @@ async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
         if not raw:
             return
         oldest_first = list(reversed(raw))   # Upstox returns newest-first
-        closes = _aggregate(oldest_first, _TF_MINUTES[tf])
+        bars = _aggregate(oldest_first, _TF_MINUTES[tf])
         k = (instrument_key, tf)
-        _closes[k] = deque(closes[-_MAX:], maxlen=_MAX)
-        _smas[k]   = _compute(list(_closes[k]))
+        _candles[k] = deque(bars[-_MAX:], maxlen=_MAX)
+        _smas[k]    = _compute(list(_candles[k]))
         sma200 = _smas[k].get(200)
         sma200_str = f"{sma200:.1f}" if sma200 else "—"
-        print(f"[sma] {instrument_key} {tf.value}: {len(closes)} bars  SMA200={sma200_str}")
+        import logging; logging.getLogger(__name__).info(
+            "%s %s: %d bars  SMA200=%s", instrument_key, tf.value, len(bars), sma200_str
+        )
 
     await asyncio.gather(*(_prime_tf(tf) for tf in ALL_TFS))
 
@@ -165,12 +170,12 @@ def update_realtime(instrument_key: str, ltp: float) -> None:
     """
     if not ltp:
         return
+    live: Candle = (ltp, ltp, ltp, ltp)
     for tf in ALL_TFS:
         k = (instrument_key, tf)
-        if k not in _closes:
+        if k not in _candles:
             continue
-        closes = list(_closes[k]) + [ltp]
-        _smas[k] = _compute(closes)
+        _smas[k] = _compute(list(_candles[k]) + [live])
 
 
 def get_smas(instrument_key: str, tf: TimeFrame) -> dict[int, float | None]:
@@ -179,3 +184,9 @@ def get_smas(instrument_key: str, tf: TimeFrame) -> dict[int, float | None]:
 
 def get_sma(instrument_key: str, tf: TimeFrame, period: int) -> float | None:
     return _smas.get((instrument_key, tf), {}).get(period)
+
+
+def get_last_candles(instrument_key: str, tf: TimeFrame, n: int = 3) -> list[Candle]:
+    """Return last n closed OHLCV bars (oldest first)."""
+    q = _candles.get((instrument_key, tf))
+    return list(q)[-n:] if q else []

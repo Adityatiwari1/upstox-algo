@@ -1,9 +1,14 @@
+import logging
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer
 from textual.reactive import reactive
-from textual.widgets import Static
-from uptox.services import feed_store, sma_service, option_chain_service
+from textual.widget import Widget
+from textual.widgets import Static, Input
+from uptox.services import feed_store, sma_service, option_chain_service, capital_service
+from uptox.services import pattern_service, trailing_sl_service, trade_book
 from uptox.services.sma_service import TimeFrame, ALL_TFS
+
+log = logging.getLogger(__name__)
 
 NIFTY = "NSE_INDEX|Nifty 50"
 BANK  = "NSE_INDEX|Nifty Bank"
@@ -33,6 +38,9 @@ def _kv(title: str, rows: list[tuple[str, str, str]]) -> str:
 
 
 class OverallAnalysisPanel(Static):
+    _last_tradeable: bool | None = None
+    _last_option: str | None = None
+
     def on_mount(self) -> None:
         self._refresh()
         self.set_interval(1.0, self._refresh)
@@ -95,19 +103,65 @@ class OverallAnalysisPanel(Static):
 
         tradeable = no_trade_reason is None
 
+        # ── alert on signal change ────────────────────────────────────────
+        if self._last_tradeable is not None and self._last_tradeable != tradeable:
+            self.app.bell()
+            log.info("Signal flip: %s → %s  (score=%+d)",
+                     "TRADE" if self._last_tradeable else "NO TRADE",
+                     "TRADE" if tradeable else "NO TRADE", total)
+        self._last_tradeable = tradeable
+
+        # ── auto paper trade ──────────────────────────────────────────────
+        key  = option_chain_service.get_key(atm, option) if (atm and option != "—") else None
+        live_opt = feed_store.get(key) if key else None
+        cur_price = live_opt.ltp if live_opt else 0.0
+
+        if tradeable and cur_price:
+            direction_flip = (self._last_option is not None and self._last_option != option)
+            if direction_flip and trade_book.has_open_trade():
+                trade_book.close_trade(cur_price, "direction_change")
+            if not trade_book.has_open_trade():
+                delta = live_opt.delta if live_opt else None
+                lvl   = capital_service.levels(cur_price, delta)
+                sz    = capital_service.sizing(cur_price)
+                trade_book.open_trade(
+                    strike=atm, option=option,
+                    expiry=option_chain_service.get_expiry() or "—",
+                    entry_price=cur_price,
+                    lots=sz["lots"], invested=sz["invested"],
+                    sl=lvl["sl"], target=lvl["target"],
+                    option_key=key or "", delta=delta, spot=ltp,
+                )
+        elif not tradeable and trade_book.has_open_trade() and self._last_tradeable:
+            ot = trade_book.get_open_trade()
+            exit_key  = ot.get("option_key", "") if ot else ""
+            exit_live = feed_store.get(exit_key) if exit_key else None
+            exit_p    = exit_live.ltp if exit_live else (ot["entry_price"] if ot else 0.0)
+            trade_book.close_trade(exit_p, "signal_flip")
+
+        self._last_option = option if tradeable else self._last_option
+
+        # ── live buy price ────────────────────────────────────────────────
+        buy_price = 0.0
+        if tradeable and atm:
+            key  = option_chain_service.get_key(atm, option)
+            live = feed_store.get(key) if key else None
+            buy_price = live.ltp if live else 0.0
+
+        # ── PCR + Max Pain ────────────────────────────────────────────────
+        pcr      = option_chain_service.get_pcr()
+        max_pain = option_chain_service.get_max_pain()
+        pcr_str  = f"{pcr:.2f}" if pcr else "—"
+        pcr_color = ("green" if pcr and pcr > 1.2
+                     else "red" if pcr and pcr < 0.8
+                     else "yellow")
+        mp_str  = str(max_pain) if max_pain else "—"
+
         # ── render ────────────────────────────────────────────────────────
         opt_color  = "green" if option == "CE" else "red" if option == "PE" else "dim white"
         strike_str = f"{atm} {option}" if atm and tradeable else (f"{atm}" if atm else "—")
         ltp_str    = f"{ltp:,.2f}" if ltp else "—"
-
-        # Live buy price — WSS only, no REST fallback
-        buy_price = 0.0
-        if tradeable and atm:
-            key = option_chain_service.get_key(atm, option)
-            live = feed_store.get(key) if key else None
-            buy_price = live.ltp if live else 0.0
-
-        buy_str = f"{buy_price:.1f}" if buy_price else "—"
+        buy_str    = f"{buy_price:.1f}" if buy_price else "—"
 
         if tradeable:
             action_line = f"[dim]{'Action':<12}[/] [bold {opt_color}]BUY {option} @ {atm}[/]"
@@ -122,6 +176,8 @@ class OverallAnalysisPanel(Static):
             f"[dim]{'Buy Price':<12}[/] [{opt_color}]{buy_str}[/]",
             f"[dim]{'Trend':<12}[/] [bold {trend_color}]{trend}[/]",
             f"[dim]{'Score':<12}[/] [dim white]{total:+d}/5  SMA {sma_score:+d}  Flow {flow_score:+d}[/]",
+            f"[dim]{'PCR':<12}[/] [{pcr_color}]{pcr_str}[/]",
+            f"[dim]{'Max Pain':<12}[/] [dim white]{mp_str}[/]",
         ]
         self.update("\n".join(lines))
 
@@ -215,6 +271,8 @@ class OrderFlowPanel(Static):
             f"[dim]{'OI':<12}[/] [white]{_fmt(t.oi, 0) if t else '—'}[/]",
             f"[dim]{'OI Change':<12}[/] [{oi_color}]{_fmt(t.change_oi, 0) if t else '—'}[/]",
             f"[dim]{'Volume':<12}[/] [white]{_fmt(t.vtt, 0) if t else '—'}[/]",
+            "[dim]── OI Interpretation ─────────[/]",
+            f"[dim]{'OI Signal':<12}[/] [cyan]{option_chain_service.get_oi_signal(t.ltp if t else 0)}[/]",
             "[dim]── Signal ──────────────────────[/]",
             f"[bold]{'Action':<12}[/] [bold {sig_color}]{sig}[/]",
         ]
@@ -235,11 +293,19 @@ class TechnicalPanel(Static):
         chg_color = "green" if chg >= 0 else "red"
         chg_str = f"{chg:+.2f} ({chg_p:+.2f}%)" if ltp else "—"
 
+        from uptox.services.sma_service import TimeFrame as TF
+        pattern = pattern_service.detect(NIFTY, TF.M5)
+        pat_color = (
+            "green" if "Bull" in pattern or "Hammer" in pattern else
+            "red"   if "Bear" in pattern or "Shoot" in pattern  else
+            "yellow"
+        )
+
         self.update(_kv("▸ Technical", [
             ("LTP",        f"{ltp:,.2f}" if ltp else "—",      "white"),
             ("Change",     chg_str,                              chg_color),
             ("Prev Close", f"{close:,.2f}" if close else "—",   "dim white"),
-            ("Pattern",    "—",                                  "dim white"),
+            ("Pattern",    pattern,                              pat_color),
         ]))
 
 
@@ -267,26 +333,55 @@ class BestEntryPanel(Static):
 
         # Live option LTP — WSS only
         buy_price = 0.0
+        delta = None
         if atm and opt_type:
-            key = option_chain_service.get_key(atm, opt_type)
+            key  = option_chain_service.get_key(atm, opt_type)
             live = feed_store.get(key) if key else None
-            buy_price = live.ltp if live else 0.0
+            buy_price = live.ltp   if live else 0.0
+            delta     = live.delta if live else None
 
-        target = round(buy_price * 1.5, 1) if buy_price else 0.0
-        sl     = round(buy_price * 0.6, 1) if buy_price else 0.0
+        lvl  = capital_service.levels(buy_price, delta)
+        sz   = capital_service.sizing(buy_price)
         expiry = option_chain_service.get_expiry() or "—"
-
         opt_color = "green" if opt_type == "CE" else "red" if opt_type == "PE" else "dim white"
 
-        self.update(_kv("▸ Best Entry", [
+        sl_str  = f"{lvl['sl']:.1f}"     if lvl['sl']     else "—"
+        tgt_str = f"{lvl['target']:.1f}" if lvl['target']  else "—"
+        pts_str = (f"Nifty ±{lvl['sl_pts']}/{lvl['tgt_pts']}pt"
+                   if lvl.get('sl_pts') else "% based")
+
+        # ── trailing SL status ────────────────────────────────────────────
+        ts = trailing_sl_service.get_status()
+        if ts["active"]:
+            pnl_color  = "green" if ts["in_profit"] else "red"
+            stop_color = "red bold" if ts["stopped_out"] else "red"
+            trail_rows: list[tuple[str, str, str]] = [
+                ("── Trail SL ──", "", "dim white"),
+                ("Entry",    f"{ts['entry']:.1f}  [{ts['side']}]",        "white"),
+                ("Peak",     f"{ts['peak']:.1f}",                          pnl_color),
+                ("Trail SL", f"{ts['trail_sl']:.1f}  ({int(ts['trail_pct']*100)}% below peak)",
+                             stop_color),
+                ("P&L (pts)", f"{ts['pnl_pts']:+.1f}",                    pnl_color),
+                ("Status",   "STOPPED OUT — press x" if ts["stopped_out"] else
+                             ("In Profit ✓" if ts["in_profit"] else "Tracking..."),
+                             "red bold" if ts["stopped_out"] else
+                             ("green" if ts["in_profit"] else "yellow")),
+            ]
+        else:
+            trail_rows = [("── Trail SL ──", "press e to set entry", "dim white")]
+
+        self.update(_kv("▸ Best Entry  [dim]( e = set entry  x = exit )[/]", [
             ("Spot",       f"{ltp:,.2f}" if ltp else "—",                    "white"),
             ("ATM Strike", f"{atm} {opt_type}" if atm and opt_type else "—",  "yellow"),
             ("Option",     opt_type or "—",                                   opt_color),
             ("Buy Price",  f"{buy_price:.1f}" if buy_price else "—",          opt_color),
-            ("Target",     f"{target:.1f}" if target else "—",                "green"),
-            ("SL",         f"{sl:.1f}" if sl else "—",                        "red"),
-            ("Expiry",     expiry if expiry else "—",                          "dim white"),
-        ]))
+            ("Lots",       str(sz["lots"]) if buy_price else "—",             "white"),
+            ("Invested",   f"₹{sz['invested']:,.0f}" if buy_price else "—",   "white"),
+            ("Target",     tgt_str,                                            "green"),
+            ("SL",         sl_str,                                             "red"),
+            ("Basis",      pts_str,                                            "dim white"),
+            ("Expiry",     expiry,                                             "dim white"),
+        ] + trail_rows))
 
 
 class GreeksTable(Static):
@@ -345,6 +440,100 @@ class GreeksTable(Static):
         self.update("\n".join(rows))
 
 
+class CapitalPanel(Widget):
+    DEFAULT_CSS = """
+    CapitalPanel { layout: vertical; height: auto; }
+    CapitalPanel #cap-input {
+        display: none;
+        height: 3;
+        background: $surface;
+        color: $text;
+        border: tall $primary;
+    }
+    CapitalPanel #cap-input.active { display: block; }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Static(id="cap-display")
+        yield Input(
+            placeholder="Enter capital (e.g. 25000) → Enter to confirm, Esc to cancel",
+            id="cap-input",
+        )
+
+    def on_mount(self) -> None:
+        self._refresh()
+        self.set_interval(1.0, self._refresh)
+
+    def _refresh(self) -> None:
+        t = feed_store.get(NIFTY)
+        ltp = t.ltp if t else 0.0
+
+        cap   = capital_service.get_capital()
+        rr    = capital_service.get_rr()
+        total = 0
+        if t:
+            smas = sma_service.get_smas(NIFTY, TimeFrame.M5)
+            s20, s50 = smas.get(20), smas.get(50)
+            sc = (1 if ltp > s20 else -1 if s20 else 0) + (1 if ltp > s50 else -1 if s50 else 0)
+            cum = feed_store.cum_delta(NIFTY)
+            fc  = (1 if t.tbq > t.tsq else -1) + (1 if cum > 0 else -1)
+            total = sc + fc
+
+        suggested_rr = capital_service.suggest_rr(total)
+        rr_color = "green" if rr >= suggested_rr else "yellow"
+
+        atm = round(ltp / 50) * 50 if ltp else 0
+        key = None
+        for opt in ("CE", "PE"):
+            k = option_chain_service.get_key(atm, opt)
+            if k and feed_store.get(k):
+                key = k; break
+        live = feed_store.get(key) if key else None
+        sz   = capital_service.sizing(live.ltp if live else 0.0)
+
+        lines = [
+            f"[bold cyan]▸ Capital & Risk[/]  "
+            "[dim]( [/][dim white][[/][yellow]][[/][dim white]/[/][yellow]]][/]"
+            "[dim] = ±₹5K  [/][dim white]c[/][dim] = set capital  [/]"
+            "[dim white]r[/][dim] = cycle RR )[/]",
+            f"[dim]{'Capital':<12}[/] [yellow]₹{cap:,.0f}[/]",
+            f"[dim]{'RR (user)':<12}[/] [{rr_color}]1:{rr}[/]",
+            f"[dim]{'RR (sys)':<12}[/] [dim white]1:{suggested_rr}[/]",
+            f"[dim]{'Lot Size':<12}[/] [dim white]{capital_service.NIFTY_LOT_SIZE} units[/]",
+            f"[dim]{'Lots':<12}[/] [white]{sz['lots'] if live else '—'}[/]",
+            "[dim]" + f"{'Invested':<12}" + "[/] [white]" + (f"₹{sz['invested']:,.0f}" if live else "—") + "[/]",
+            "[dim]" + f"{'Max Loss':<12}" + "[/] [red]"   + (f"₹{sz['invested'] * 0.3:,.0f}" if live else "—") + "[/]",
+        ]
+        self.query_one("#cap-display", Static).update("\n".join(lines))
+
+    def open_input(self) -> None:
+        inp = self.query_one("#cap-input", Input)
+        inp.add_class("active")
+        inp.focus()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if event.input.id == "cap-input":
+            try:
+                val = float(event.value.replace(",", "").replace("₹", "").strip())
+                if val >= 1000:
+                    capital_service.set_capital(val)
+            except ValueError:
+                pass
+            self._close_input()
+
+    def on_key(self, event) -> None:
+        if event.key == "escape":
+            inp = self.query_one("#cap-input", Input)
+            if "active" in inp.classes:
+                self._close_input()
+                event.stop()
+
+    def _close_input(self) -> None:
+        inp = self.query_one("#cap-input", Input)
+        inp.remove_class("active")
+        inp.clear()
+
+
 class DashboardScreen(ScrollableContainer):
     DEFAULT_CSS = """
     DashboardScreen {
@@ -366,6 +555,7 @@ class DashboardScreen(ScrollableContainer):
     """
 
     def compose(self) -> ComposeResult:
+        yield CapitalPanel()
         yield OverallAnalysisPanel()
         yield SMAPanel()
         yield OrderFlowPanel()

@@ -1,7 +1,10 @@
 """Converts raw proto Feed → TickData and writes to feed_store."""
 import asyncio
 from uptox.api import market_feed_pb2 as proto
-from uptox.services import feed_store, sma_service, option_chain_service
+from uptox.services import (
+    feed_store, sma_service, option_chain_service,
+    trailing_sl_service, trade_book,
+)
 from uptox.services.feed_store import TickData
 
 _NIFTY = "NSE_INDEX|Nifty 50"
@@ -67,3 +70,20 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
             if keys:
                 from uptox.api.feed_client import subscribe
                 asyncio.create_task(subscribe(keys))
+        # Per-tick updates for open paper trade
+        ot = trade_book.get_open_trade()
+        if ot and ot.get("option_key") == instrument_key:
+            # Hero/Zero: force exit at 3:29 PM before settlement
+            if trade_book.should_force_close():
+                trade_book.close_trade(tick.ltp, "expiry_force_close")
+                return
+            target_just_crossed = trade_book.update_open_pnl(tick.ltp)
+            closed = False
+            if target_just_crossed:
+                action = trade_book.get_target_action(tick.ltp)
+                if action == "close":
+                    trade_book.close_trade(tick.ltp, "target_volatile")
+                    closed = True
+            # Trail SL rises with price; sole exit in trending market
+            if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
+                trade_book.close_trade(tick.ltp, "trail_sl")
