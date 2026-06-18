@@ -124,44 +124,56 @@ class PerformancePanel(Static):
             )
             return
 
+        # ₹ equivalents computed from per-trade pnl_rs
+        wins_rs   = [t["pnl_rs"] for t in trades if t["pnl_pts"] > 0]
+        losses_rs = [t["pnl_rs"] for t in trades if t["pnl_pts"] <= 0]
+        best_rs   = max((t["pnl_rs"] for t in trades), default=0.0)
+        worst_rs  = min((t["pnl_rs"] for t in trades), default=0.0)
+        avg_win_rs  = sum(wins_rs)   / len(wins_rs)   if wins_rs   else 0.0
+        avg_loss_rs = sum(losses_rs) / len(losses_rs) if losses_rs else 0.0
+        wr = s["win_rate"] / 100
+        exp_rs = round(wr * avg_win_rs - (1 - wr) * abs(avg_loss_rs), 0)
+
+        # max drawdown in both pts and ₹
+        run_pts = run_rs = peak_pts = peak_rs = dd_pts = dd_rs = 0.0
+        for t in trades:
+            run_pts += t["pnl_pts"]; run_rs += t["pnl_rs"]
+            peak_pts = max(peak_pts, run_pts); peak_rs = max(peak_rs, run_rs)
+            dd_pts   = min(dd_pts, run_pts - peak_pts)
+            dd_rs    = min(dd_rs,  run_rs  - peak_rs)
+
         pnl_col = "green" if s["total_pnl_pts"] >= 0 else "red"
         exp_col = "green" if s["expectancy"]    >= 0 else "red"
-        wr_col  = ("green" if s["win_rate"] >= 60
-                   else "yellow" if s["win_rate"] >= 45 else "red")
+        wr_col  = "green" if s["win_rate"] >= 60 else "yellow" if s["win_rate"] >= 45 else "red"
 
         if s["win_rate"] >= 55 and s["expectancy"] > 5:
-            rating, r_col = "GOOD EDGE",       "bold green"
+            rating, r_col = "GOOD EDGE",      "bold green"
         elif s["win_rate"] >= 45 and s["expectancy"] >= 0:
-            rating, r_col = "NEUTRAL",          "yellow"
+            rating, r_col = "NEUTRAL",         "yellow"
         else:
-            rating, r_col = "REFINE STRATEGY",  "bold red"
+            rating, r_col = "REFINE STRATEGY", "bold red"
 
-        # max drawdown over this window
-        running = peak_r = max_dd = 0.0
-        for t in trades:
-            running += t["pnl_pts"]
-            peak_r   = max(peak_r, running)
-            max_dd   = min(max_dd, running - peak_r)
+        def _rs(v: float) -> str:
+            return f"₹{v:+,.0f}"
 
         self.update(
             f"[bold cyan]▸ Performance[/]  [{r_col}]{rating}[/]"
             f"  [dim](last {w} of {total_all} trades)[/]\n\n"
             "[dim]── Trade Count ──────────────────────────────[/]\n"
-            f"[dim]{'Total (window)':<20}[/] [white]{s['total']}[/]\n"
-            f"[dim]{'Wins':<20}[/] [green]{s['wins']}[/]\n"
-            f"[dim]{'Losses':<20}[/] [red]{s['losses']}[/]\n"
-            f"[dim]{'Win Rate':<20}[/] [{wr_col}]{s['win_rate']}%[/]\n\n"
+            f"[dim]{'Total (window)':<16}[/] [white]{s['total']}[/]\n"
+            f"[dim]{'Wins':<16}[/] [green]{s['wins']}[/]\n"
+            f"[dim]{'Losses':<16}[/] [red]{s['losses']}[/]\n"
+            f"[dim]{'Win Rate':<16}[/] [{wr_col}]{s['win_rate']}%[/]\n\n"
             "[dim]── P&L ────────────────────────────────────────[/]\n"
-            f"[dim]{'Total (pts)':<20}[/] [{pnl_col}]{s['total_pnl_pts']:+.1f}[/]\n"
-            f"[dim]{'Total (₹)':<20}[/] [{pnl_col}]{s['total_pnl_rs']:+,.0f}[/]\n"
-            f"[dim]{'Avg Win':<20}[/] [green]{s['avg_win']:+.1f} pts[/]\n"
-            f"[dim]{'Avg Loss':<20}[/] [red]{s['avg_loss']:.1f} pts[/]\n"
-            f"[dim]{'Best Trade':<20}[/] [green]{s['best']:+.1f} pts[/]\n"
-            f"[dim]{'Worst Trade':<20}[/] [red]{s['worst']:.1f} pts[/]\n\n"
-            "[dim]── Risk Metrics ─────────────────────────────[/]\n"
-            f"[dim]{'Expectancy':<20}[/] [{exp_col}]{s['expectancy']:+.1f} pts/trade[/]\n"
-            f"[dim]{'Achieved RR':<20}[/] [white]{s['avg_rr']:.2f}[/]\n"
-            f"[dim]{'Max Drawdown':<20}[/] [red]{max_dd:.1f} pts[/]"
+            f"[dim]{'Total':<16}[/] [{pnl_col}]{s['total_pnl_pts']:+.1f} pts   {_rs(s['total_pnl_rs'])}[/]\n"
+            f"[dim]{'Avg Win':<16}[/] [green]{s['avg_win']:+.1f} pts   {_rs(avg_win_rs)}[/]\n"
+            f"[dim]{'Avg Loss':<16}[/] [red]{s['avg_loss']:.1f} pts   {_rs(avg_loss_rs)}[/]\n"
+            f"[dim]{'Best Trade':<16}[/] [green]{s['best']:+.1f} pts   {_rs(best_rs)}[/]\n"
+            f"[dim]{'Worst Trade':<16}[/] [red]{s['worst']:.1f} pts   {_rs(worst_rs)}[/]\n\n"
+            "[dim]── Risk ───────────────────────────────────────[/]\n"
+            f"[dim]{'Expectancy':<16}[/] [{exp_col}]{s['expectancy']:+.1f} pts   {_rs(exp_rs)} /trade[/]\n"
+            f"[dim]{'Achieved RR':<16}[/] [white]{s['avg_rr']:.2f}[/]\n"
+            f"[dim]{'Max Drawdown':<16}[/] [red]{dd_pts:.1f} pts   {_rs(dd_rs)}[/]"
         )
 
 
@@ -224,87 +236,84 @@ class AnalysisPanel(Widget):
         w         = trade_book.get_analysis_window()
         total_all = len(trade_book.get_all_trades())
         lines     = [
-            f"[bold cyan]▸ System Analysis[/]"
-            f"  [dim](last {w} of {total_all} trades —"
-            " press [/][dim white]n[/][dim] to change)[/]",
+            f"[bold cyan]▸ Analysis[/]"
+            f"  [dim](last {w} of {total_all} trades — [/][dim white]n[/][dim] to change)[/]",
             "",
         ]
 
-        if s["total"] < 3:
-            lines.append("[dim white]Need ≥3 closed trades for meaningful analysis.[/]")
+        if s["total"] < 2:
+            lines.append("[dim white]Need ≥2 closed trades.[/]")
             self.query_one("#analysis-display", Static).update("\n".join(lines))
             return
 
-        # exit reason breakdown
-        reasons: dict[str, int] = {}
-        for t in trades:
-            r = t.get("exit_reason") or "unknown"
-            reasons[r] = reasons.get(r, 0) + 1
-
-        lines.append("[dim]── Exit Reason Breakdown ──────────────────[/]")
-        for reason, count in sorted(reasons.items(), key=lambda x: -x[1]):
-            pct = count / len(trades) * 100
+        # ── CE vs PE ──────────────────────────────────────────────────────────
+        lines.append("[dim]── CE vs PE ────────────────────────────────[/]")
+        for label, col in (("CE", "green"), ("PE", "red")):
+            grp = [t for t in trades if t["option"] == label]
+            if not grp:
+                continue
+            wins   = sum(1 for t in grp if t["pnl_pts"] > 0)
+            pnl_p  = sum(t["pnl_pts"] for t in grp)
+            pnl_rs = sum(t["pnl_rs"]  for t in grp)
+            wr     = wins / len(grp) * 100
+            pc     = "green" if pnl_p >= 0 else "red"
             lines.append(
-                f"  [dim]{reason:<24}[/] [white]{count:>3}x[/]  [dim]({pct:.0f}%)[/]"
+                f"  [{col}]{label}[/]  "
+                f"[white]{len(grp)} trades  {wins}W/{len(grp)-wins}L  {wr:.0f}% WR[/]  "
+                f"[{pc}]{pnl_p:+.1f}pts  ₹{pnl_rs:+,.0f}[/]"
             )
 
-        # CE vs PE split
-        ce_tr = [t for t in trades if t["option"] == "CE"]
-        pe_tr = [t for t in trades if t["option"] == "PE"]
-        lines += ["", "[dim]── CE vs PE ────────────────────────────────[/]"]
-        for label, col, group in (("CE", "green", ce_tr), ("PE", "red", pe_tr)):
-            if group:
-                wins = sum(1 for t in group if t["pnl_pts"] > 0)
-                pnl  = sum(t["pnl_pts"] for t in group)
-                lines.append(
-                    f"  [{col}]{label}[/]  "
-                    f"[dim]trades=[/][white]{len(group)}[/]  "
-                    f"[dim]wins=[/][white]{wins}[/]  "
-                    f"[dim]wr=[/][white]{wins/len(group)*100:.0f}%[/]  "
-                    f"[dim]pnl=[/][white]{pnl:+.1f}pts[/]"
-                )
-
-        # time-of-day buckets
-        buckets: dict[str, list[float]] = {"09–11": [], "11–13": [], "13–15": []}
+        # ── Time of Day ───────────────────────────────────────────────────────
+        lines += ["", "[dim]── Best Time to Trade ─────────────────────[/]"]
+        buckets: dict[str, list] = {"09–11": [], "11–13": [], "13–15": []}
         for t in trades:
             h = int((t.get("time_entry") or "00:00:00")[:2])
-            if h < 11:   buckets["09–11"].append(t["pnl_pts"])
-            elif h < 13: buckets["11–13"].append(t["pnl_pts"])
-            else:        buckets["13–15"].append(t["pnl_pts"])
+            bucket = "09–11" if h < 11 else "11–13" if h < 13 else "13–15"
+            buckets[bucket].append(t)
+        for slot, grp in buckets.items():
+            if not grp:
+                continue
+            wins  = sum(1 for t in grp if t["pnl_pts"] > 0)
+            pnl_p = sum(t["pnl_pts"] for t in grp)
+            pnl_r = sum(t["pnl_rs"]  for t in grp)
+            col   = "green" if pnl_p >= 0 else "red"
+            lines.append(
+                f"  [dim]{slot}[/]  [white]{len(grp)} trades  {wins}W/{len(grp)-wins}L[/]"
+                f"  [{col}]{pnl_p:+.1f}pts  ₹{pnl_r:+,.0f}[/]"
+            )
 
-        lines += ["", "[dim]── Time-of-Day P&L ─────────────────────────[/]"]
-        for slot, pts in buckets.items():
-            if pts:
-                avg = sum(pts) / len(pts)
-                col = "green" if avg >= 0 else "red"
-                lines.append(
-                    f"  [dim]{slot}[/]  [white]{len(pts)} trades[/]"
-                    f"  avg=[{col}]{avg:+.1f}pts[/]"
-                )
+        # ── Exit Reasons ──────────────────────────────────────────────────────
+        lines += ["", "[dim]── How Trades Exit ────────────────────────[/]"]
+        reasons: dict[str, list] = {}
+        for t in trades:
+            r = t.get("exit_reason") or "unknown"
+            reasons.setdefault(r, []).append(t)
+        for reason, grp in sorted(reasons.items(), key=lambda x: -len(x[1])):
+            pnl_p = sum(t["pnl_pts"] for t in grp)
+            pnl_r = sum(t["pnl_rs"]  for t in grp)
+            pct   = len(grp) / len(trades) * 100
+            col   = "green" if pnl_p >= 0 else "red"
+            lines.append(
+                f"  [dim]{reason:<20}[/] [white]{len(grp)}x ({pct:.0f}%)[/]"
+                f"  [{col}]{pnl_p:+.1f}pts  ₹{pnl_r:+,.0f}[/]"
+            )
 
-        # auto insights
-        lines += ["", "[dim]── Insights ─────────────────────────────────[/]"]
-        insight_added = False
-        if s["win_rate"] < 40:
-            lines.append("  [red]↓ Low win rate — revisit entry threshold.[/]")
-            insight_added = True
-        if s["avg_rr"] < 1.0 and s["total"] >= 5:
-            lines.append("  [red]↓ Achieved RR < 1 — exits too early or SL too wide.[/]")
-            insight_added = True
-        if s["win_rate"] >= 50 and s["expectancy"] > 0:
+        # ── Verdict ───────────────────────────────────────────────────────────
+        lines += ["", "[dim]── Verdict ──────────────────────────────────[/]"]
+        if s["expectancy"] > 0 and s["win_rate"] >= 50:
             lines.append("  [green]✓ Positive expectancy — system has edge.[/]")
-            insight_added = True
-        if reasons.get("sl_hit", 0) / max(s["total"], 1) > 0.5:
-            lines.append("  [yellow]⚠ >50% SL hits — tighten entry filter.[/]")
-            insight_added = True
-        if reasons.get("target_hit", 0) / max(s["total"], 1) > 0.4:
-            lines.append("  [green]✓ Targets hit frequently — good momentum capture.[/]")
-            insight_added = True
-        if reasons.get("signal_flip", 0) / max(s["total"], 1) > 0.5:
-            lines.append("  [yellow]⚠ >50% signal-flip exits — signal may be unstable.[/]")
-            insight_added = True
-        if not insight_added:
-            lines.append("  [dim white]No specific issues detected.[/]")
+        if s["avg_rr"] < 1.0 and s["total"] >= 5:
+            lines.append("  [red]↓ RR < 1 — losses bigger than wins on average.[/]")
+        if s["win_rate"] < 40:
+            lines.append("  [red]↓ Win rate < 40% — entry conditions too loose.[/]")
+        sl_pct = len(reasons.get("sl_hit", [])) / max(s["total"], 1)
+        if sl_pct > 0.5:
+            lines.append("  [yellow]⚠ >50% SL hits — consider tightening entry.[/]")
+        trail_pct = len(reasons.get("trail_sl", [])) / max(s["total"], 1)
+        if trail_pct > 0.4 and s["expectancy"] > 0:
+            lines.append("  [green]✓ Trail SL catching profits well.[/]")
+        if not any("✓" in l or "↓" in l or "⚠" in l for l in lines[-5:]):
+            lines.append("  [dim white]No issues detected yet.[/]")
 
         self.query_one("#analysis-display", Static).update("\n".join(lines))
 

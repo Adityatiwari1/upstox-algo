@@ -1,9 +1,9 @@
 from textual.app import ComposeResult
-from textual.widgets import Static, DataTable, Label
-from textual.containers import Vertical
+from textual.widgets import DataTable, Label
+from textual.containers import Vertical, ScrollableContainer
 
 
-class OrdersScreen(Static):
+class OrdersScreen(ScrollableContainer):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Label("Orders", id="title")

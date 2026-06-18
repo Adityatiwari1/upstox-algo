@@ -10,12 +10,15 @@ from uptox.services import capital_service
 
 class UptoxApp(App):
     TITLE = "Uptox Trading"
+    DEFAULT_CSS = """
+    TabPane {
+        height: 1fr;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    """
     BINDINGS = [
         ("q",     "quit",                      "Quit"),
-        ("1",     "switch_tab('dashboard')",   "Dashboard"),
-        ("2",     "switch_tab('orders')",      "Orders"),
-        ("3",     "switch_tab('option-chain')", "Option Chain"),
-        ("4",     "switch_tab('trade-book')",  "Trade Book"),
         ("t",     "cycle_tf",                  "Cycle TF"),
         ("]",     "capital_up",                "Capital +5K"),
         ("[",     "capital_down",              "Capital -5K"),
@@ -28,13 +31,13 @@ class UptoxApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
         with TabbedContent(initial="dashboard"):
-            with TabPane("Dashboard [1]", id="dashboard"):
+            with TabPane("Dashboard", id="dashboard"):
                 yield DashboardScreen()
-            with TabPane("Orders [2]", id="orders"):
+            with TabPane("Orders", id="orders"):
                 yield OrdersScreen()
-            with TabPane("Option Chain [3]", id="option-chain"):
+            with TabPane("Option Chain", id="option-chain"):
                 yield OptionChainScreen()
-            with TabPane("Trade Book [4]", id="trade-book"):
+            with TabPane("Trade Book", id="trade-book"):
                 yield TradeBookScreen()
         yield Footer()
 
