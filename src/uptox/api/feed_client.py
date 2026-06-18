@@ -36,6 +36,21 @@ async def subscribe(instrument_keys: list[str], mode: str = "full") -> None:
     await _send_queue.put(_subscribe_msg(instrument_keys, mode))
 
 
+async def _reauth() -> str:
+    """Re-run headless login, persist new token, return it."""
+    import asyncio
+    from uptox.api.auth import fetch_access_token
+    from uptox.services.token_service import save_access_token
+    from uptox.config.settings import settings
+    print("[feed] Token expired — re-authenticating...")
+    loop = asyncio.get_event_loop()
+    new_token = await loop.run_in_executor(None, fetch_access_token)
+    save_access_token(new_token)
+    settings.access_token = new_token
+    print("[feed] Re-authentication successful.")
+    return new_token
+
+
 async def _get_wss_url(access_token: str) -> str:
     async with httpx.AsyncClient() as client:
         resp = await client.get(
@@ -43,9 +58,15 @@ async def _get_wss_url(access_token: str) -> str:
             headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
             timeout=10,
         )
+        if resp.status_code == 401:
+            raise _TokenExpiredError()
         resp.raise_for_status()
         data = resp.json()
         return data["data"]["authorized_redirect_uri"]
+
+
+class _TokenExpiredError(Exception):
+    pass
 
 
 def _decode(raw: bytes) -> proto.FeedResponse:
@@ -113,6 +134,15 @@ async def run_feed(
                                 print(f"[feed] Decode error: {e}")
                 finally:
                     sender.cancel()
+
+        except _TokenExpiredError:
+            feed_store.set_status("reconnecting")
+            try:
+                token = await _reauth()
+            except Exception as auth_err:
+                print(f"[feed] Re-auth failed: {auth_err}")
+                await asyncio.sleep(reconnect_delay)
+            continue  # retry immediately with new token
 
         except Exception as e:
             feed_store.set_status("disconnected")
