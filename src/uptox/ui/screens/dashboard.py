@@ -147,11 +147,10 @@ class OverallAnalysisPanel(Static):
             oi_dir = _psn.get("change_oi", 0.0) - _csn.get("change_oi", 0.0)
         else:
             raw_delta = cum = oi_dir = 0.0
-        flow_score = (
-            (1 if raw_delta > 0 else -1 if raw_delta < 0 else 0)
-            + (1 if cum > 0 else -1 if cum < 0 else 0)
-            + (1 if oi_dir > 0 else -1 if oi_dir < 0 else 0)
-        )
+        delta_sc = 1 if raw_delta > 0 else -1 if raw_delta < 0 else 0
+        cum_sc   = 1 if cum > 0 else -1 if cum < 0 else 0
+        oi_sc    = 1 if oi_dir > 0 else -1 if oi_dir < 0 else 0
+        flow_score = delta_sc + cum_sc + oi_sc
 
         total = sma_score + flow_score  # range: -5 … +5
 
@@ -356,7 +355,7 @@ class OverallAnalysisPanel(Static):
                 f"[dim]{'Target':<12}[/] [green]{ot['target']:.1f}[/]",
                 f"[dim]{'Elapsed':<12}[/] [dim white]{e_str}[/]",
                 f"[dim]{'Trend':<12}[/] [bold {trend_color}]{trend}[/]",
-                f"[dim]{'Score':<12}[/] [dim white]{total:+d}/5  SMA {sma_score:+d}  Flow {flow_score:+d}[/]",
+                f"[dim]{'Score':<12}[/] [dim white]{total:+d}/5  SMA{sma_score:+d}  Δ{delta_sc:+d} CumΔ{cum_sc:+d} OI{oi_sc:+d}[/]",
                 f"[dim]{'PCR':<12}[/] [{pcr_color}]{pcr_str}[/]",
                 f"[dim]{'Max Pain':<12}[/] [dim white]{mp_str}[/]",
             ]
@@ -385,7 +384,7 @@ class OverallAnalysisPanel(Static):
                 f"[dim]{'Option':<12}[/] [bold {opt_color}]{option if tradeable else '—'}[/]",
                 f"[dim]{'Buy Price':<12}[/] [{opt_color}]{buy_str}[/]",
                 f"[dim]{'Trend':<12}[/] [bold {trend_color}]{trend}[/]",
-                f"[dim]{'Score':<12}[/] [dim white]{total:+d}/5  SMA {sma_score:+d}  Flow {flow_score:+d}[/]",
+                f"[dim]{'Score':<12}[/] [dim white]{total:+d}/5  SMA{sma_score:+d}  Δ{delta_sc:+d} CumΔ{cum_sc:+d} OI{oi_sc:+d}[/]",
                 f"[dim]{'PCR':<12}[/] [{pcr_color}]{pcr_str}[/]",
                 f"[dim]{'Max Pain':<12}[/] [dim white]{mp_str}[/]",
             ]
