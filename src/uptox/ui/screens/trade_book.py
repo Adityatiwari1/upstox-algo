@@ -373,7 +373,7 @@ class TradeBookScreen(ScrollableContainer):
     DEFAULT_CSS = """
     TradeBookScreen { height: 1fr; }
     TradeBookScreen TabbedContent { height: 1fr; }
-    TradeBookScreen TabPane { height: auto; padding: 0; }
+    TradeBookScreen TabPane { height: 1fr; overflow-y: auto; overflow-x: hidden; padding: 0; }
     OpenTradePanel, PerformancePanel, AnalysisPanel, TradeHistoryPanel {
         width: 100%;
         height: auto;
