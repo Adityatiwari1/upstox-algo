@@ -23,11 +23,13 @@ except ImportError:
 _IST              = ZoneInfo("Asia/Kolkata")
 _HZ_START         = dt_time(15, 30)   # Hero/Zero window: last 15 mins before 3:45 close
 _HZ_FORCE_CLOSE   = dt_time(15, 44)   # force exit 1 min before 3:45 PM settlement
+_SESSION_CLOSE    = dt_time(15, 25)   # force-exit ALL trades at 3:25 PM IST
 
 log = logging.getLogger(__name__)
 
-_TRADES_FILE = Path("logs/trades.json")
-_TRADES_XLSX = Path("logs/trades.xlsx")
+_TRADES_FILE     = Path("logs/trades.json")
+_TRADES_XLSX     = Path("logs/trades.xlsx")
+_OPEN_TRADE_FILE = Path("logs/open_trade.json")   # persists open trade across restarts
 _trades: list[dict] = []
 _open_trade: dict | None = None
 
@@ -60,14 +62,53 @@ _XLSX_COLS = [
 
 # ── persistence ───────────────────────────────────────────────────────────────
 
+def _save_open() -> None:
+    """Persist open trade to disk so restarts can recover it."""
+    try:
+        _OPEN_TRADE_FILE.parent.mkdir(exist_ok=True)
+        if _open_trade:
+            _OPEN_TRADE_FILE.write_text(
+                json.dumps(_open_trade, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        elif _OPEN_TRADE_FILE.exists():
+            _OPEN_TRADE_FILE.unlink(missing_ok=True)
+    except Exception as e:
+        log.error("open_trade save error: %s", e)
+
+
 def _load() -> None:
-    global _trades
+    global _trades, _open_trade
     if _TRADES_FILE.exists():
         try:
             _trades = json.loads(_TRADES_FILE.read_text(encoding="utf-8"))
         except Exception as e:
             log.error("trade_book load error: %s", e)
             _trades = []
+    # Restore any open trade that survived a restart
+    if _OPEN_TRADE_FILE.exists():
+        try:
+            data = json.loads(_OPEN_TRADE_FILE.read_text(encoding="utf-8"))
+            if data.get("outcome") == "OPEN":
+                _open_trade = data
+                ep      = float(data.get("entry_price", 0))
+                sl      = float(data.get("sl", 0))
+                opt     = data.get("option", "")
+                opt_key = data.get("option_key", "")
+                hz      = bool(data.get("hero_zero", False))
+                if ep:
+                    from uptox.services import trailing_sl_service
+                    if hz:
+                        trailing_sl_service.activate_hero_zero(ep, opt, opt_key)
+                    else:
+                        trail_pct = (ep - sl) / ep if (sl and sl < ep) else 0.20
+                        trailing_sl_service.set_entry(ep, opt, opt_key, trail_pct=trail_pct)
+                log.info(
+                    "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
+                    opt, data.get("strike"), ep, sl,
+                )
+        except Exception as e:
+            log.error("open_trade restore error: %s", e)
+            _open_trade = None
 
 
 def _save() -> None:
@@ -147,13 +188,20 @@ def is_hero_zero_window(expiry: str) -> bool:
 
 
 def should_force_close() -> bool:
-    """True at 3:29 PM on expiry day — force exit before settlement."""
+    """True at 3:44 PM on expiry day — force exit Hero/Zero before settlement."""
     ot = _open_trade
     if not ot or not ot.get("hero_zero"):
         return False
     now = datetime.now(_IST)
     return (now.strftime("%Y-%m-%d") == ot.get("expiry", "")
             and now.time() >= _HZ_FORCE_CLOSE)
+
+
+def should_session_close() -> bool:
+    """True at or after 3:30 PM IST — force-exit ALL open trades, end of session."""
+    if not _open_trade:
+        return False
+    return datetime.now(_IST).time() >= _SESSION_CLOSE
 
 
 # ── public API ────────────────────────────────────────────────────────────────
@@ -225,6 +273,7 @@ def open_trade(
             "Paper OPEN: %s %s @ %.1f  SL=%.1f  TGT=%.1f  trail_pct=%.0f%%  lots=%d",
             option, strike, entry_price, sl, target, trail_pct * 100, lots,
         )
+    _save_open()
 
 
 def close_trade(exit_price: float, reason: str) -> dict | None:
@@ -261,6 +310,7 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
     _trades.append(closed)
     _open_trade = None
     _save()
+    _save_open()   # clears open_trade.json — trade is closed
     # Deactivate trailing SL when trade closes for any reason
     from uptox.services import trailing_sl_service
     trailing_sl_service.exit_trade()

@@ -131,14 +131,26 @@ class OverallAnalysisPanel(Static):
         if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
         if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
 
-        # Order flow score
-        cum       = feed_store.cum_delta(NIFTY)
-        raw_delta = (t.tbq - t.tsq) if t else 0.0
-        oi_chg    = t.change_oi if t else 0.0
+        # Order flow score — IndexFullFeed v3 has no tbq/tsq/oi; read from ATM options
+        if atm:
+            _ck  = option_chain_service.get_key(atm, "CE")
+            _pk  = option_chain_service.get_key(atm, "PE")
+            _tce = feed_store.get(_ck) if _ck else None
+            _tpe = feed_store.get(_pk) if _pk else None
+            _csn = option_chain_service.get_option(atm, "CE") or {}
+            _psn = option_chain_service.get_option(atm, "PE") or {}
+            raw_delta = (
+                (_tce.tbq if _tce else 0.0) + (_tpe.tbq if _tpe else 0.0)
+                - (_tce.tsq if _tce else 0.0) - (_tpe.tsq if _tpe else 0.0)
+            )
+            cum    = feed_store.cum_delta(_ck) if _ck else 0.0
+            oi_dir = _psn.get("change_oi", 0.0) - _csn.get("change_oi", 0.0)
+        else:
+            raw_delta = cum = oi_dir = 0.0
         flow_score = (
             (1 if raw_delta > 0 else -1 if raw_delta < 0 else 0)
             + (1 if cum > 0 else -1 if cum < 0 else 0)
-            + (1 if oi_chg > 0 else -1 if oi_chg < 0 else 0)
+            + (1 if oi_dir > 0 else -1 if oi_dir < 0 else 0)
         )
 
         total = sma_score + flow_score  # range: -5 … +5
@@ -592,8 +604,19 @@ class BestEntryPanel(Static):
         sma_score = 0
         if ltp and sma20: sma_score += 1 if ltp > sma20 else -1
         if ltp and sma50: sma_score += 1 if ltp > sma50 else -1
-        cum = feed_store.cum_delta(NIFTY)
-        raw_delta = (t.tbq - t.tsq) if t else 0.0
+        # Read flow from ATM options — index feed has no tbq/tsq in v3
+        if atm:
+            _ck  = option_chain_service.get_key(atm, "CE")
+            _pk  = option_chain_service.get_key(atm, "PE")
+            _tce = feed_store.get(_ck) if _ck else None
+            _tpe = feed_store.get(_pk) if _pk else None
+            raw_delta = (
+                (_tce.tbq if _tce else 0.0) + (_tpe.tbq if _tpe else 0.0)
+                - (_tce.tsq if _tce else 0.0) - (_tpe.tsq if _tpe else 0.0)
+            )
+            cum = feed_store.cum_delta(_ck) if _ck else 0.0
+        else:
+            raw_delta = cum = 0.0
         flow_score = (1 if raw_delta > 0 else -1 if raw_delta < 0 else 0) + \
                      (1 if cum > 0 else -1 if cum < 0 else 0)
         opt_type = "CE" if (sma_score + flow_score) > 0 else "PE" if (sma_score + flow_score) < 0 else None
@@ -784,21 +807,27 @@ class CapitalPanel(Widget):
         cap   = capital_service.get_capital()
         rr    = capital_service.get_rr()
         total = 0
-        if t:
+        atm_c = round(ltp / 50) * 50 if ltp else 0
+        if ltp and atm_c:
             smas = sma_service.get_smas(NIFTY, TimeFrame.M5)
             s20, s50 = smas.get(20), smas.get(50)
-            sc = (1 if ltp > s20 else -1 if s20 else 0) + (1 if ltp > s50 else -1 if s50 else 0)
-            cum = feed_store.cum_delta(NIFTY)
-            fc  = (1 if t.tbq > t.tsq else -1) + (1 if cum > 0 else -1)
+            sc   = (1 if ltp > s20 else -1 if s20 else 0) + (1 if ltp > s50 else -1 if s50 else 0)
+            _ck  = option_chain_service.get_key(atm_c, "CE")
+            _pk  = option_chain_service.get_key(atm_c, "PE")
+            _tce = feed_store.get(_ck) if _ck else None
+            _tpe = feed_store.get(_pk) if _pk else None
+            _rd  = ((_tce.tbq if _tce else 0.0) + (_tpe.tbq if _tpe else 0.0)
+                    - (_tce.tsq if _tce else 0.0) - (_tpe.tsq if _tpe else 0.0))
+            _cum = feed_store.cum_delta(_ck) if _ck else 0.0
+            fc   = (1 if _rd > 0 else -1 if _rd < 0 else 0) + (1 if _cum > 0 else -1 if _cum < 0 else 0)
             total = sc + fc
 
         suggested_rr = capital_service.suggest_rr(total)
         rr_color = "green" if rr >= suggested_rr else "yellow"
 
-        atm = round(ltp / 50) * 50 if ltp else 0
         key = None
         for opt in ("CE", "PE"):
-            k = option_chain_service.get_key(atm, opt)
+            k = option_chain_service.get_key(atm_c, opt)
             if k and feed_store.get(k):
                 key = k; break
         live = feed_store.get(key) if key else None

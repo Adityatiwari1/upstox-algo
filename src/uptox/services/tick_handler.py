@@ -69,7 +69,11 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         # Per-tick updates for open paper trade
         ot = trade_book.get_open_trade()
         if ot and ot.get("option_key") == instrument_key:
-            # Hero/Zero: force exit at 3:29 PM before settlement
+            # 3:25 PM — end of session, exit everything
+            if trade_book.should_session_close():
+                trade_book.close_trade(tick.ltp, "session_close_3:25PM")
+                return
+            # Hero/Zero: force exit at 3:44 PM before settlement
             if trade_book.should_force_close():
                 trade_book.close_trade(tick.ltp, "expiry_force_close")
                 return

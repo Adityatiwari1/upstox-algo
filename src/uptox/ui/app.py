@@ -98,8 +98,19 @@ class UptoxApp(App):
             _log.info("Entry locked: %s @ %.1f", side, live.ltp)
 
     def action_exit_trade(self) -> None:
-        from uptox.services import trailing_sl_service
-        trailing_sl_service.exit_trade()
+        from uptox.services import feed_store, trailing_sl_service, trade_book
+        ot = trade_book.get_open_trade()
+        if ot:
+            opt_key = ot.get("option_key", "")
+            live    = feed_store.get(opt_key) if opt_key else None
+            exit_p  = (live.ltp if live else 0.0) or ot["entry_price"]
+            trade_book.close_trade(exit_p, "manual_exit")
+            self.notify(
+                f"Trade closed manually — {ot['option']} {ot['strike']} @ ₹{exit_p:.1f}",
+                severity="information",
+            )
+        else:
+            trailing_sl_service.exit_trade()
 
     async def _prime_smas(self) -> None:
         from uptox.api.feed_client import DEFAULT_INSTRUMENTS
