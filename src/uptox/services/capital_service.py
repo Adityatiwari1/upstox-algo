@@ -43,11 +43,11 @@ def suggest_rr(trend_score: int) -> float:
 
 
 def sizing(buy_price: float) -> dict:
-    """Lots affordable given capital and buy_price per unit."""
+    """Lots affordable given capital and buy_price per unit. lots=0 means can't afford."""
     if not buy_price:
         return {"lots": 0, "lot_cost": 0.0, "invested": 0.0}
     lot_cost = round(buy_price * NIFTY_LOT_SIZE, 2)
-    lots     = max(1, int(_capital / lot_cost))
+    lots     = int(_capital / lot_cost)   # 0 when lot_cost > capital
     return {"lots": lots, "lot_cost": lot_cost, "invested": round(lots * lot_cost, 2)}
 
 

@@ -16,6 +16,7 @@ dependencies = [
     "exchange-calendars>=4.5",
     "protobuf>=4.25",
     "grpcio-tools>=1.60",
+    "openpyxl>=3.1.5",
 ]
 
 [project.scripts]

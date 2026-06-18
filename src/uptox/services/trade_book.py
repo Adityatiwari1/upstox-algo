@@ -13,6 +13,13 @@ from datetime import datetime, time as dt_time
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+try:
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    _XLSX_OK = True
+except ImportError:
+    _XLSX_OK = False
+
 _IST              = ZoneInfo("Asia/Kolkata")
 _HZ_START         = dt_time(15, 30)   # Hero/Zero window: last 15 mins before 3:45 close
 _HZ_FORCE_CLOSE   = dt_time(15, 44)   # force exit 1 min before 3:45 PM settlement
@@ -20,8 +27,35 @@ _HZ_FORCE_CLOSE   = dt_time(15, 44)   # force exit 1 min before 3:45 PM settleme
 log = logging.getLogger(__name__)
 
 _TRADES_FILE = Path("logs/trades.json")
+_TRADES_XLSX = Path("logs/trades.xlsx")
 _trades: list[dict] = []
 _open_trade: dict | None = None
+
+_XLSX_COLS = [
+    ("Date",         "date"),
+    ("Entry Time",   "time_entry"),
+    ("Exit Time",    "time_exit"),
+    ("Strike",       "strike"),
+    ("Option",       "option"),
+    ("Expiry",       "expiry"),
+    ("Entry ₹",      "entry_price"),
+    ("Exit ₹",       "exit_price"),
+    ("Lots",         "lots"),
+    ("Invested",     "invested"),
+    ("SL",           "sl"),
+    ("Target",       "target"),
+    ("Delta",        "delta"),
+    ("Spot Entry",   "spot_entry"),
+    ("PnL Pts",      "pnl_pts"),
+    ("PnL ₹",        "pnl_rs"),
+    ("Outcome",      "outcome"),
+    ("Entry Reason", "entry_reason"),
+    ("Exit Reason",  "exit_reason"),
+    ("Score",        "score"),
+    ("SMA Score",    "sma_score"),
+    ("Flow Score",   "flow_score"),
+    ("Hero/Zero",    "hero_zero"),
+]
 
 
 # ── persistence ───────────────────────────────────────────────────────────────
@@ -44,6 +78,64 @@ def _save() -> None:
         )
     except Exception as e:
         log.error("trade_book save error: %s", e)
+    if _XLSX_OK:
+        _save_xlsx()
+
+
+def _save_xlsx() -> None:
+    try:
+        _TRADES_XLSX.parent.mkdir(exist_ok=True)
+        if _TRADES_XLSX.exists():
+            wb = openpyxl.load_workbook(_TRADES_XLSX)
+            ws = wb.active
+        else:
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Trades"
+            # Header row
+            headers = [col for col, _ in _XLSX_COLS]
+            ws.append(headers)
+            hdr_fill   = PatternFill("solid", fgColor="1F2D3D")
+            hdr_font   = Font(bold=True, color="FFFFFF")
+            hdr_align  = Alignment(horizontal="center")
+            for cell in ws[1]:
+                cell.fill  = hdr_fill
+                cell.font  = hdr_font
+                cell.alignment = hdr_align
+            # Column widths
+            widths = [12, 11, 11, 8, 7, 12, 9, 9, 6, 10, 9, 9, 7, 11, 9, 10, 14, 18, 20, 7, 10, 11, 10]
+            for i, w in enumerate(widths, 1):
+                ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+        # Append the latest closed trade
+        if not _trades:
+            return
+        t = _trades[-1]
+        row = [t.get(field) for _, field in _XLSX_COLS]
+        ws.append(row)
+
+        # Colour the row by outcome
+        outcome = t.get("outcome", "")
+        if outcome in ("TARGET_HIT", "WIN"):
+            fill = PatternFill("solid", fgColor="1A3A1A")
+            font_color = "00CC44"
+        elif outcome in ("SL_HIT", "LOSS"):
+            fill = PatternFill("solid", fgColor="3A1A1A")
+            font_color = "FF4444"
+        else:
+            fill = PatternFill("solid", fgColor="2A2A2A")
+            font_color = "AAAAAA"
+
+        last_row = ws.max_row
+        for cell in ws[last_row]:
+            cell.fill      = fill
+            cell.font      = Font(color=font_color)
+            cell.alignment = Alignment(horizontal="center")
+
+        wb.save(_TRADES_XLSX)
+        log.info("Trade saved to %s", _TRADES_XLSX)
+    except Exception as e:
+        log.error("trade_book xlsx save error: %s", e)
 
 
 # ── Hero/Zero detection ───────────────────────────────────────────────────────
@@ -79,6 +171,10 @@ def open_trade(
     option_key: str = "",
     delta: float | None = None,
     spot: float = 0.0,
+    entry_reason: str = "",
+    score: int = 0,
+    sma_score: int = 0,
+    flow_score: int = 0,
 ) -> None:
     global _open_trade
     if _open_trade:
@@ -104,8 +200,12 @@ def open_trade(
         "current_price": entry_price,
         "pnl_pts":     0.0,
         "pnl_rs":      0.0,
-        "outcome":     "OPEN",
-        "exit_reason": None,
+        "outcome":      "OPEN",
+        "exit_reason":  None,
+        "entry_reason": entry_reason,
+        "score":        score,
+        "sma_score":    sma_score,
+        "flow_score":   flow_score,
     }
     # Hero/Zero: last 15 mins of expiry → step-SL mode, 50% initial risk
     hz = is_hero_zero_window(expiry)

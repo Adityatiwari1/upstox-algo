@@ -1,0 +1,492 @@
+2026-06-18 09:23:18,692 INFO     __main__: Starting Uptox Trading
+2026-06-18 09:23:21,508 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,518 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,983 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,984 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 401 Unauthorized"
+2026-06-18 09:23:21,985 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,986 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,986 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 401 Unauthorized"
+2026-06-18 09:23:21,987 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,988 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:23:21,988 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:23:22,037 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 09:23:22,039 ERROR    uptox.services.option_chain_service: oc fetch_and_prime error: Client error '401 Unauthorized' for url 'https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+Traceback (most recent call last):
+  File "D:\Mine\uptox-trading\src\uptox\services\option_chain_service.py", line 103, in fetch_and_prime
+    _all_expiries = await _fetch_expiries(access_token)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Mine\uptox-trading\src\uptox\services\option_chain_service.py", line 40, in _fetch_expiries
+    r.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "D:\Mine\uptox-trading\.venv\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+2026-06-18 09:23:22,064 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 09:23:22,069 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 09:23:22,079 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 09:23:22,110 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 09:23:22,133 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 09:23:22,253 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:23:22,254 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:23:22,263 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 09:23:22,267 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 09:23:41,286 INFO     httpx: HTTP Request: POST https://api.upstox.com/v2/login/authorization/token "HTTP/1.1 200 OK"
+2026-06-18 09:23:41,684 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:25:04,594 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:25:10,243 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:25:15,897 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:25:21,582 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:25:27,150 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:25:32,672 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:32:11,333 INFO     __main__: Starting Uptox Trading
+2026-06-18 09:32:13,994 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:32:13,997 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,005 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,015 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 09:32:14,233 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,234 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,238 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,239 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,240 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,240 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,241 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,470 INFO     uptox.api.feed_client: [feed] Connecting: wss://wsfeeder-api.upstox.com/market-data-feeder/v3/upstox-developer-api/feeds?r...
+2026-06-18 09:32:14,503 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 09:32:14,741 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 09:32:14,750 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 09:32:14,759 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 09:32:14,784 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 09:32:14,810 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 09:32:14,950 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,952 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,962 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 09:32:14,969 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 09:32:14,971 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 09:32:14,975 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 09:32:15,011 INFO     uptox.api.feed_client: [feed] Sending subscribe: {"guid": "uptox-feed-001", "method": "sub", "data": {"mode": "full", "instrumentKeys": ["NSE_INDEX|Nifty 50", "NSE_INDEX|Nifty Bank"]}}
+2026-06-18 09:32:15,012 INFO     uptox.api.feed_client: [feed] Subscribed 2 instruments in 'full' mode
+2026-06-18 09:32:15,012 DEBUG    uptox.api.feed_client: [feed] Frame #1 (165 bytes)
+2026-06-18 09:32:15,012 DEBUG    uptox.api.feed_client: [feed] Frame #1: empty feeds (type=2)
+2026-06-18 09:41:35,702 INFO     __main__: Starting Uptox Trading
+2026-06-18 09:41:38,315 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,320 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 09:41:38,326 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,331 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,332 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,750 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 09:41:38,752 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,753 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,754 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,754 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,755 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,756 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:41:38,790 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 09:41:38,798 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 09:41:39,017 INFO     uptox.api.feed_client: [feed] Connecting: wss://wsfeeder-api.upstox.com/market-data-feeder/v3/upstox-developer-api/feeds?r...
+2026-06-18 09:41:39,039 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 09:41:39,084 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 09:41:39,110 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 09:41:39,192 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:41:39,199 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 09:41:39,207 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:41:39,219 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 09:41:39,264 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 09:41:39,274 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 09:41:39,315 INFO     uptox.api.feed_client: [feed] Sending subscribe: {"guid": "uptox-feed-001", "method": "sub", "data": {"mode": "full", "instrumentKeys": ["NSE_INDEX|Nifty 50", "NSE_INDEX|Nifty Bank"]}}
+2026-06-18 09:41:39,315 INFO     uptox.api.feed_client: [feed] Subscribed 2 instruments in 'full' mode
+2026-06-18 09:41:39,315 DEBUG    uptox.api.feed_client: [feed] Frame #1 (165 bytes)
+2026-06-18 09:41:39,315 DEBUG    uptox.api.feed_client: [feed] Frame #1: empty feeds (type=2)
+2026-06-18 09:44:02,560 INFO     __main__: Starting Uptox Trading
+2026-06-18 09:44:05,194 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,196 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,206 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 09:44:05,208 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,210 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,211 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,222 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 09:44:05,643 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,644 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,645 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,646 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,647 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 09:44:05,679 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 09:44:05,680 INFO     uptox.api.feed_client: [feed] Connecting: wss://wsfeeder-api.upstox.com/market-data-feeder/v3/upstox-developer-api/feeds?r...
+2026-06-18 09:44:05,709 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 09:44:05,929 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 09:44:05,961 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 09:44:06,048 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 09:44:06,145 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:44:06,149 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 09:44:06,161 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 09:44:06,168 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 09:44:06,198 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 09:44:06,201 INFO     uptox.api.feed_client: [feed] Sending subscribe: b'{"guid": "uptox-feed-001", "method": "sub", "data": {"mode": "full", "instrumentKeys": ["NSE_INDEX|Nifty 50", "NSE_INDEX|Nifty Bank"]}}'
+2026-06-18 09:44:06,202 INFO     uptox.api.feed_client: [feed] Subscribed 2 instruments in 'full' mode
+2026-06-18 09:44:06,202 DEBUG    uptox.api.feed_client: [feed] Frame #1 (165 bytes)
+2026-06-18 09:44:06,203 DEBUG    uptox.api.feed_client: [feed] Frame #1: empty feeds (type=2)
+2026-06-18 09:44:06,208 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 09:44:06,245 DEBUG    uptox.api.feed_client: [feed] Frame #2 (329 bytes)
+2026-06-18 09:44:06,293 DEBUG    uptox.api.feed_client: [feed] Frame #3 (8707 bytes)
+2026-06-18 09:44:06,629 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 09:44:06,629 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24115.2
+2026-06-18 09:44:07,628 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|56376 @ 133.8  SL=118.0 (12% trail)
+2026-06-18 09:44:07,629 INFO     uptox.services.trade_book: Paper OPEN: CE 24100 @ 133.8  SL=118.0  TGT=165.4  trail_pct=12%  lots=1
+2026-06-18 09:44:07,629 INFO     uptox.ui.screens.dashboard: Trade opened (retest): CE @ 133.8
+2026-06-18 09:44:20,710 DEBUG    uptox.api.feed_client: [feed] Frame #100 (4523 bytes)
+2026-06-18 09:44:35,714 DEBUG    uptox.api.feed_client: [feed] Frame #200 (4522 bytes)
+2026-06-18 09:44:50,696 DEBUG    uptox.api.feed_client: [feed] Frame #300 (4520 bytes)
+2026-06-18 09:45:05,716 DEBUG    uptox.api.feed_client: [feed] Frame #400 (4525 bytes)
+2026-06-18 09:45:20,700 DEBUG    uptox.api.feed_client: [feed] Frame #500 (5308 bytes)
+2026-06-18 09:45:35,996 DEBUG    uptox.api.feed_client: [feed] Frame #600 (2143 bytes)
+2026-06-18 09:45:51,144 DEBUG    uptox.api.feed_client: [feed] Frame #700 (171 bytes)
+2026-06-18 09:46:06,298 DEBUG    uptox.api.feed_client: [feed] Frame #800 (723 bytes)
+2026-06-18 09:46:21,295 DEBUG    uptox.api.feed_client: [feed] Frame #900 (331 bytes)
+2026-06-18 09:46:36,308 DEBUG    uptox.api.feed_client: [feed] Frame #1000 (169 bytes)
+2026-06-18 09:46:51,446 DEBUG    uptox.api.feed_client: [feed] Frame #1100 (5076 bytes)
+2026-06-18 09:47:06,445 DEBUG    uptox.api.feed_client: [feed] Frame #1200 (3487 bytes)
+2026-06-18 09:47:21,444 DEBUG    uptox.api.feed_client: [feed] Frame #1300 (3494 bytes)
+2026-06-18 09:47:36,746 DEBUG    uptox.api.feed_client: [feed] Frame #1400 (3728 bytes)
+2026-06-18 09:47:52,346 DEBUG    uptox.api.feed_client: [feed] Frame #1500 (171 bytes)
+2026-06-18 09:48:07,347 DEBUG    uptox.api.feed_client: [feed] Frame #1600 (171 bytes)
+2026-06-18 09:48:22,794 DEBUG    uptox.api.feed_client: [feed] Frame #1700 (6101 bytes)
+2026-06-18 09:48:38,091 DEBUG    uptox.api.feed_client: [feed] Frame #1800 (1753 bytes)
+2026-06-18 09:48:53,397 DEBUG    uptox.api.feed_client: [feed] Frame #1900 (1123 bytes)
+2026-06-18 09:49:08,542 DEBUG    uptox.api.feed_client: [feed] Frame #2000 (1985 bytes)
+2026-06-18 09:49:23,697 DEBUG    uptox.api.feed_client: [feed] Frame #2100 (1912 bytes)
+2026-06-18 09:49:38,699 DEBUG    uptox.api.feed_client: [feed] Frame #2200 (1914 bytes)
+2026-06-18 09:49:53,841 DEBUG    uptox.api.feed_client: [feed] Frame #2300 (5149 bytes)
+2026-06-18 09:50:09,287 DEBUG    uptox.api.feed_client: [feed] Frame #2400 (962 bytes)
+2026-06-18 09:50:24,740 DEBUG    uptox.api.feed_client: [feed] Frame #2500 (1752 bytes)
+2026-06-18 09:50:39,740 DEBUG    uptox.api.feed_client: [feed] Frame #2600 (3096 bytes)
+2026-06-18 09:50:55,187 DEBUG    uptox.api.feed_client: [feed] Frame #2700 (331 bytes)
+2026-06-18 09:51:11,087 DEBUG    uptox.api.feed_client: [feed] Frame #2800 (1197 bytes)
+2026-06-18 09:51:26,987 DEBUG    uptox.api.feed_client: [feed] Frame #2900 (4689 bytes)
+2026-06-18 09:51:41,992 DEBUG    uptox.api.feed_client: [feed] Frame #3000 (4684 bytes)
+2026-06-18 09:51:58,035 DEBUG    uptox.api.feed_client: [feed] Frame #3100 (4524 bytes)
+2026-06-18 09:52:13,185 DEBUG    uptox.api.feed_client: [feed] Frame #3200 (331 bytes)
+2026-06-18 09:52:29,389 DEBUG    uptox.api.feed_client: [feed] Frame #3300 (725 bytes)
+2026-06-18 09:52:45,285 DEBUG    uptox.api.feed_client: [feed] Frame #3400 (800 bytes)
+2026-06-18 09:53:00,886 DEBUG    uptox.api.feed_client: [feed] Frame #3500 (1519 bytes)
+2026-06-18 09:53:16,786 DEBUG    uptox.api.feed_client: [feed] Frame #3600 (1592 bytes)
+2026-06-18 09:53:33,134 DEBUG    uptox.api.feed_client: [feed] Frame #3700 (3890 bytes)
+2026-06-18 09:53:49,036 DEBUG    uptox.api.feed_client: [feed] Frame #3800 (4748 bytes)
+2026-06-18 09:54:04,935 DEBUG    uptox.api.feed_client: [feed] Frame #3900 (3889 bytes)
+2026-06-18 09:54:20,984 DEBUG    uptox.api.feed_client: [feed] Frame #4000 (4687 bytes)
+2026-06-18 09:54:36,882 DEBUG    uptox.api.feed_client: [feed] Frame #4100 (171 bytes)
+2026-06-18 09:54:52,782 DEBUG    uptox.api.feed_client: [feed] Frame #4200 (2543 bytes)
+2026-06-18 09:55:08,692 DEBUG    uptox.api.feed_client: [feed] Frame #4300 (1123 bytes)
+2026-06-18 09:55:24,432 DEBUG    uptox.api.feed_client: [feed] Frame #4400 (1911 bytes)
+2026-06-18 09:55:40,033 DEBUG    uptox.api.feed_client: [feed] Frame #4500 (4689 bytes)
+2026-06-18 09:55:55,781 DEBUG    uptox.api.feed_client: [feed] Frame #4600 (2152 bytes)
+2026-06-18 09:56:10,930 DEBUG    uptox.api.feed_client: [feed] Frame #4700 (1913 bytes)
+2026-06-18 09:56:26,981 DEBUG    uptox.api.feed_client: [feed] Frame #4800 (2699 bytes)
+2026-06-18 09:56:42,431 DEBUG    uptox.api.feed_client: [feed] Frame #4900 (1121 bytes)
+2026-06-18 09:56:58,484 DEBUG    uptox.api.feed_client: [feed] Frame #5000 (1916 bytes)
+2026-06-18 09:57:13,780 DEBUG    uptox.api.feed_client: [feed] Frame #5100 (3177 bytes)
+2026-06-18 09:57:29,375 DEBUG    uptox.api.feed_client: [feed] Frame #5200 (171 bytes)
+2026-06-18 09:57:44,979 DEBUG    uptox.api.feed_client: [feed] Frame #5300 (1519 bytes)
+2026-06-18 09:58:00,727 DEBUG    uptox.api.feed_client: [feed] Frame #5400 (1116 bytes)
+2026-06-18 09:58:16,188 DEBUG    uptox.api.feed_client: [feed] Frame #5500 (5072 bytes)
+2026-06-18 09:58:32,076 DEBUG    uptox.api.feed_client: [feed] Frame #5600 (1988 bytes)
+2026-06-18 09:58:47,537 DEBUG    uptox.api.feed_client: [feed] Frame #5700 (1360 bytes)
+2026-06-18 09:59:02,529 DEBUG    uptox.api.feed_client: [feed] Frame #5800 (964 bytes)
+2026-06-18 09:59:17,827 DEBUG    uptox.api.feed_client: [feed] Frame #5900 (4356 bytes)
+2026-06-18 09:59:33,280 DEBUG    uptox.api.feed_client: [feed] Frame #6000 (4918 bytes)
+2026-06-18 09:59:48,428 DEBUG    uptox.api.feed_client: [feed] Frame #6100 (1913 bytes)
+2026-06-18 10:00:04,177 DEBUG    uptox.api.feed_client: [feed] Frame #6200 (4287 bytes)
+2026-06-18 10:00:19,177 DEBUG    uptox.api.feed_client: [feed] Frame #6300 (3889 bytes)
+2026-06-18 10:00:35,075 DEBUG    uptox.api.feed_client: [feed] Frame #6400 (2386 bytes)
+2026-06-18 10:00:50,375 DEBUG    uptox.api.feed_client: [feed] Frame #6500 (2546 bytes)
+2026-06-18 10:01:05,972 DEBUG    uptox.api.feed_client: [feed] Frame #6600 (3501 bytes)
+2026-06-18 10:01:21,125 DEBUG    uptox.api.feed_client: [feed] Frame #6700 (2938 bytes)
+2026-06-18 10:01:37,023 DEBUG    uptox.api.feed_client: [feed] Frame #6800 (2151 bytes)
+2026-06-18 10:01:52,172 DEBUG    uptox.api.feed_client: [feed] Frame #6900 (2145 bytes)
+2026-06-18 10:02:07,188 DEBUG    uptox.api.feed_client: [feed] Frame #7000 (3489 bytes)
+2026-06-18 10:02:22,771 DEBUG    uptox.api.feed_client: [feed] Frame #7100 (1358 bytes)
+2026-06-18 10:02:38,374 DEBUG    uptox.api.feed_client: [feed] Frame #7200 (4914 bytes)
+2026-06-18 10:02:53,371 DEBUG    uptox.api.feed_client: [feed] Frame #7300 (5314 bytes)
+2026-06-18 10:03:08,519 DEBUG    uptox.api.feed_client: [feed] Frame #7400 (171 bytes)
+2026-06-18 10:03:23,820 DEBUG    uptox.api.feed_client: [feed] Frame #7500 (563 bytes)
+2026-06-18 10:03:38,969 DEBUG    uptox.api.feed_client: [feed] Frame #7600 (1124 bytes)
+2026-06-18 10:03:53,016 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:03:55,564 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,785 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,786 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,787 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,788 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,789 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,790 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,790 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,791 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,792 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:03:55,825 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:03:56,042 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:03:56,053 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:03:56,069 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:03:56,075 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:03:56,291 INFO     uptox.api.feed_client: [feed] Connecting: wss://wsfeeder-api.upstox.com/market-data-feeder/v3/upstox-developer-api/feeds?r...
+2026-06-18 10:03:56,333 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:03:56,386 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:03:56,467 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:03:56,474 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:03:56,518 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:03:56,528 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:03:56,554 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:03:56,572 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:03:56,585 INFO     uptox.api.feed_client: [feed] Sending subscribe: b'{"guid": "uptox-feed-001", "method": "sub", "data": {"mode": "full", "instrumentKeys": ["NSE_INDEX|Nifty 50", "NSE_INDEX|Nifty Bank"]}}'
+2026-06-18 10:03:56,586 INFO     uptox.api.feed_client: [feed] Subscribed 2 instruments in 'full' mode
+2026-06-18 10:03:56,586 DEBUG    uptox.api.feed_client: [feed] Frame #1 (165 bytes)
+2026-06-18 10:03:56,586 DEBUG    uptox.api.feed_client: [feed] Frame #1: empty feeds (type=2)
+2026-06-18 10:03:56,625 DEBUG    uptox.api.feed_client: [feed] Frame #2 (329 bytes)
+2026-06-18 10:03:56,663 DEBUG    uptox.api.feed_client: [feed] Frame #3 (169 bytes)
+2026-06-18 10:03:57,070 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:03:57,071 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24119.5
+2026-06-18 10:03:58,070 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|56376 @ 133.1  SL=117.1 (12% trail)
+2026-06-18 10:03:58,070 INFO     uptox.services.trade_book: Paper OPEN: CE 24100 @ 133.1  SL=117.1  TGT=165.2  trail_pct=12%  lots=1
+2026-06-18 10:03:58,071 INFO     uptox.ui.screens.dashboard: Trade opened (retest): CE @ 133.1
+2026-06-18 10:04:11,358 DEBUG    uptox.api.feed_client: [feed] Frame #100 (7123 bytes)
+2026-06-18 10:04:26,352 DEBUG    uptox.api.feed_client: [feed] Frame #200 (5311 bytes)
+2026-06-18 10:04:41,354 DEBUG    uptox.api.feed_client: [feed] Frame #300 (4530 bytes)
+2026-06-18 10:04:56,546 DEBUG    uptox.api.feed_client: [feed] Frame #400 (2703 bytes)
+2026-06-18 10:05:11,660 DEBUG    uptox.api.feed_client: [feed] Frame #500 (566 bytes)
+2026-06-18 10:05:26,662 DEBUG    uptox.api.feed_client: [feed] Frame #600 (565 bytes)
+2026-06-18 10:05:41,668 DEBUG    uptox.api.feed_client: [feed] Frame #700 (566 bytes)
+2026-06-18 10:05:56,663 DEBUG    uptox.api.feed_client: [feed] Frame #800 (169 bytes)
+2026-06-18 10:06:11,661 DEBUG    uptox.api.feed_client: [feed] Frame #900 (169 bytes)
+2026-06-18 10:06:26,667 DEBUG    uptox.api.feed_client: [feed] Frame #1000 (1753 bytes)
+2026-06-18 10:06:41,660 DEBUG    uptox.api.feed_client: [feed] Frame #1100 (1748 bytes)
+2026-06-18 10:06:56,662 DEBUG    uptox.api.feed_client: [feed] Frame #1200 (2542 bytes)
+2026-06-18 10:07:11,665 DEBUG    uptox.api.feed_client: [feed] Frame #1300 (2541 bytes)
+2026-06-18 10:07:26,660 DEBUG    uptox.api.feed_client: [feed] Frame #1400 (961 bytes)
+2026-06-18 10:07:41,660 DEBUG    uptox.api.feed_client: [feed] Frame #1500 (1352 bytes)
+2026-06-18 10:07:56,658 DEBUG    uptox.api.feed_client: [feed] Frame #1600 (961 bytes)
+2026-06-18 10:08:11,659 DEBUG    uptox.api.feed_client: [feed] Frame #1700 (1518 bytes)
+2026-06-18 10:08:26,649 DEBUG    uptox.api.feed_client: [feed] Frame #1800 (2148 bytes)
+2026-06-18 10:08:41,656 DEBUG    uptox.api.feed_client: [feed] Frame #1900 (1751 bytes)
+2026-06-18 10:08:56,669 DEBUG    uptox.api.feed_client: [feed] Frame #2000 (2137 bytes)
+2026-06-18 10:09:11,671 DEBUG    uptox.api.feed_client: [feed] Frame #2100 (2938 bytes)
+2026-06-18 10:09:26,656 DEBUG    uptox.api.feed_client: [feed] Frame #2200 (2706 bytes)
+2026-06-18 10:09:42,028 DEBUG    uptox.api.feed_client: [feed] Frame #2300 (4675 bytes)
+2026-06-18 10:09:56,497 DEBUG    uptox.api.feed_client: [feed] Frame #2400 (4121 bytes)
+2026-06-18 10:10:08,948 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:10:11,538 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,541 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,544 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,760 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:10:11,963 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,964 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,964 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,965 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,966 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,967 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,968 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:10:11,985 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:10:11,995 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:10:11,996 INFO     uptox.api.feed_client: [feed] Connecting: wss://wsfeeder-api.upstox.com/market-data-feeder/v3/upstox-developer-api/feeds?r...
+2026-06-18 10:10:12,033 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:10:12,040 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:10:12,268 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:10:12,284 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:10:12,381 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:10:12,388 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:10:12,389 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:10:12,402 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:10:12,496 INFO     uptox.api.feed_client: [feed] Sending subscribe: b'{"guid": "uptox-feed-001", "method": "sub", "data": {"mode": "full", "instrumentKeys": ["NSE_INDEX|Nifty 50", "NSE_INDEX|Nifty Bank"]}}'
+2026-06-18 10:10:12,496 INFO     uptox.api.feed_client: [feed] Subscribed 2 instruments in 'full' mode
+2026-06-18 10:10:12,496 DEBUG    uptox.api.feed_client: [feed] Frame #1 (165 bytes)
+2026-06-18 10:10:12,497 DEBUG    uptox.api.feed_client: [feed] Frame #1: empty feeds (type=2)
+2026-06-18 10:10:12,542 DEBUG    uptox.api.feed_client: [feed] Frame #2 (329 bytes)
+2026-06-18 10:10:12,567 DEBUG    uptox.api.feed_client: [feed] Frame #3 (171 bytes)
+2026-06-18 10:10:12,607 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:10:12,795 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:10:12,995 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:10:12,995 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24132.0
+2026-06-18 10:10:26,965 DEBUG    uptox.api.feed_client: [feed] Frame #100 (1352 bytes)
+2026-06-18 10:10:41,821 DEBUG    uptox.api.feed_client: [feed] Frame #200 (959 bytes)
+2026-06-18 10:10:56,818 DEBUG    uptox.api.feed_client: [feed] Frame #300 (963 bytes)
+2026-06-18 10:11:11,821 DEBUG    uptox.api.feed_client: [feed] Frame #400 (1752 bytes)
+2026-06-18 10:11:27,116 DEBUG    uptox.api.feed_client: [feed] Frame #500 (331 bytes)
+2026-06-18 10:11:42,113 DEBUG    uptox.api.feed_client: [feed] Frame #600 (567 bytes)
+2026-06-18 10:11:57,115 DEBUG    uptox.api.feed_client: [feed] Frame #700 (2142 bytes)
+2026-06-18 10:12:12,266 DEBUG    uptox.api.feed_client: [feed] Frame #800 (3174 bytes)
+2026-06-18 10:12:27,415 DEBUG    uptox.api.feed_client: [feed] Frame #900 (3099 bytes)
+2026-06-18 10:12:42,415 DEBUG    uptox.api.feed_client: [feed] Frame #1000 (2310 bytes)
+2026-06-18 10:12:57,567 DEBUG    uptox.api.feed_client: [feed] Frame #1100 (1755 bytes)
+2026-06-18 10:13:12,713 DEBUG    uptox.api.feed_client: [feed] Frame #1200 (4915 bytes)
+2026-06-18 10:13:28,018 DEBUG    uptox.api.feed_client: [feed] Frame #1300 (2775 bytes)
+2026-06-18 10:13:43,611 DEBUG    uptox.api.feed_client: [feed] Frame #1400 (2310 bytes)
+2026-06-18 10:13:58,760 DEBUG    uptox.api.feed_client: [feed] Frame #1500 (3572 bytes)
+2026-06-18 10:14:14,069 DEBUG    uptox.api.feed_client: [feed] Frame #1600 (2148 bytes)
+2026-06-18 10:14:29,210 DEBUG    uptox.api.feed_client: [feed] Frame #1700 (561 bytes)
+2026-06-18 10:14:44,361 DEBUG    uptox.api.feed_client: [feed] Frame #1800 (963 bytes)
+2026-06-18 10:14:59,663 DEBUG    uptox.api.feed_client: [feed] Frame #1900 (5866 bytes)
+2026-06-18 10:15:15,110 DEBUG    uptox.api.feed_client: [feed] Frame #2000 (723 bytes)
+2026-06-18 10:15:20,927 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:15:23,580 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,582 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,583 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,588 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,594 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:15:23,598 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:15:23,856 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,857 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,858 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,859 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,860 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:15:23,861 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:15:24,108 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:15:24,117 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:15:24,139 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:15:24,394 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:15:24,440 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:15:24,563 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:15:24,574 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:15:24,576 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:15:24,584 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:15:24,596 INFO     uptox.api.feed_client: [feed] Connected — 2 instruments subscribed in 'full' mode
+2026-06-18 10:15:24,621 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:15:24,632 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:15:24,986 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:15:24,986 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24127.0
+2026-06-18 10:22:58,889 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:23:01,741 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,987 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,989 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,989 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,991 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,992 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,993 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,995 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,997 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:23:01,998 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:23:02,031 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:23:02,036 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:23:02,305 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:23:02,312 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:23:02,572 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:23:02,614 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:23:02,636 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:23:02,740 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:23:02,758 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:23:02,765 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:23:02,775 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:23:02,811 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:23:02,818 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:23:02,832 INFO     uptox.api.feed_client: [feed] Connected — 2 instruments subscribed in 'full' mode
+2026-06-18 10:23:02,979 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:23:02,979 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24112.3
+2026-06-18 10:34:39,224 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:34:42,054 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,066 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:34:42,069 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,071 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,072 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,073 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,536 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:34:42,538 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,539 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,540 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,541 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,541 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,594 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:34:42,605 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:34:42,622 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:34:42,861 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:34:42,888 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:34:42,968 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,975 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:34:42,980 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:34:42,986 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:34:43,059 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:34:43,072 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:34:43,086 INFO     uptox.api.feed_client: [feed] Connected — 2 instruments subscribed in 'full' mode
+2026-06-18 10:34:43,290 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:34:43,291 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24111.2
+2026-06-18 10:37:52,147 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:37:54,868 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:37:54,870 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:37:54,871 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:37:54,881 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,349 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:37:55,361 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:37:55,362 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,363 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,364 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,365 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,367 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,368 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,408 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:37:55,641 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:37:55,651 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:37:55,713 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:37:55,755 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:37:55,833 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,835 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:37:55,843 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:37:55,848 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:37:56,016 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:37:56,020 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:37:56,103 INFO     uptox.api.feed_client: [feed] Connected — 2 instruments subscribed in 'full' mode
+2026-06-18 10:37:56,219 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:37:56,219 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24105.2
+2026-06-18 10:39:52,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24080.2  (Resistance: Round 24100 (20pt above))
+2026-06-18 10:39:53,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24079.6  (Resistance: Round 24100 (20pt above))
+2026-06-18 10:39:54,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24079.3  (Resistance: Round 24100 (21pt above))
+2026-06-18 10:39:55,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24079.1  (Resistance: Round 24100 (21pt above))
+2026-06-18 10:39:56,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24078.5  (Resistance: Round 24100 (22pt above))
+2026-06-18 10:39:57,221 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24078.8  (Resistance: Round 24100 (21pt above))
+2026-06-18 10:39:58,220 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24078.5  (Resistance: Round 24100 (22pt above))
+2026-06-18 10:39:59,220 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24077.3  (Resistance: Round 24100 (23pt above))
+2026-06-18 10:40:00,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.8  (Resistance: Round 24100 (23pt above))
+2026-06-18 10:40:01,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.3  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:02,238 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.8  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:03,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.8  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:04,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.5  (Resistance: Round 24100 (23pt above))
+2026-06-18 10:40:05,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.2  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:06,220 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.8  (Resistance: Round 24100 (23pt above))
+2026-06-18 10:40:07,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.0  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:08,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.6  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:09,220 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.5  (Resistance: Round 24100 (25pt above))
+2026-06-18 10:40:10,221 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.5  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:11,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24076.2  (Resistance: Round 24100 (24pt above))
+2026-06-18 10:40:12,228 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.2  (Resistance: Round 24100 (25pt above))
+2026-06-18 10:40:13,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.0  (Resistance: Round 24100 (25pt above))
+2026-06-18 10:40:14,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24075.3  (Resistance: Round 24100 (25pt above))
+2026-06-18 10:40:15,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24074.8  (Resistance: Round 24100 (25pt above))
+2026-06-18 10:40:16,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24074.2  (Resistance: Round 24100 (26pt above))
+2026-06-18 10:40:17,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24074.5  (Resistance: Round 24100 (26pt above))
+2026-06-18 10:40:18,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24072.9  (Resistance: Round 24100 (27pt above))
+2026-06-18 10:40:19,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24067.4  (Resistance: Round 24100 (33pt above))
+2026-06-18 10:40:20,219 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24065.1  (Resistance: Round 24100 (35pt above))
+2026-06-18 10:40:21,220 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|56374 @ 127.3  SL=111.3 (13% trail)
+2026-06-18 10:40:21,220 INFO     uptox.services.trade_book: Paper OPEN: CE 24050 @ 127.3  SL=111.3  TGT=159.4  trail_pct=13%  lots=1
+2026-06-18 10:40:21,220 INFO     uptox.ui.screens.dashboard: Trade opened (momentum): CE @ 127.3  [S/R clear]
+2026-06-18 10:52:30,120 INFO     __main__: Starting Uptox Trading
+2026-06-18 10:52:32,744 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,747 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,750 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 371 bars  SMA200=23644.9
+2026-06-18 10:52:32,983 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-30 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,984 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-18/2026-03-20 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,985 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,986 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,987 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,987 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-06-08 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,988 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:52:32,989 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-18/2026-05-24 "HTTP/1.1 200 OK"
+2026-06-18 10:52:33,015 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 371 bars  SMA200=54704.0
+2026-06-18 10:52:33,253 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 600 bars  SMA200=57341.8
+2026-06-18 10:52:33,261 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-23', '2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21']
+2026-06-18 10:52:33,487 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 600 bars  SMA200=23980.1
+2026-06-18 10:52:33,516 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=55990.7
+2026-06-18 10:52:33,536 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23537.5
+2026-06-18 10:52:33,627 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:52:33,643 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24236.1
+2026-06-18 10:52:33,651 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-19/2025-12-19 "HTTP/1.1 200 OK"
+2026-06-18 10:52:33,657 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56467.3
+2026-06-18 10:52:33,699 INFO     uptox.api.feed_client: [feed] Connected — 2 instruments subscribed in 'full' mode
+2026-06-18 10:52:33,705 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-23 "HTTP/1.1 200 OK"
+2026-06-18 10:52:33,710 INFO     uptox.services.option_chain_service: oc loaded 103 strikes, expiry=2026-06-23
+2026-06-18 10:52:34,170 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+2)
+2026-06-18 10:52:34,170 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24075.0

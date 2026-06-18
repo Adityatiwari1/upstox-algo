@@ -79,12 +79,14 @@ async def _load_chain(expiry: str, access_token: str) -> None:
             key = opt.get("instrument_key", "")
             md  = opt.get("market_data") or {}
             og  = opt.get("option_greeks") or {}
+            oi      = float(md.get("oi", 0))
+            prev_oi = float(md.get("prev_oi", 0))
             _chain[(strike, opt_type)] = {
                 "key":       key,
                 "ltp":       float(md.get("ltp", 0)),
-                "oi":        float(md.get("oi", 0)),
-                "change_oi": float(md.get("change_oi", 0)),
-                "volume":    int(md.get("vtt", 0)),
+                "oi":        oi,
+                "change_oi": oi - prev_oi,
+                "volume":    int(md.get("volume", 0) or md.get("vtt", 0)),
                 "delta":     float(og.get("delta", 0)),
                 "gamma":     float(og.get("gamma", 0)),
                 "theta":     float(og.get("theta", 0)),
@@ -213,15 +215,13 @@ def get_oi_signal(ltp: float, n: int = 3) -> str:
     """Interpret cumulative OI change across ATM ±n strikes."""
     if not ltp or not _chain:
         return "—"
-    from uptox.services import feed_store
     atm = round(ltp / 50) * 50
     ce_chg = pe_chg = 0.0
     for i in range(-n, n + 1):
         s = atm + i * 50
         for opt_type in ("CE", "PE"):
-            key = (_chain.get((s, opt_type)) or {}).get("key", "")
-            tick = feed_store.get(key) if key else None
-            chg  = tick.change_oi if tick else (_chain.get((s, opt_type)) or {}).get("change_oi", 0.0)
+            # change_oi not in v3 live feed — always use REST snapshot
+            chg = (_chain.get((s, opt_type)) or {}).get("change_oi", 0.0)
             if opt_type == "CE":
                 ce_chg += chg
             else:

@@ -8,12 +8,15 @@ Flow:
 """
 import json
 import asyncio
+import logging
 import httpx
 import websockets
 
 from uptox.api import market_feed_pb2 as proto
 from uptox.config.settings import settings
 from uptox.services import feed_store
+
+_log = logging.getLogger(__name__)
 
 AUTHORIZE_URL = "https://api.upstox.com/v3/feed/market-data-feed/authorize"
 
@@ -38,16 +41,14 @@ async def subscribe(instrument_keys: list[str], mode: str = "full") -> None:
 
 async def _reauth() -> str:
     """Re-run headless login, persist new token, return it."""
-    import asyncio
     from uptox.api.auth import fetch_access_token
     from uptox.services.token_service import save_access_token
-    from uptox.config.settings import settings
-    print("[feed] Token expired — re-authenticating...")
+    _log.warning("[feed] Token expired — re-authenticating...")
     loop = asyncio.get_event_loop()
     new_token = await loop.run_in_executor(None, fetch_access_token)
     save_access_token(new_token)
     settings.access_token = new_token
-    print("[feed] Re-authentication successful.")
+    _log.info("[feed] Re-authentication successful.")
     return new_token
 
 
@@ -75,12 +76,12 @@ def _decode(raw: bytes) -> proto.FeedResponse:
     return feed
 
 
-def _subscribe_msg(instrument_keys: list[str], mode: str = "full") -> str:
+def _subscribe_msg(instrument_keys: list[str], mode: str = "full") -> bytes:
     return json.dumps({
         "guid": "uptox-feed-001",
         "method": "sub",
         "data": {"mode": mode, "instrumentKeys": instrument_keys},
-    })
+    }).encode("utf-8")
 
 
 async def run_feed(
@@ -96,15 +97,12 @@ async def run_feed(
     """
     keys = instrument_keys or DEFAULT_INSTRUMENTS
     token = settings.access_token
-
     while True:
         try:
             wss_url = await _get_wss_url(token)
-            print(f"[feed] Connecting: {wss_url[:60]}...")
 
             async with websockets.connect(
                 wss_url,
-                additional_headers={"Authorization": f"Bearer {token}"},
                 ping_interval=30,
                 ping_timeout=10,
             ) as ws:
@@ -112,7 +110,8 @@ async def run_feed(
                 if _extra_keys:
                     await ws.send(_subscribe_msg(_extra_keys, mode))
                 feed_store.set_status("connected")
-                print(f"[feed] Subscribed {len(keys) + len(_extra_keys)} instruments in '{mode}' mode")
+                _log.info("[feed] Connected — %d instruments subscribed in '%s' mode",
+                          len(keys) + len(_extra_keys), mode)
 
                 async def _sender() -> None:
                     while True:
@@ -131,7 +130,7 @@ async def run_feed(
                                 for key, feed in response.feeds.items():
                                     await on_tick(key, feed)
                             except Exception as e:
-                                print(f"[feed] Decode error: {e}")
+                                _log.error("[feed] Decode error: %s", e, exc_info=True)
                 finally:
                     sender.cancel()
 
@@ -140,15 +139,15 @@ async def run_feed(
             try:
                 token = await _reauth()
             except Exception as auth_err:
-                print(f"[feed] Re-auth failed: {auth_err}")
+                _log.error("[feed] Re-auth failed: %s", auth_err, exc_info=True)
                 await asyncio.sleep(reconnect_delay)
-            continue  # retry immediately with new token
+            continue
 
         except Exception as e:
             feed_store.set_status("disconnected")
-            print(f"[feed] Disconnected: {e}")
+            _log.error("[feed] Disconnected: %s", e, exc_info=True)
             if not reconnect:
                 break
             feed_store.set_status("reconnecting")
-            print(f"[feed] Reconnecting in {reconnect_delay}s...")
+            _log.info("[feed] Reconnecting in %ss...", reconnect_delay)
             await asyncio.sleep(reconnect_delay)

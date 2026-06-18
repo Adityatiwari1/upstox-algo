@@ -13,8 +13,8 @@ _NIFTY = "NSE_INDEX|Nifty 50"
 async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
     tick = TickData(instrument_key=instrument_key)
 
-    if feed.HasField("ff"):
-        ff = feed.ff
+    if feed.HasField("fullFeed"):
+        ff = feed.fullFeed
         src = ff.marketFF if ff.HasField("marketFF") else ff.indexFF
 
         ltpc = src.ltpc
@@ -26,35 +26,31 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         if ff.HasField("marketFF"):
             mff = ff.marketFF
 
-            # depth
+            # depth (v3: bidP/bidQ/askP/askQ, no orders count)
             if mff.marketLevel.bidAskQuote:
                 tick.bids = [
-                    {"price": q.bp, "qty": q.bq, "orders": q.bno}
+                    {"price": q.bidP, "qty": q.bidQ}
                     for q in mff.marketLevel.bidAskQuote
                 ]
                 tick.asks = [
-                    {"price": q.ap, "qty": q.aq, "orders": q.ano}
+                    {"price": q.askP, "qty": q.askQ}
                     for q in mff.marketLevel.bidAskQuote
                 ]
 
-            # greeks
+            # greeks (v3: iv is on mff, not optionGreeks)
             g = mff.optionGreeks
             tick.delta = g.delta
             tick.gamma = g.gamma
             tick.theta = g.theta
             tick.vega  = g.vega
-            tick.iv    = g.iv
+            tick.iv    = mff.iv
 
-            # extended
-            e = mff.eFeedDetails
-            tick.oi        = e.oi
-            tick.change_oi = e.changeOi
-            tick.tbq       = e.tbq
-            tick.tsq       = e.tsq
-            tick.mbp_buy   = e.mbpBuy
-            tick.mbp_sell  = e.mbpSell
-            tick.vtt       = e.vtt
-            tick.atp       = e.atp
+            # extended (v3: flat fields on mff, no eFeedDetails)
+            tick.oi  = mff.oi
+            tick.tbq = mff.tbq
+            tick.tsq = mff.tsq
+            tick.vtt = mff.vtt
+            tick.atp = mff.atp
 
     elif feed.HasField("ltpc"):
         tick.ltp   = feed.ltpc.ltp
