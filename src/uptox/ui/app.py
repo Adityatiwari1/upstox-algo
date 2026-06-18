@@ -98,12 +98,25 @@ class UptoxApp(App):
             _log.info("Entry locked: %s @ %.1f", side, live.ltp)
 
     def action_exit_trade(self) -> None:
-        from uptox.services import feed_store, trailing_sl_service, trade_book
+        from uptox.services import feed_store, option_chain_service, trailing_sl_service, trade_book
         ot = trade_book.get_open_trade()
         if ot:
+            # Try 1: live tick via stored option_key
             opt_key = ot.get("option_key", "")
             live    = feed_store.get(opt_key) if opt_key else None
-            exit_p  = (live.ltp if live else 0.0) or ot["entry_price"]
+            exit_p  = live.ltp if live else 0.0
+            # Try 2: look up live tick by strike + option type (handles restored trades with empty key)
+            if not exit_p:
+                strike_k = option_chain_service.get_key(ot.get("strike", 0), ot.get("option", ""))
+                live2    = feed_store.get(strike_k) if strike_k else None
+                exit_p   = live2.ltp if live2 else 0.0
+            # Try 3: chain REST snapshot ltp
+            if not exit_p:
+                sn     = option_chain_service.get_option(ot.get("strike", 0), ot.get("option", "")) or {}
+                exit_p = float(sn.get("ltp", 0.0))
+            # Try 4: last known P&L price (never fall back to entry_price — that gives fake BREAKEVEN)
+            if not exit_p:
+                exit_p = ot.get("current_price") or ot["entry_price"]
             trade_book.close_trade(exit_p, "manual_exit")
             self.notify(
                 f"Trade closed manually — {ot['option']} {ot['strike']} @ ₹{exit_p:.1f}",
