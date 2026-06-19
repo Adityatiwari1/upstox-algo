@@ -87,7 +87,10 @@ def _load() -> None:
     # Restore any open trade that survived a restart
     if _OPEN_TRADE_FILE.exists():
         try:
-            data = json.loads(_OPEN_TRADE_FILE.read_text(encoding="utf-8"))
+            raw = _OPEN_TRADE_FILE.read_text(encoding="utf-8").strip()
+            if not raw:
+                return
+            data = json.loads(raw)
             if data.get("outcome") == "OPEN":
                 _open_trade = data
                 ep      = float(data.get("entry_price", 0))

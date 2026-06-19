@@ -101,13 +101,15 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
             _close_and_notify(tick.ltp, "trail_sl")
 
-    # ── Daily report at 3:30 PM (once) ───────────────────────────────────────
+    # ── Daily report + learning at 3:30 PM (once) ────────────────────────────
     now   = datetime.now(_IST)
     today = now.strftime("%Y-%m-%d")
     if now.time() >= _REPORT_TIME and _report_sent_today != today:
         _report_sent_today = today
         from uptox.services.telegram_service import notify_daily_report
+        from uptox.services import learning_service
         notify_daily_report()
+        asyncio.create_task(asyncio.to_thread(learning_service.run))
 
 
 def _close_and_notify(price: float, reason: str) -> None:

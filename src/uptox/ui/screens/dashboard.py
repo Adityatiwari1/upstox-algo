@@ -5,7 +5,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static, Input
 from uptox.services import feed_store, sma_service, option_chain_service, capital_service
-from uptox.services import pattern_service, trailing_sl_service, trade_book
+from uptox.services import pattern_service, trailing_sl_service, trade_book, adaptive_params
 from uptox.services.sma_service import TimeFrame, ALL_TFS
 
 log = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ def _near_sr(ltp: float, option: str) -> str | None:
     Return reason string if ltp is within SR_TOL points of a key level that
     would act as resistance (CE) or support (PE). Returns None if entry is clear.
     """
-    SR_TOL = 35  # Nifty points
+    SR_TOL = adaptive_params.get("sr_tolerance")
     levels: list[tuple[str, float]] = []
 
     # SMA levels on M5 and H1 are the most watched S/R by algo traders
@@ -110,8 +110,6 @@ class OverallAnalysisPanel(Static):
     _bk_t: float     = 0.0     # time.time() when watch started
     _bk_max_dist: float = 0.0  # max pts price traveled away from breakout level
     _RETEST_PTS:  int = 20     # must return within 20pts after departure
-    _MIN_DEPART:  int = 25     # must move ≥25pt away before retest can qualify
-    _MAX_WAIT:    int = 45     # seconds before momentum entry kicks in
     _why_tag: str = ""         # human-readable reason why no trade entered yet
 
     def on_mount(self) -> None:
@@ -177,12 +175,15 @@ class OverallAnalysisPanel(Static):
 
         # Bank Nifty alignment (must agree with Nifty direction)
         bn        = feed_store.get("NSE_INDEX|Nifty Bank")
-        bn_ltp    = bn.ltp if bn else 0.0
+        bn_ltp    = (bn.ltp if bn else 0.0) or sma_service.get_last_close("NSE_INDEX|Nifty Bank", TimeFrame.M5) \
+                    or sma_service.get_last_close("NSE_INDEX|Nifty Bank", TimeFrame.H1)
         bn_s20    = sma_service.get_sma("NSE_INDEX|Nifty Bank", sma_service.get_current_tf(), 20)
         bn_s50    = sma_service.get_sma("NSE_INDEX|Nifty Bank", sma_service.get_current_tf(), 50)
         bn_score  = (1 if (bn_ltp and bn_s20 and bn_ltp > bn_s20) else -1 if bn_s20 else 0) + \
                     (1 if (bn_ltp and bn_s50 and bn_ltp > bn_s50) else -1 if bn_s50 else 0)
-        bn_conflict = (option == "CE" and bn_score < 0) or (option == "PE" and bn_score > 0)
+        # Skip BN conflict check when no live feed (avoid stale candle data blocking entries)
+        bn_conflict = bool(bn_ltp and bn_s20 and bn_s50) and \
+                      ((option == "CE" and bn_score < 0) or (option == "PE" and bn_score > 0))
 
         # IV Rank on ATM option
         atm_iv_key = option_chain_service.get_key(atm, option) if (atm and option != "—") else None
@@ -197,15 +198,20 @@ class OverallAnalysisPanel(Static):
                 _ce_oi += float((option_chain_service.get_option(s, "CE") or {}).get("oi", 0))
                 _pe_oi += float((option_chain_service.get_option(s, "PE") or {}).get("oi", 0))
         _pcr_filter      = round(_pe_oi / _ce_oi, 2) if _ce_oi else 0.0
-        pcr_extreme_bull = _pcr_filter > 0 and _pcr_filter < 0.7
-        pcr_extreme_bear = _pcr_filter > 1.5
+        pcr_extreme_bull = _pcr_filter > 0 and _pcr_filter < adaptive_params.get("pcr_bull_block")
+        pcr_extreme_bear = _pcr_filter > adaptive_params.get("pcr_bear_block")
 
         # ── trade validity ────────────────────────────────────────────────
+        from uptox.services.market_calendar import is_trade_window, is_premarket
         no_trade_reason = None
         if not live_ltp:
             no_trade_reason = "No live data"
         elif not sma_ready:
             no_trade_reason = "SMA loading..."
+        elif is_premarket():
+            no_trade_reason = "Pre-market — trading starts 09:30"
+        elif not is_trade_window():
+            no_trade_reason = "Outside trading window (09:30–15:25)"
         elif option == "—":
             no_trade_reason = "Trend too weak"
         elif high_iv:
@@ -216,7 +222,7 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = f"PCR extreme ({_pcr_filter:.2f}) — crowded trade, skip"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
             no_trade_reason = "SMA vs Flow divergence"
-        elif abs(flow_score) == 1 and abs(sma_score) <= 1:
+        elif abs(total) < adaptive_params.get("min_score"):
             no_trade_reason = "Weak conviction"
 
         tradeable = no_trade_reason is None
@@ -247,6 +253,9 @@ class OverallAnalysisPanel(Static):
         entry_type: str | None = None  # "retest" | "momentum" | None
         self._why_tag = ""  # reset each tick; set below to explain no-trade reason
 
+        bk_min_dist = adaptive_params.get("bk_min_dist")
+        bk_timeout  = adaptive_params.get("bk_timeout")
+
         if tradeable and cur_price:
             direction_flip = (self._last_option is not None and self._last_option != option)
             if direction_flip:
@@ -273,21 +282,21 @@ class OverallAnalysisPanel(Static):
 
                     # Price must travel ≥MIN_DEPART pts first; prevents instant
                     # entry on restart when price == breakout price
-                    departed  = self._bk_max_dist >= self._MIN_DEPART
+                    departed  = self._bk_max_dist >= bk_min_dist
                     retest    = departed and dist_now <= self._RETEST_PTS
-                    timed_out = departed and elapsed >= self._MAX_WAIT
+                    timed_out = departed and elapsed >= bk_timeout
 
                     if retest:
                         entry_type = "retest"
                     elif timed_out:
                         entry_type = "momentum"
                     else:
-                        remaining = int(self._MAX_WAIT - elapsed)
+                        remaining = int(bk_timeout - elapsed)
                         if not departed:
-                            depart_str = f"depart {self._bk_max_dist:.0f}/{self._MIN_DEPART}pt"
+                            depart_str = f"depart {self._bk_max_dist:.0f}/{bk_min_dist:.0f}pt"
                             self._why_tag = (
-                                f"Needs {self._MIN_DEPART - self._bk_max_dist:.0f}pt more departure "
-                                f"({self._bk_max_dist:.0f}/{self._MIN_DEPART}pt so far)"
+                                f"Needs {bk_min_dist - self._bk_max_dist:.0f}pt more departure "
+                                f"({self._bk_max_dist:.0f}/{bk_min_dist:.0f}pt so far)"
                             )
                         else:
                             depart_str = f"retest <{self._RETEST_PTS}pt ({dist_now:.0f}pt away)"
@@ -466,7 +475,7 @@ class SMAPanel(Static):
         t = feed_store.get(NIFTY)
         ltp = t.ltp if t else 0.0
         status = feed_store.get_status()
-        status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "red"
+        status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "dim white" if status == "market_closed" else "red"
         tf = self.current_tf
 
         def vs(sma: float | None) -> tuple[str, str]:
@@ -807,9 +816,20 @@ class LivePricePanel(Static):
         bnt = feed_store.get(BANK)
 
         def _price_block(label: str, key: str, tick) -> str:
-            live_ltp  = tick.ltp if (tick and tick.ltp) else 0.0
-            chain_spot = option_chain_service.get_spot() if key == NIFTY else 0.0
-            fallback   = chain_spot or sma_service.get_last_close(key)
+            live_ltp   = tick.ltp if (tick and tick.ltp) else 0.0
+            if key == NIFTY:
+                chain_spot = option_chain_service.get_spot()
+            elif key == BANK:
+                chain_spot = option_chain_service.get_bank_spot()
+            else:
+                chain_spot = 0.0
+            _last = (
+                sma_service.get_last_close(key, TimeFrame.M5)
+                or sma_service.get_last_close(key, TimeFrame.M15)
+                or sma_service.get_last_close(key, TimeFrame.H1)
+                or sma_service.get_last_close(key, TimeFrame.H4)
+            )
+            fallback   = chain_spot or _last
             ltp        = live_ltp or fallback
             if not ltp:
                 return f"[dim]{label}:[/] [dim white]—[/]"
@@ -831,7 +851,7 @@ class LivePricePanel(Static):
             )
 
         status       = feed_store.get_status()
-        status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "red"
+        status_color = "green" if status == "connected" else "yellow" if status == "reconnecting" else "dim white" if status == "market_closed" else "red"
 
         # Dynamically colour the panel border by feed status
         self.styles.border = ("round", "green" if status == "connected" else "yellow" if status == "reconnecting" else "red")
@@ -888,7 +908,6 @@ class CapitalPanel(Widget):
             if k and feed_store.get(k):
                 key = k; break
         live = feed_store.get(key) if key else None
-        sz   = capital_service.sizing(live.ltp if live else 0.0)
 
         base     = capital_service.get_base_capital()
         realised = round(cap - base, 0)
@@ -1027,6 +1046,126 @@ class SRPanel(Static):
         self.update("\n".join(lines))
 
 
+class PreMarketPanel(Static):
+    """
+    Shows during 09:00–09:30 IST. Fetches previous session data and gives
+    a morning bias (gap, PCR, SMA posture, expected move) to help with
+    directional preparation before trading starts.
+    """
+
+    def on_mount(self) -> None:
+        self.border_title = "Pre-Market Analysis  (09:00–09:30)"
+        self._refresh()
+        self.set_interval(30.0, self._refresh)
+
+    def _refresh(self) -> None:
+        from uptox.services.market_calendar import is_premarket
+        if not is_premarket():
+            self.display = False
+            return
+        self.display = True
+        self.update(self._build())
+
+    def _build(self) -> str:
+        lines: list[str] = []
+
+        # ── Previous session close from H1 candles — tuple (o,h,l,c) ─────────
+        h1_candles = sma_service.get_last_candles(NIFTY, TimeFrame.H1, n=10)
+        prev_close = h1_candles[-1][3] if h1_candles else 0.0   # close
+        prev_high  = max((c[1] for c in h1_candles), default=0.0)
+        prev_low   = min((c[2] for c in h1_candles), default=0.0)
+
+        # ── Current pre-open price from feed ─────────────────────────────────
+        t   = feed_store.get(NIFTY)
+        ltp = t.ltp if t else 0.0
+
+        # Gap analysis
+        if prev_close and ltp:
+            gap_pts = ltp - prev_close
+            gap_pct = gap_pts / prev_close * 100
+            if gap_pts > 50:
+                gap_tag = f"[green]Gap UP  +{gap_pts:.0f}pt ({gap_pct:+.2f}%)[/]"
+                gap_bias = 1
+            elif gap_pts < -50:
+                gap_tag = f"[red]Gap DOWN {gap_pts:.0f}pt ({gap_pct:+.2f}%)[/]"
+                gap_bias = -1
+            else:
+                gap_tag = f"[yellow]Flat open  {gap_pts:+.0f}pt ({gap_pct:+.2f}%)[/]"
+                gap_bias = 0
+        else:
+            gap_tag  = "[dim]Waiting for pre-open price...[/]"
+            gap_bias = 0
+
+        lines.append(f"Gap:  {gap_tag}")
+        if prev_close:
+            lines.append(
+                f"Prev: close={prev_close:,.0f}  "
+                f"H={prev_high:,.0f}  L={prev_low:,.0f}"
+            )
+
+        # ── ATR expected move for today ───────────────────────────────────────
+        try:
+            from uptox.services import atr_service
+            atr = atr_service.get_atr(NIFTY, TimeFrame.H1, period=14)
+            if atr:
+                lines.append(f"ATR(H1×14):  {atr:.0f}pt  → expected range {atr*1.5:.0f}pt")
+        except Exception:
+            pass
+
+        lines.append("")
+
+        # ── SMA posture (is price above/below key MAs?) ───────────────────────
+        smas_m5 = sma_service.get_smas(NIFTY, TimeFrame.M5)
+        sma_lines: list[str] = []
+        for p in (20, 50, 200):
+            v = smas_m5.get(p)
+            if v and ltp:
+                rel = "above" if ltp > v else "below"
+                col = "green" if ltp > v else "red"
+                sma_lines.append(f"  SMA{p} [{col}]{v:,.0f}[/] ({rel})")
+        if sma_lines:
+            lines.append("[dim]SMA posture (5m):[/]")
+            lines.extend(sma_lines)
+            lines.append("")
+
+        # ── PCR snapshot ──────────────────────────────────────────────────────
+        pcr = option_chain_service.get_pcr()
+        if pcr:
+            if pcr < 0.7:
+                pcr_tag = f"[red]{pcr:.2f}  (CE-heavy — bearish OI bias)[/]"
+                pcr_bias = -1
+            elif pcr > 1.5:
+                pcr_tag = f"[green]{pcr:.2f}  (PE-heavy — bullish OI bias)[/]"
+                pcr_bias = 1
+            else:
+                pcr_tag = f"[yellow]{pcr:.2f}  (neutral)[/]"
+                pcr_bias = 0
+        else:
+            pcr_tag  = "[dim]loading...[/]"
+            pcr_bias = 0
+        lines.append(f"PCR:  {pcr_tag}")
+        lines.append("")
+
+        # ── Bias verdict ──────────────────────────────────────────────────────
+        bias_score = gap_bias + pcr_bias
+        if bias_score >= 2:
+            verdict = "[bold green]▲ BULLISH BIAS — favour CE trades[/]"
+        elif bias_score <= -2:
+            verdict = "[bold red]▼ BEARISH BIAS — favour PE trades[/]"
+        elif bias_score == 1:
+            verdict = "[green]Slight bullish bias — CE preferred[/]"
+        elif bias_score == -1:
+            verdict = "[red]Slight bearish bias — PE preferred[/]"
+        else:
+            verdict = "[yellow]NEUTRAL — wait for 9:30 direction[/]"
+
+        lines.append(f"Morning bias:  {verdict}")
+        lines.append("")
+        lines.append("[dim]Trading execution starts at 09:30. Use this to prepare, not to trade.[/]")
+
+        return "\n".join(lines)
+
+
 class DashboardScreen(ScrollableContainer):
     DEFAULT_CSS = """
     DashboardScreen {
@@ -1051,6 +1190,16 @@ class DashboardScreen(ScrollableContainer):
     }
     #left-col  { width: 2fr; height: auto; layout: vertical; }
     #right-col { width: 3fr; height: auto; layout: vertical; }
+
+    PreMarketPanel {
+        border: round #87d7af;
+        border-title-color: #87d7af;
+        border-title-style: bold;
+        padding: 0 2;
+        height: auto;
+        width: 100%;
+        margin-bottom: 1;
+    }
 
     /* ── shared panel style ── */
     CapitalPanel, OverallAnalysisPanel, BestEntryPanel,
@@ -1086,6 +1235,7 @@ class DashboardScreen(ScrollableContainer):
 
     def compose(self) -> ComposeResult:
         yield LivePricePanel()
+        yield PreMarketPanel()
         with Horizontal(id="col-row"):
             with Vertical(id="left-col"):
                 yield CapitalPanel()

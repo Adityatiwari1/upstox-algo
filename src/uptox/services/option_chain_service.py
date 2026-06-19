@@ -7,15 +7,18 @@ Option chain service.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import httpx
 from datetime import date
 
 _log = logging.getLogger(__name__)
 
-NIFTY_KEY = "NSE_INDEX|Nifty 50"
+NIFTY_KEY    = "NSE_INDEX|Nifty 50"
+BANK_KEY     = "NSE_INDEX|Nifty Bank"
 _OC_URL       = "https://api.upstox.com/v2/option/chain"
 _CONTRACT_URL = "https://api.upstox.com/v2/option/contract"
+_LTP_URL      = "https://api.upstox.com/v2/market-quote/ltp"
 
 # (strike, "CE"|"PE") → {key, ltp, oi, change_oi, volume, delta, gamma, theta, vega, iv}
 _chain: dict[tuple[int, str], dict] = {}
@@ -25,7 +28,8 @@ _key_map: dict[str, tuple[int, str]] = {}
 _expiry: str = ""
 _all_expiries: list[str] = []
 _subscribed_atm: int = 0
-_spot_price: float = 0.0  # last underlying_spot_price from REST chain response
+_spot_price: float = 0.0       # Nifty 50 underlying from chain REST
+_bank_spot_price: float = 0.0  # Bank Nifty from market-quote/ltp REST
 
 
 # ── fetch helpers ─────────────────────────────────────────────────────────────
@@ -99,15 +103,48 @@ async def _load_chain(expiry: str, access_token: str) -> None:
     _log.info("oc loaded %d strikes, expiry=%s", len(_chain) // 2, expiry)
 
 
+async def _fetch_bank_nifty_ltp(access_token: str) -> None:
+    """Fetch Bank Nifty last price via market-quote/ltp and cache it."""
+    global _bank_spot_price
+    try:
+        async with httpx.AsyncClient(timeout=8) as c:
+            r = await c.get(
+                _LTP_URL,
+                params={"instrument_key": BANK_KEY},
+                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+            )
+        if r.status_code == 200:
+            data = r.json().get("data", {})
+            # Upstox returns key like "NSE_INDEX:Nifty Bank"
+            for v in data.values():
+                ltp = float(v.get("last_price", 0) or 0)
+                if ltp:
+                    _bank_spot_price = ltp
+                    _log.info("Bank Nifty LTP fetched: %.2f", ltp)
+                    break
+        else:
+            _log.warning("Bank Nifty LTP fetch %s: %s", r.status_code, r.text[:100])
+    except Exception as e:
+        _log.warning("Bank Nifty LTP fetch failed: %s", e)
+
+
 async def fetch_and_prime(access_token: str) -> None:
     global _expiry, _all_expiries
     try:
-        _all_expiries = await _fetch_expiries(access_token)
+        _all_expiries, _ = await asyncio.gather(
+            _fetch_expiries(access_token),
+            _fetch_bank_nifty_ltp(access_token),
+        )
         if not _all_expiries:
             _log.warning("oc no expiries found")
             return
         _expiry = _all_expiries[0]
         await _load_chain(_expiry, access_token)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code in (401, 403):
+            _log.error("oc fetch_and_prime: token expired (401/403) — re-login needed")
+        else:
+            _log.exception("oc fetch_and_prime HTTP error: %s", e)
     except Exception as e:
         _log.exception("oc fetch_and_prime error: %s", e)
 
@@ -140,6 +177,11 @@ def get_expiry() -> str:
 def get_spot() -> float:
     """Last underlying spot price from the chain REST snapshot (fallback when feed is offline)."""
     return _spot_price
+
+
+def get_bank_spot() -> float:
+    """Last Bank Nifty price from market-quote/ltp REST (fallback when feed is offline)."""
+    return _bank_spot_price
 
 
 def get_all_expiries() -> list[str]:

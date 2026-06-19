@@ -10,3 +10,6 @@ dist/
 *.pem
 
 *.log
+
+logs/uptox.log
+

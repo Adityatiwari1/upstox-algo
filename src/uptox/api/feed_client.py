@@ -11,10 +11,50 @@ import asyncio
 import logging
 import httpx
 import websockets
+from datetime import datetime, time as dt_time, timedelta
+from zoneinfo import ZoneInfo
 
 from uptox.api import market_feed_pb2 as proto
 from uptox.config.settings import settings
 from uptox.services import feed_store
+
+_IST            = ZoneInfo("Asia/Kolkata")
+_FEED_START     = dt_time(9,  0)
+_FEED_END       = dt_time(15, 35)
+
+
+async def _wait_for_market_open() -> None:
+    """
+    If called outside 09:00–15:35 IST on a trading day, sleep until next
+    09:00 IST open. Sets status to 'market_closed' while waiting.
+    """
+    from uptox.services.market_calendar import is_trading_day
+    while True:
+        now  = datetime.now(_IST)
+        t    = now.time()
+        today = now.date()
+
+        if is_trading_day(today) and _FEED_START <= t <= _FEED_END:
+            return  # we're in the window — proceed
+
+        # Calculate seconds until next 09:00 on a trading day
+        if t < _FEED_START and is_trading_day(today):
+            # Same day, wait until 09:00
+            target = datetime.combine(today, _FEED_START, tzinfo=_IST)
+        else:
+            # Past close or weekend/holiday — find next trading day 09:00
+            candidate = today + timedelta(days=1)
+            while not is_trading_day(candidate):
+                candidate += timedelta(days=1)
+            target = datetime.combine(candidate, _FEED_START, tzinfo=_IST)
+
+        wait_secs = (target - now).total_seconds()
+        feed_store.set_status("market_closed")
+        _log.info("[feed] Market closed — sleeping %.0fs until %s", wait_secs, target.strftime("%Y-%m-%d %H:%M IST"))
+        # Sleep in 60s chunks so status stays fresh and can be interrupted
+        while wait_secs > 0:
+            await asyncio.sleep(min(60, wait_secs))
+            wait_secs -= 60
 
 _log = logging.getLogger(__name__)
 
@@ -99,6 +139,7 @@ async def run_feed(
     delay = 1.0   # initial backoff
 
     while True:
+        await _wait_for_market_open()
         try:
             wss_url = await _get_wss_url(token)
 

@@ -6,7 +6,7 @@ from uptox.services import feed_store, option_chain_service
 from uptox.config.settings import settings
 
 NIFTY = "NSE_INDEX|Nifty 50"
-_SELECT_BLANK = [("Loading...", "")]
+_SELECT_BLANK = [("Loading...", "loading")]
 
 
 class OptionChainScreen(Static):
@@ -34,7 +34,8 @@ class OptionChainScreen(Static):
             yield Label("Spot:",    classes="header-item")
             yield Label("—",        classes="spot-value",   id="spot-label")
             yield Label("Expiry:",  classes="header-item")
-            yield Select(_SELECT_BLANK, id="expiry-select")
+            yield Select(_SELECT_BLANK, id="expiry-select", value="loading")
+            yield Label("", id="expiry-status", classes="header-item")
         yield DataTable(id="chain-table", show_cursor=False)
 
     def on_mount(self) -> None:
@@ -45,30 +46,67 @@ class OptionChainScreen(Static):
             "IV (P)", "LTP (P)", "OI Chg", "OI (P)",
         )
         self._expiries_loaded = False
+        self._tick = 0
+        self._fetch_pending = False
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
     def on_select_changed(self, event: Select.Changed) -> None:
+        # Select.NULL fires when options are replaced programmatically — skip it
+        if event.value is Select.BLANK or event.value is None:
+            return
         expiry = str(event.value)
-        if expiry and expiry != option_chain_service.get_expiry():
-            self.app.run_worker(
-                option_chain_service.switch_expiry(expiry, settings.access_token),
-                name=f"oc-switch-{expiry}",
-            )
+        _skip = {"loading", "Select.NULL", "Select.BLANK", "None", ""}
+        if expiry in _skip or expiry == option_chain_service.get_expiry():
+            return
+        self.app.run_worker(
+            option_chain_service.switch_expiry(expiry, settings.access_token),
+            name=f"oc-switch-{expiry}",
+        )
 
     def _refresh(self) -> None:
+        self._tick += 1
         t = feed_store.get(NIFTY)
         ltp = (t.ltp if t else 0.0) or option_chain_service.get_spot()
         expiry = option_chain_service.get_expiry()
         expiries = option_chain_service.get_all_expiries()
+        status_lbl = self.query_one("#expiry-status", Label)
 
-        # Populate Select once expiries are available
+        # ── Populate Select once expiries arrive ──────────────────────────────
         if expiries and not self._expiries_loaded:
             sel = self.query_one("#expiry-select", Select)
-            sel.set_options((e, e) for e in expiries)
+            sel.set_options([(e, e) for e in expiries])
             if expiry:
                 sel.value = expiry
             self._expiries_loaded = True
+            status_lbl.update("")
+
+        # ── No expiries yet — retry fetch, show progress ───────────────────────
+        if not self._expiries_loaded:
+            if not settings.access_token:
+                status_lbl.update("[red]No access token — login first[/]")
+            elif self._tick == 5 and not self._fetch_pending:
+                # First auto-retry after 5s
+                self._fetch_pending = True
+                status_lbl.update("[yellow]Retrying...[/]")
+                self.app.run_worker(
+                    option_chain_service.fetch_and_prime(settings.access_token),
+                    name="oc-prime-retry",
+                )
+            elif self._tick > 5 and self._tick % 30 == 0 and not self._fetch_pending:
+                # Retry every 30s after that
+                self._fetch_pending = True
+                status_lbl.update("[yellow]Retrying...[/]")
+                self.app.run_worker(
+                    option_chain_service.fetch_and_prime(settings.access_token),
+                    name=f"oc-prime-retry-{self._tick}",
+                )
+            elif self._tick <= 5:
+                waited = self._tick
+                status_lbl.update(f"[dim]Loading... {waited}s[/]")
+            else:
+                status_lbl.update("[dim]Waiting for data...[/]")
+                self._fetch_pending = False  # allow next retry window
 
         # Update spot label (mark snapshot when no live feed)
         spot_str = f"{ltp:,.2f}" if ltp else "—"

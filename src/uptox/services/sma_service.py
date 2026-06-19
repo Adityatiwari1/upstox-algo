@@ -168,6 +168,9 @@ async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
             access_token,
         )
         if not raw:
+            import logging; logging.getLogger(__name__).warning(
+                "prime %s %s: got 0 candles — historical data unavailable", instrument_key, tf.value
+            )
             return
         oldest_first = list(reversed(raw))   # Upstox returns newest-first
         bars = _aggregate(oldest_first, _TF_MINUTES[tf])
