@@ -15,6 +15,36 @@ _OUTCOME_COLOR = {
 }
 
 
+def _greeks_lines(ot: dict) -> list[str]:
+    """Real-time Greeks section for an open trade."""
+    from uptox.services import feed_store
+    key  = ot.get("option_key", "")
+    tick = feed_store.get(key) if key else None
+    if not tick:
+        return []
+
+    delta = tick.delta or ot.get("delta") or 0.0
+    theta = tick.theta or 0.0
+    gamma = tick.gamma or 0.0
+    vega  = tick.vega  or 0.0
+    iv    = tick.iv    or 0.0
+
+    # Theta decay in ₹ per hour for current position
+    lots    = ot.get("lots", 1)
+    theta_hr  = round(theta * 75 * lots, 0)   # theta is per day, /6.25 trading hrs
+    theta_min = round(theta_hr / 375, 2)       # ₹ per minute
+
+    return [
+        "",
+        "[dim]── Greeks (live) ──────────────────────────[/]",
+        f"[dim]{'Delta':<16}[/] [white]{delta:.3f}[/]",
+        f"[dim]{'Theta/day':<16}[/] [red]{theta:.2f} pts  ₹{theta_hr:+,.0f}/day[/]",
+        f"[dim]{'Theta/min':<16}[/] [dim red]₹{theta_min:+.2f}/min[/]",
+        f"[dim]{'Gamma':<16}[/] [dim white]{gamma:.4f}[/]",
+        f"[dim]{'Vega':<16}[/] [dim white]{vega:.3f}[/]",
+        f"[dim]{'IV':<16}[/] [cyan]{iv*100:.1f}%[/]",
+    ]
+
 
 # ── Open Trade ────────────────────────────────────────────────────────────────
 
@@ -52,13 +82,19 @@ class OpenTradePanel(Static):
                 if hz else
                 f"  [dim]({int((ts['trail_pct'] or 0)*100)}% below peak)[/]"
             )
+            phase_labels = {0: "Phase 0 — initial", 1: "Phase 1 — breakeven", 2: "Phase 2 — 50% locked", 3: "Phase 3 — tight trail"}
+            phase_str    = phase_labels.get(ts.get("phase", 0), "")
+            progress_str = f"  [dim]{ts.get('progress_pct', 0):.0f}% to target[/]" if not hz else ""
+            floor_str    = f"  [dim]floor={ts.get('sl_floor', 0):.1f}[/]" if not hz else ""
             trail_lines = [
                 "",
                 f"[dim]── {'Hero/Zero Step SL' if hz else 'Trailing SL'} {'⚡' if hz else ''}─────────────────[/]",
-                f"[dim]{'Entry':<16}[/] [white]{ts['entry']:.1f}[/]",
+                f"[dim]{'Entry':<16}[/] [white]{ts['entry']:.1f}[/]"
+                + (f"  [dim]target={ts.get('target', 0):.1f}[/]" if not hz else ""),
                 f"[dim]{'Peak':<16}[/] [yellow]{ts['peak']:.1f}[/]"
-                + (f"  [dim]({multiple:.1f}x)[/]" if hz else ""),
-                f"[dim]{sl_label:<16}[/] [{tsl_col}]{ts['trail_sl']:.1f}[/]{sl_detail}",
+                + (f"  [dim]({multiple:.1f}x)[/]" if hz else progress_str),
+                f"[dim]{sl_label:<16}[/] [{tsl_col}]{ts['trail_sl']:.1f}[/]{sl_detail}{floor_str}",
+                f"[dim]{'Phase':<16}[/] [dim white]{phase_str}  trail={int((ts['trail_pct'] or 0)*100)}%[/]" if not hz else "",
                 f"[dim]{'P&L':<16}[/] [{pnl_col}]{ts['pnl_pts']:+.1f}pts[/]",
                 f"[dim]{'Status':<16}[/] " + (
                     "[bold red]STOPPED OUT — press x[/]" if ts["stopped_out"]
@@ -66,6 +102,7 @@ class OpenTradePanel(Static):
                     else "[yellow]Tracking...[/]"
                 ),
             ]
+            trail_lines = [l for l in trail_lines if l]  # drop empty strings
 
         hz_badge = "  [bold yellow]⚡ HERO/ZERO[/]" if hz else ""
         self.update("\n".join([
@@ -100,7 +137,9 @@ class OpenTradePanel(Static):
             "[dim]── P&L ─────────────────────────────────────────[/]",
             f"[dim]{'Unrealized pts':<16}[/] [{pnl_col}]{pnl_pts:+.1f}[/]",
             f"[dim]{'Unrealized ₹':<16}[/] [{pnl_col}]{pnl_rs:+,.0f}[/]",
-        ] + trail_lines))
+            f"[dim]{'Peak (best so far)':<16}[/] [yellow]{ts.get('peak', cur):.1f}[/]"
+            f"  [dim]{ts.get('progress_pct', 0):.0f}% to target[/]",
+        ] + trail_lines + _greeks_lines(ot)))
 
 
 # ── Performance ───────────────────────────────────────────────────────────────
@@ -315,6 +354,26 @@ class AnalysisPanel(Widget):
         if not any("✓" in l or "↓" in l or "⚠" in l for l in lines[-5:]):
             lines.append("  [dim white]No issues detected yet.[/]")
 
+        # ── Pattern Outcome Correlation ───────────────────────────────────────
+        # Parse entry_reason for score tier; cross-tab vs outcome
+        score_buckets: dict[str, list] = {"strong (≥4)": [], "moderate (2-3)": [], "weak (≤1)": []}
+        for t in trades:
+            sc = t.get("score", 0)
+            bucket = "strong (≥4)" if abs(sc) >= 4 else "moderate (2-3)" if abs(sc) >= 2 else "weak (≤1)"
+            score_buckets[bucket].append(t)
+
+        lines += ["", "[dim]── Score vs Outcome ─────────────────────[/]"]
+        for bucket, grp in score_buckets.items():
+            if not grp:
+                continue
+            wins  = sum(1 for t in grp if t["pnl_pts"] > 0)
+            wr    = wins / len(grp) * 100
+            pnl   = sum(t["pnl_rs"] for t in grp)
+            col   = "green" if wr >= 55 else "red" if wr < 40 else "yellow"
+            lines.append(
+                f"  [dim]{bucket:<18}[/] [white]{len(grp)} trades  {wins}W  [/][{col}]{wr:.0f}% WR  ₹{pnl:+,.0f}[/]"
+            )
+
         self.query_one("#analysis-display", Static).update("\n".join(lines))
 
 
@@ -336,8 +395,8 @@ class TradeHistoryPanel(Static):
             "[dim]"
             f"{'#':>3}  {'Date':<11}{'In':>6} {'Out':>6}"
             f"  {'Strike':>6} {'T':<3}"
-            f"  {'Entry':>6} {'Exit':>6}"
-            f"  {'P&L pts':>8}  {'P&L ₹':>9}  {'Outcome':<12}  Reason"
+            f"  {'Entry':>6} {'Exit':>6} {'Peak':>6}"
+            f"  {'P&L pts':>8} {'Max pts':>8}  {'P&L ₹':>9}  {'Outcome':<12}  Reason"
             "[/]"
         )
 
@@ -351,14 +410,18 @@ class TradeHistoryPanel(Static):
             pnl_c = "green" if t["pnl_pts"] >= 0 else "red"
             opt_c = "green" if t["option"] == "CE" else "red"
             exit_p = f"{t['exit_price']:.1f}" if t["exit_price"] is not None else "—"
+            peak_p   = t.get("peak_price")
+            max_pts  = t.get("max_pnl_pts")
+            peak_str = f"{peak_p:.1f}" if peak_p is not None else "—"
+            maxp_str = f"{max_pts:+.1f}" if max_pts is not None else "—"
             rows.append(
                 f"[dim]{i:>3}[/]  "
                 f"[dim]{t['date']:<11}[/]"
                 f"[white]{t.get('time_entry','—'):>6}[/] "
                 f"[dim]{t.get('time_exit','—'):>6}[/]"
                 f"  [{opt_c}]{t['strike']:>6} {t['option']:<3}[/]"
-                f"  [white]{t['entry_price']:>6.1f}[/] [dim]{exit_p:>6}[/]"
-                f"  [{pnl_c}]{t['pnl_pts']:>+8.1f}[/]"
+                f"  [white]{t['entry_price']:>6.1f}[/] [dim]{exit_p:>6}[/] [yellow]{peak_str:>6}[/]"
+                f"  [{pnl_c}]{t['pnl_pts']:>+8.1f}[/] [yellow]{maxp_str:>8}[/]"
                 f"  [{pnl_c}]{t['pnl_rs']:>+9,.0f}[/]"
                 f"  [{col}]{t['outcome']:<12}[/]"
                 f"  [dim]{t.get('exit_reason','—')}[/]"

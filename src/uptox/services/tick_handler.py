@@ -1,5 +1,8 @@
 """Converts raw proto Feed → TickData and writes to feed_store."""
 import asyncio
+from datetime import datetime, time as dt_time
+from zoneinfo import ZoneInfo
+
 from uptox.api import market_feed_pb2 as proto
 from uptox.services import (
     feed_store, sma_service, option_chain_service,
@@ -7,17 +10,24 @@ from uptox.services import (
 )
 from uptox.services.feed_store import TickData
 
-_NIFTY = "NSE_INDEX|Nifty 50"
+_NIFTY  = "NSE_INDEX|Nifty 50"
+_BANK   = "NSE_INDEX|Nifty Bank"
+_IST    = ZoneInfo("Asia/Kolkata")
+
+_REPORT_TIME       = dt_time(15, 30)
+_report_sent_today: str = ""
 
 
 async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
+    global _report_sent_today
+
     tick = TickData(instrument_key=instrument_key)
 
     if feed.HasField("fullFeed"):
-        ff = feed.fullFeed
+        ff  = feed.fullFeed
         src = ff.marketFF if ff.HasField("marketFF") else ff.indexFF
 
-        ltpc = src.ltpc
+        ltpc       = src.ltpc
         tick.ltp   = ltpc.ltp
         tick.ltt   = ltpc.ltt
         tick.ltq   = ltpc.ltq
@@ -25,32 +35,20 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
 
         if ff.HasField("marketFF"):
             mff = ff.marketFF
-
-            # depth (v3: bidP/bidQ/askP/askQ, no orders count)
             if mff.marketLevel.bidAskQuote:
-                tick.bids = [
-                    {"price": q.bidP, "qty": q.bidQ}
-                    for q in mff.marketLevel.bidAskQuote
-                ]
-                tick.asks = [
-                    {"price": q.askP, "qty": q.askQ}
-                    for q in mff.marketLevel.bidAskQuote
-                ]
-
-            # greeks (v3: iv is on mff, not optionGreeks)
-            g = mff.optionGreeks
+                tick.bids = [{"price": q.bidP, "qty": q.bidQ} for q in mff.marketLevel.bidAskQuote]
+                tick.asks = [{"price": q.askP, "qty": q.askQ} for q in mff.marketLevel.bidAskQuote]
+            g          = mff.optionGreeks
             tick.delta = g.delta
             tick.gamma = g.gamma
             tick.theta = g.theta
             tick.vega  = g.vega
             tick.iv    = mff.iv
-
-            # extended (v3: flat fields on mff, no eFeedDetails)
-            tick.oi  = mff.oi
-            tick.tbq = mff.tbq
-            tick.tsq = mff.tsq
-            tick.vtt = mff.vtt
-            tick.atp = mff.atp
+            tick.oi    = mff.oi
+            tick.tbq   = mff.tbq
+            tick.tsq   = mff.tsq
+            tick.vtt   = mff.vtt
+            tick.atp   = mff.atp
 
     elif feed.HasField("ltpc"):
         tick.ltp   = feed.ltpc.ltp
@@ -59,31 +57,68 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         tick.close = feed.ltpc.cp
 
     feed_store.update(instrument_key, tick)
-    if tick.ltp:
-        sma_service.update_realtime(instrument_key, tick.ltp)
-        if instrument_key == _NIFTY and option_chain_service.atm_changed(tick.ltp):
-            keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
-            if keys:
-                from uptox.api.feed_client import subscribe
-                asyncio.create_task(subscribe(keys))
-        # Per-tick updates for open paper trade
-        ot = trade_book.get_open_trade()
-        if ot and ot.get("option_key") == instrument_key:
-            # 3:25 PM — end of session, exit everything
-            if trade_book.should_session_close():
-                trade_book.close_trade(tick.ltp, "session_close_3:25PM")
-                return
-            # Hero/Zero: force exit at 3:44 PM before settlement
-            if trade_book.should_force_close():
-                trade_book.close_trade(tick.ltp, "expiry_force_close")
-                return
-            target_just_crossed = trade_book.update_open_pnl(tick.ltp)
-            closed = False
-            if target_just_crossed:
-                action = trade_book.get_target_action(tick.ltp)
-                if action == "close":
-                    trade_book.close_trade(tick.ltp, "target_volatile")
-                    closed = True
-            # Trail SL rises with price; sole exit in trending market
-            if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
-                trade_book.close_trade(tick.ltp, "trail_sl")
+
+    if not tick.ltp:
+        return
+
+    sma_service.update_realtime(instrument_key, tick.ltp)
+
+    # ── IV rank update (ATM option ticks only) ────────────────────────────────
+    if tick.iv and instrument_key not in (_NIFTY, _BANK):
+        from uptox.services import iv_rank_service
+        iv_rank_service.update(instrument_key, tick.iv)
+
+    # ── ATM subscription refresh on Nifty move ────────────────────────────────
+    if instrument_key == _NIFTY and option_chain_service.atm_changed(tick.ltp):
+        keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
+        if keys:
+            from uptox.api.feed_client import subscribe
+            asyncio.create_task(subscribe(keys))
+
+    # ── Open trade tick processing ────────────────────────────────────────────
+    ot = trade_book.get_open_trade()
+    if ot and ot.get("option_key") == instrument_key:
+        if trade_book.should_session_close():
+            _close_and_notify(tick.ltp, "session_close_3:25PM")
+            return
+        if trade_book.should_force_close():
+            _close_and_notify(tick.ltp, "expiry_force_close")
+            return
+
+        target_just_crossed = trade_book.update_open_pnl(tick.ltp)
+        closed = False
+
+        if target_just_crossed:
+            action = trade_book.get_target_action(tick.ltp)
+            if action == "close":
+                _close_and_notify(tick.ltp, "target_volatile")
+                closed = True
+            elif action == "partial":
+                # Partial exit: close half, trail rest
+                _partial_exit_and_notify(tick.ltp)
+                closed = True   # open trade mutated, skip trail check this tick
+
+        if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
+            _close_and_notify(tick.ltp, "trail_sl")
+
+    # ── Daily report at 3:30 PM (once) ───────────────────────────────────────
+    now   = datetime.now(_IST)
+    today = now.strftime("%Y-%m-%d")
+    if now.time() >= _REPORT_TIME and _report_sent_today != today:
+        _report_sent_today = today
+        from uptox.services.telegram_service import notify_daily_report
+        notify_daily_report()
+
+
+def _close_and_notify(price: float, reason: str) -> None:
+    closed = trade_book.close_trade(price, reason)
+    if closed:
+        from uptox.services.telegram_service import notify_trade_close
+        notify_trade_close(closed)
+
+
+def _partial_exit_and_notify(price: float) -> None:
+    result = trade_book.partial_close_trade(price, "partial_target")
+    if result:
+        from uptox.services.telegram_service import notify_partial_close
+        notify_partial_close(result["remaining_trade"], result["closed_lots"], price, result["pnl_rs"])

@@ -85,18 +85,19 @@ def _subscribe_msg(instrument_keys: list[str], mode: str = "full") -> bytes:
 
 
 async def run_feed(
-    on_tick,  # async callable(instrument_key: str, feed: proto.Feed)
+    on_tick,
     instrument_keys: list[str] | None = None,
     mode: str = "full",
     reconnect: bool = True,
-    reconnect_delay: float = 5.0,
 ) -> None:
     """
-    Connect to Upstox WSS and call on_tick for every incoming tick.
-    Runs forever; set reconnect=False to exit on disconnect.
+    Connect to Upstox WSS and call on_tick for every tick.
+    Auto-reconnects with exponential backoff (1s → 2 → 4 → 8 → 16 → 60s max).
     """
-    keys = instrument_keys or DEFAULT_INSTRUMENTS
+    keys  = instrument_keys or DEFAULT_INSTRUMENTS
     token = settings.access_token
+    delay = 1.0   # initial backoff
+
     while True:
         try:
             wss_url = await _get_wss_url(token)
@@ -110,7 +111,8 @@ async def run_feed(
                 if _extra_keys:
                     await ws.send(_subscribe_msg(_extra_keys, mode))
                 feed_store.set_status("connected")
-                _log.info("[feed] Connected — %d instruments subscribed in '%s' mode",
+                delay = 1.0   # reset backoff on successful connect
+                _log.info("[feed] Connected — %d instruments in '%s' mode",
                           len(keys) + len(_extra_keys), mode)
 
                 async def _sender() -> None:
@@ -138,9 +140,11 @@ async def run_feed(
             feed_store.set_status("reconnecting")
             try:
                 token = await _reauth()
+                delay = 1.0
             except Exception as auth_err:
                 _log.error("[feed] Re-auth failed: %s", auth_err, exc_info=True)
-                await asyncio.sleep(reconnect_delay)
+                await asyncio.sleep(delay)
+                delay = min(delay * 2, 60.0)
             continue
 
         except Exception as e:
@@ -149,5 +153,6 @@ async def run_feed(
             if not reconnect:
                 break
             feed_store.set_status("reconnecting")
-            _log.info("[feed] Reconnecting in %ss...", reconnect_delay)
-            await asyncio.sleep(reconnect_delay)
+            _log.info("[feed] Reconnecting in %.0fs...", delay)
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 60.0)

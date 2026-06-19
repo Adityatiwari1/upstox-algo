@@ -97,11 +97,13 @@ def _load() -> None:
                 hz      = bool(data.get("hero_zero", False))
                 if ep:
                     from uptox.services import trailing_sl_service
+                    tgt = float(data.get("target", 0))
                     if hz:
                         trailing_sl_service.activate_hero_zero(ep, opt, opt_key)
                     else:
-                        trail_pct = (ep - sl) / ep if (sl and sl < ep) else 0.20
-                        trailing_sl_service.set_entry(ep, opt, opt_key, trail_pct=trail_pct)
+                        trailing_sl_service.set_entry(
+                            ep, opt, opt_key, target=tgt, initial_sl=sl,
+                        )
                 log.info(
                     "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
                     opt, data.get("strike"), ep, sl,
@@ -271,13 +273,17 @@ def open_trade(
             option, strike, entry_price, round(entry_price * 0.50, 1), lots,
         )
     else:
-        trail_pct = (entry_price - sl) / entry_price if (sl and sl < entry_price) else 0.20
-        trailing_sl_service.set_entry(entry_price, option, option_key, trail_pct=trail_pct)
+        trailing_sl_service.set_entry(
+            entry_price, option, option_key,
+            target=target, initial_sl=sl,
+        )
         log.info(
-            "Paper OPEN: %s %s @ %.1f  SL=%.1f  TGT=%.1f  trail_pct=%.0f%%  lots=%d",
-            option, strike, entry_price, sl, target, trail_pct * 100, lots,
+            "Paper OPEN: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",
+            option, strike, entry_price, sl, target, lots,
         )
     _save_open()
+    from uptox.services.telegram_service import notify_trade_open
+    notify_trade_open(_open_trade)
 
 
 def close_trade(exit_price: float, reason: str) -> dict | None:
@@ -301,13 +307,23 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
     else:
         outcome = "BREAKEVEN"
 
+    # Capture peak price / max unrealised profit before trail SL fired
+    from uptox.services import trailing_sl_service as _tsl
+    ts = _tsl.get_status()
+    peak_price  = ts["peak"] if ts.get("active") and ts["peak"] >= _open_trade["entry_price"] else exit_price
+    max_pnl_pts = round(peak_price - _open_trade["entry_price"], 1)
+    max_pnl_rs  = round(max_pnl_pts * _open_trade["lots"] * NIFTY_LOT_SIZE, 0)
+
     _open_trade.update({
-        "exit_price":  round(exit_price, 1),
-        "time_exit":   datetime.now().strftime("%H:%M:%S"),
-        "pnl_pts":     pnl_pts,
-        "pnl_rs":      pnl_rs,
-        "outcome":     outcome,
-        "exit_reason": reason,
+        "exit_price":   round(exit_price, 1),
+        "time_exit":    datetime.now().strftime("%H:%M:%S"),
+        "pnl_pts":      pnl_pts,
+        "pnl_rs":       pnl_rs,
+        "outcome":      outcome,
+        "exit_reason":  reason,
+        "peak_price":   round(peak_price, 1),
+        "max_pnl_pts":  max_pnl_pts,
+        "max_pnl_rs":   max_pnl_rs,
     })
     closed = dict(_open_trade)
     closed.pop("current_price", None)
@@ -325,6 +341,62 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
         outcome, pnl_pts, pnl_rs, reason,
     )
     return closed
+
+
+def partial_close_trade(exit_price: float, reason: str) -> dict | None:
+    """
+    Close half the lots at exit_price, keep rest open with SL moved to original target.
+    Records a WIN trade for the closed portion.
+    Returns {"closed_lots", "pnl_rs", "remaining_trade"} or None.
+    """
+    global _open_trade
+    if not _open_trade or _open_trade.get("lots", 1) < 2:
+        return None
+
+    from uptox.services.capital_service import NIFTY_LOT_SIZE
+    total_lots  = _open_trade["lots"]
+    close_lots  = total_lots // 2
+    remain_lots = total_lots - close_lots
+
+    pnl_pts = round(exit_price - _open_trade["entry_price"], 1)
+    pnl_rs  = round(pnl_pts * close_lots * NIFTY_LOT_SIZE, 0)
+
+    # Record closed portion as a completed trade
+    closed_rec = dict(_open_trade)
+    closed_rec.update({
+        "lots":        close_lots,
+        "invested":    round(close_lots * (_open_trade["invested"] / total_lots), 0),
+        "exit_price":  round(exit_price, 1),
+        "time_exit":   datetime.now().strftime("%H:%M:%S"),
+        "pnl_pts":     pnl_pts,
+        "pnl_rs":      pnl_rs,
+        "outcome":     "WIN",
+        "exit_reason": f"{reason}_partial",
+        "peak_price":  round(exit_price, 1),
+        "max_pnl_pts": pnl_pts,
+        "max_pnl_rs":  pnl_rs,
+    })
+    _trades.append(closed_rec)
+
+    # Update open trade: reduce lots, move SL to original target (lock profit floor)
+    old_target = _open_trade["target"]
+    _open_trade["lots"]           = remain_lots
+    _open_trade["invested"]       = round(remain_lots * (_open_trade["invested"] / total_lots), 0)
+    _open_trade["sl"]             = old_target          # SL now = original target
+    _open_trade["target_crossed"] = False               # allow new target to form
+    _open_trade["target"]         = round(exit_price + (exit_price - _open_trade["entry_price"]) * 0.5, 1)
+
+    _save()
+    _save_open()
+
+    from uptox.services import capital_service
+    capital_service.adjust_for_pnl(pnl_rs)
+
+    log.info(
+        "Partial CLOSE: %d lots @ %.1f  P&L=%.1fpts ₹%.0f  remain=%d lots  new_SL=%.1f",
+        close_lots, exit_price, pnl_pts, pnl_rs, remain_lots, old_target,
+    )
+    return {"closed_lots": close_lots, "pnl_rs": pnl_rs, "remaining_trade": _open_trade}
 
 
 def update_open_pnl(current_price: float) -> bool:
@@ -392,6 +464,14 @@ def get_target_action(current_price: float) -> str:
             velocity, iv,
         )
         return "close"
+
+    # Trending + multiple lots → partial exit (close half, trail rest)
+    if _open_trade.get("lots", 1) > 1:
+        log.info(
+            "Target: TRENDING multi-lot (vel=%.1f pts/min, IV=%.1f) → partial exit",
+            velocity, iv,
+        )
+        return "partial"
 
     log.info(
         "Target: TRENDING market (vel=%.1f pts/min, IV=%.1f) → trail past target",
@@ -479,6 +559,57 @@ def get_stats(trades: list[dict] | None = None) -> dict:
         "expectancy":    round(expect, 1),
         "avg_rr":        avg_rr,
     }
+
+
+def get_daily_stats() -> dict:
+    """
+    Today's trading stats — used by daily-limit checks and Capital panel.
+    Returns trades_today, pnl_rs_today, pnl_pct_today, consec_losses, blocked_reason.
+    """
+    from uptox.services import capital_service
+    today  = datetime.now(_IST).strftime("%Y-%m-%d")
+    today_trades = [t for t in _trades if t.get("date") == today]
+
+    pnl_rs      = sum(t.get("pnl_rs", 0.0) for t in today_trades)
+    cap         = capital_service.get_capital()
+    pnl_pct     = round(pnl_rs / cap * 100, 2) if cap else 0.0
+    trade_count = len(today_trades)
+
+    # Consecutive losses (from most recent backward)
+    consec_losses = 0
+    for t in reversed(today_trades):
+        if t.get("pnl_pts", 0) < 0:
+            consec_losses += 1
+        else:
+            break
+
+    # Check limits
+    blocked_reason = None
+    loss_limit_pct = capital_service.get_daily_loss_limit_pct()
+    max_trades     = capital_service.get_max_trades_per_day()
+    max_consec     = capital_service.get_max_consec_losses()
+
+    if pnl_pct <= -loss_limit_pct:
+        blocked_reason = f"Daily loss limit hit ({pnl_pct:.1f}% / -{loss_limit_pct}%)"
+    elif trade_count >= max_trades:
+        blocked_reason = f"Max trades/day reached ({trade_count}/{max_trades})"
+    elif consec_losses >= max_consec:
+        blocked_reason = f"{consec_losses} consecutive losses — paused for day"
+
+    return {
+        "trades_today":  trade_count,
+        "pnl_rs_today":  round(pnl_rs, 0),
+        "pnl_pct_today": pnl_pct,
+        "consec_losses": consec_losses,
+        "blocked_reason": blocked_reason,
+        "can_trade":     blocked_reason is None,
+    }
+
+
+def can_trade_today() -> tuple[bool, str | None]:
+    """Returns (True, None) if allowed, (False, reason) if any daily limit hit."""
+    ds = get_daily_stats()
+    return ds["can_trade"], ds["blocked_reason"]
 
 
 # Load existing trades at import time

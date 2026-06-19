@@ -51,10 +51,16 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
         key    = option_chain_service.get_key(strike, option)
         if not key:
             continue
-        lo    = feed_store.get(key)
-        price = (lo.ltp if lo else 0.0) or float(
-            (option_chain_service.get_option(strike, option) or {}).get("ltp", 0.0)
-        )
+        lo = feed_store.get(key)
+        # For BUY orders always use best ask (limit price); fall back to ltp then snapshot
+        if lo and lo.asks:
+            price = float(lo.asks[0].get("price", 0.0)) or lo.ltp
+        elif lo:
+            price = lo.ltp
+        else:
+            price = float(
+                (option_chain_service.get_option(strike, option) or {}).get("ltp", 0.0)
+            )
         if price and capital_service.sizing(price)["lots"] > 0:
             return strike, key, price
     return atm, None, 0.0
@@ -166,6 +172,34 @@ class OverallAnalysisPanel(Static):
         else:
             trend, trend_color, option = "NEUTRAL",     "yellow", "—"
 
+        # ── external filters: VIX, IV rank, Bank Nifty, PCR ─────────────────
+        from uptox.services import iv_rank_service
+
+        # Bank Nifty alignment (must agree with Nifty direction)
+        bn        = feed_store.get("NSE_INDEX|Nifty Bank")
+        bn_ltp    = bn.ltp if bn else 0.0
+        bn_s20    = sma_service.get_sma("NSE_INDEX|Nifty Bank", sma_service.get_current_tf(), 20)
+        bn_s50    = sma_service.get_sma("NSE_INDEX|Nifty Bank", sma_service.get_current_tf(), 50)
+        bn_score  = (1 if (bn_ltp and bn_s20 and bn_ltp > bn_s20) else -1 if bn_s20 else 0) + \
+                    (1 if (bn_ltp and bn_s50 and bn_ltp > bn_s50) else -1 if bn_s50 else 0)
+        bn_conflict = (option == "CE" and bn_score < 0) or (option == "PE" and bn_score > 0)
+
+        # IV Rank on ATM option
+        atm_iv_key = option_chain_service.get_key(atm, option) if (atm and option != "—") else None
+        iv_st      = iv_rank_service.get_status(atm_iv_key) if atm_iv_key else {}
+        high_iv    = iv_st.get("high_iv", False)
+
+        # PCR from ±3 strikes OI (filter check only — display PCR comes from option_chain_service)
+        _ce_oi = _pe_oi = 0.0
+        if atm and ltp:
+            for off in range(-3, 4):
+                s = atm + off * 50
+                _ce_oi += float((option_chain_service.get_option(s, "CE") or {}).get("oi", 0))
+                _pe_oi += float((option_chain_service.get_option(s, "PE") or {}).get("oi", 0))
+        _pcr_filter      = round(_pe_oi / _ce_oi, 2) if _ce_oi else 0.0
+        pcr_extreme_bull = _pcr_filter > 0 and _pcr_filter < 0.7
+        pcr_extreme_bear = _pcr_filter > 1.5
+
         # ── trade validity ────────────────────────────────────────────────
         no_trade_reason = None
         if not live_ltp:
@@ -174,6 +208,12 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = "SMA loading..."
         elif option == "—":
             no_trade_reason = "Trend too weak"
+        elif high_iv:
+            no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
+        elif bn_conflict:
+            no_trade_reason = f"Bank Nifty conflicts (BN score={bn_score:+d})"
+        elif (option == "CE" and pcr_extreme_bull) or (option == "PE" and pcr_extreme_bear):
+            no_trade_reason = f"PCR extreme ({_pcr_filter:.2f}) — crowded trade, skip"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
             no_trade_reason = "SMA vs Flow divergence"
         elif abs(flow_score) == 1 and abs(sma_score) <= 1:
@@ -279,31 +319,45 @@ class OverallAnalysisPanel(Static):
                             log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
                             entry_type = None
                         else:
-                            delta  = entry_live.delta if entry_live else None
-                            lvl    = capital_service.levels(entry_price, delta)
-                            sz     = capital_service.sizing(entry_price)
-                            otm_note = f" OTM{entry_strike}" if entry_strike != atm else ""
-                            reason = (
-                                f"{entry_type} | SMA{sma_score:+d} Flow{flow_score:+d}"
-                                f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{otm_note}"
-                            )
-                            trade_book.open_trade(
-                                strike=entry_strike, option=option,
-                                expiry=option_chain_service.get_expiry() or "—",
-                                entry_price=entry_price,
-                                lots=sz["lots"], invested=sz["invested"],
-                                sl=lvl["sl"], target=lvl["target"],
-                                option_key=entry_key, delta=delta, spot=ltp,
-                                entry_reason=reason,
-                                score=total, sma_score=sma_score, flow_score=flow_score,
-                            )
-                            log.info(
-                                "Trade opened (%s): %s %s @ %.1f  lots=%d  [S/R clear]%s",
-                                entry_type, option, entry_strike, entry_price, sz["lots"],
-                                f"  [OTM from ATM {atm}]" if entry_strike != atm else "",
-                            )
-                            self._watch = "IDLE"
-                            self._why_tag = ""
+                            # Daily limit check before opening
+                            can_trade, block_reason = trade_book.can_trade_today()
+                            if not can_trade:
+                                self._why_tag = f"Daily limit: {block_reason}"
+                                watch_tag = f"  [bold red]⚠ BLOCKED — {block_reason}[/]"
+                                entry_type = None
+                            else:
+                              delta  = entry_live.delta if entry_live else None
+                              lvl    = capital_service.levels(entry_price, delta)
+                              sz     = capital_service.sizing_with_risk(entry_price, lvl["sl"])
+                              if sz["lots"] == 0:
+                                  self._why_tag = "Risk sizing: 0 lots — price or SL too wide for capital"
+                                  watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots[/]"
+                                  entry_type = None
+                              else:
+                                otm_note = f" OTM{entry_strike}" if entry_strike != atm else ""
+                                reason = (
+                                    f"{entry_type} | SMA{sma_score:+d} Flow{flow_score:+d}"
+                                    f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{otm_note}"
+                                    f" | risk=₹{sz['risk_rs']:.0f} ({sz['risk_pct']:.1f}%)"
+                                )
+                                trade_book.open_trade(
+                                    strike=entry_strike, option=option,
+                                    expiry=option_chain_service.get_expiry() or "—",
+                                    entry_price=entry_price,
+                                    lots=sz["lots"], invested=sz["invested"],
+                                    sl=lvl["sl"], target=lvl["target"],
+                                    option_key=entry_key, delta=delta, spot=ltp,
+                                    entry_reason=reason,
+                                    score=total, sma_score=sma_score, flow_score=flow_score,
+                                )
+                                log.info(
+                                    "Trade opened (%s): %s %s @ %.1f  lots=%d  risk=₹%.0f (%.1f%%)  cap=%s%s",
+                                    entry_type, option, entry_strike, entry_price,
+                                    sz["lots"], sz["risk_rs"], sz["risk_pct"], sz["capped_by"],
+                                    f"  [OTM from ATM {atm}]" if entry_strike != atm else "",
+                                )
+                                self._watch = "IDLE"
+                                self._why_tag = ""
 
         elif not tradeable:
             if self._watch != "IDLE":
@@ -570,20 +624,24 @@ class TechnicalPanel(Static):
         chg_str = f"{chg:+.2f} ({chg_p:+.2f}%)" if (ltp and prev) else "—"
         ltp_str = (f"{ltp:,.2f}" if is_live else f"{ltp:,.2f} [dim](last)[/]") if ltp else "—"
 
-        pattern = pattern_service.detect(NIFTY, tf)
-        pat_color = (
-            "green" if "Bull" in pattern or "Hammer" in pattern else
-            "red"   if "Bear" in pattern or "Shoot"  in pattern else
-            "yellow"
-        )
+        patterns = pattern_service.detect_all(NIFTY, tf)
 
         self.border_title = f"Technical  {tf.value}"
-        self.update(_kv([
-            ("LTP",        ltp_str,                               "white"),
-            ("Change",     chg_str,                               chg_color),
-            ("Prev Close", f"{prev:,.2f}" if prev else "—",       "dim white"),
-            ("Pattern",    pattern,                                pat_color),
-        ]))
+        lines = [
+            f"[dim]{'LTP':<14}[/] [white]{ltp_str}[/]",
+            f"[dim]{'Change':<14}[/] [{chg_color}]{chg_str}[/]",
+            f"[dim]{'Prev Close':<14}[/] [dim white]{f'{prev:,.2f}' if prev else '—'}[/]",
+            "[dim]── Candle Patterns ──────────[/]",
+        ]
+        if patterns:
+            for p in patterns[:6]:   # show up to 6
+                col   = "green" if p.bias == "BULL" else "red" if p.bias == "BEAR" else "yellow"
+                stars = "★" * p.strength
+                icon  = "▲" if p.bias == "BULL" else "▼" if p.bias == "BEAR" else "●"
+                lines.append(f"  [{col}]{icon} {p.name:<22} {stars}[/]")
+        else:
+            lines.append("  [dim white]No pattern[/]")
+        self.update("\n".join(lines))
 
 
 class BestEntryPanel(Static):
@@ -837,16 +895,44 @@ class CapitalPanel(Widget):
         real_col = "green" if realised >= 0 else "red"
         real_str = f"  [{real_col}]({realised:+,.0f})[/]" if realised != 0 else ""
 
+        # Risk-sized lots for display
+        lvl_disp = capital_service.levels(live.ltp if live else 0.0, None)
+        sz_risk  = capital_service.sizing_with_risk(
+            live.ltp if live else 0.0, lvl_disp.get("sl", 0.0)
+        ) if live else {"lots": 0, "invested": 0.0, "risk_rs": 0.0, "risk_pct": 0.0, "capped_by": "—"}
+
+        # Daily stats
+        ds      = trade_book.get_daily_stats()
+        day_col = "green" if ds["pnl_rs_today"] >= 0 else "red"
+        dl_pct  = capital_service.get_daily_loss_limit_pct()
+        blocked = ds["blocked_reason"]
+
+        inv_str  = f"₹{sz_risk['invested']:,.0f}" if live else "—"
+        risk_str = f"₹{sz_risk['risk_rs']:,.0f}  ({sz_risk['risk_pct']:.1f}%)" if live else "—"
+        cap_str  = f"  [dim]cap by {sz_risk['capped_by']}[/]" if live else ""
+        lots_str = str(sz_risk['lots']) if live else "—"
+        cl_col   = "red" if ds["consec_losses"] >= 2 else "dim white"
+        cl_str   = f"{ds['consec_losses']}/{capital_service.get_max_consec_losses()}"
+
         lines = [
-            f"[dim]{'Capital':<12}[/] [yellow]₹{cap:,.0f}[/]{real_str}",
-            f"[dim]{'Base':<12}[/] [dim white]₹{base:,.0f}[/]",
-            f"[dim]{'RR (user)':<12}[/] [{rr_color}]1:{rr}[/]",
-            f"[dim]{'RR (sys)':<12}[/] [dim white]1:{suggested_rr}[/]",
-            f"[dim]{'Lot Size':<12}[/] [dim white]{capital_service.NIFTY_LOT_SIZE} units[/]",
-            f"[dim]{'Lots':<12}[/] [white]{sz['lots'] if live else '—'}[/]",
-            "[dim]" + f"{'Invested':<12}" + "[/] [white]" + (f"₹{sz['invested']:,.0f}" if live else "—") + "[/]",
-            "[dim]" + f"{'Max Loss':<12}" + "[/] [red]"   + (f"₹{sz['invested'] * 0.3:,.0f}" if live else "—") + "[/]",
+            f"[dim]{'Capital':<14}[/] [yellow]₹{cap:,.0f}[/]{real_str}",
+            f"[dim]{'Base':<14}[/] [dim white]₹{base:,.0f}[/]",
+            "",
+            "[dim]── Sizing ──────────────────────[/]",
+            f"[dim]{'RR':<14}[/] [{rr_color}]1:{rr}[/]  [dim white]sys=1:{suggested_rr}[/]",
+            f"[dim]{'Lots':<14}[/] [white]{lots_str}[/]{cap_str}",
+            f"[dim]{'Invested':<14}[/] [white]{inv_str}[/]",
+            f"[dim]{'Risk/trade':<14}[/] [red]{risk_str}[/]",
+            "",
+            "[dim]── Today ──────────────────────[/]",
+            f"[dim]{'Trades':<14}[/] [white]{ds['trades_today']}/{capital_service.get_max_trades_per_day()}[/]",
+            f"[dim]{'Day P&L':<14}[/] [{day_col}]₹{ds['pnl_rs_today']:+,.0f}  ({ds['pnl_pct_today']:+.1f}%)[/]",
+            f"[dim]{'Loss Limit':<14}[/] [dim white]-{dl_pct}% = ₹{cap * dl_pct / 100:,.0f}[/]",
+            f"[dim]{'Consec Loss':<14}[/] [{cl_col}]{cl_str}[/]",
         ]
+        if blocked:
+            lines += ["", f"[bold red]⚠ {blocked}[/]"]
+
         self.query_one("#cap-display", Static).update("\n".join(lines))
 
     def open_input(self) -> None:
