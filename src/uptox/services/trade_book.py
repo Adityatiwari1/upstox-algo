@@ -110,6 +110,10 @@ def _load() -> None:
             log.error("open_trade restore error: %s", e)
             _open_trade = None
 
+    # Sync capital to base + all historical realised P&L
+    from uptox.services import capital_service
+    capital_service.sync_from_history(_trades)
+
 
 def _save() -> None:
     try:
@@ -311,8 +315,9 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
     _open_trade = None
     _save()
     _save_open()   # clears open_trade.json — trade is closed
-    # Deactivate trailing SL when trade closes for any reason
-    from uptox.services import trailing_sl_service
+    # Adjust running capital with realised P&L
+    from uptox.services import capital_service, trailing_sl_service
+    capital_service.adjust_for_pnl(pnl_rs)
     trailing_sl_service.exit_trade()
 
     log.info(

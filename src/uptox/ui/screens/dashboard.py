@@ -832,8 +832,14 @@ class CapitalPanel(Widget):
         live = feed_store.get(key) if key else None
         sz   = capital_service.sizing(live.ltp if live else 0.0)
 
+        base     = capital_service.get_base_capital()
+        realised = round(cap - base, 0)
+        real_col = "green" if realised >= 0 else "red"
+        real_str = f"  [{real_col}]({realised:+,.0f})[/]" if realised != 0 else ""
+
         lines = [
-            f"[dim]{'Capital':<12}[/] [yellow]₹{cap:,.0f}[/]",
+            f"[dim]{'Capital':<12}[/] [yellow]₹{cap:,.0f}[/]{real_str}",
+            f"[dim]{'Base':<12}[/] [dim white]₹{base:,.0f}[/]",
             f"[dim]{'RR (user)':<12}[/] [{rr_color}]1:{rr}[/]",
             f"[dim]{'RR (sys)':<12}[/] [dim white]1:{suggested_rr}[/]",
             f"[dim]{'Lot Size':<12}[/] [dim white]{capital_service.NIFTY_LOT_SIZE} units[/]",
