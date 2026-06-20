@@ -95,6 +95,47 @@ def market_status() -> str:
     return "Market closed for today"
 
 
+# ── High-volatility event calendar ───────────────────────────────────────────
+# On these days algo requires score ≥ 4 (not default 2) before entering.
+# Update annually. RBI decision day = last day of 3-day MPC meeting.
+_EVENT_DAYS: dict[date, str] = {
+    # ── Budget ────────────────────────────────────────────────────────────────
+    date(2026, 2,  1): "Union Budget 2026-27",
+    # ── RBI MPC decision days (2026) ─────────────────────────────────────────
+    date(2026, 2,  7): "RBI MPC — rate decision",
+    date(2026, 4,  9): "RBI MPC — rate decision",
+    date(2026, 6,  6): "RBI MPC — rate decision",
+    date(2026, 8,  8): "RBI MPC — rate decision",
+    date(2026, 10, 9): "RBI MPC — rate decision",
+    date(2026, 12, 5): "RBI MPC — rate decision",
+    # ── US Fed FOMC (spillover volatility on Indian markets) ─────────────────
+    date(2026, 1, 29): "US Fed FOMC",
+    date(2026, 3, 19): "US Fed FOMC",
+    date(2026, 5,  7): "US Fed FOMC",
+    date(2026, 6, 18): "US Fed FOMC",
+    date(2026, 7, 30): "US Fed FOMC",
+    date(2026, 9, 17): "US Fed FOMC",
+    date(2026, 11, 5): "US Fed FOMC",
+    date(2026, 12,17): "US Fed FOMC",
+    # ── Quarterly results season (Nifty 50 heavyweights) — add specific dates
+    # when known. Entire results season (2nd-3rd week of Apr/Jul/Oct/Jan)
+    # is elevated vol but tradeable with high confidence.
+}
+
+_EVENT_MIN_SCORE = 4   # minimum |total score| to trade on event days
+
+
+def get_event_today(check_date: date | None = None) -> str | None:
+    """Return event name if today is a high-volatility event day, else None."""
+    d = check_date or datetime.now(_IST).date()
+    return _EVENT_DAYS.get(d)
+
+
+def event_min_score() -> int:
+    """Score threshold to use today (higher on event days)."""
+    return _EVENT_MIN_SCORE if get_event_today() else 2
+
+
 # ── Fallback (no exchange_calendars) ─────────────────────────────────────────
 
 _NSE_HOLIDAYS: set[date] = {

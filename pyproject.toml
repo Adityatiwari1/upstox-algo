@@ -22,6 +22,7 @@ dependencies = [
 [project.scripts]
 uptox = "uptox.main:main"
 uptox-auth = "uptox.cli.auth_command:main"
+uptox-backtest = "uptox.backtest.runner:main"
 
 [build-system]
 requires = ["hatchling"]

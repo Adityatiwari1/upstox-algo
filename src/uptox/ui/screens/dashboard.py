@@ -112,6 +112,12 @@ class OverallAnalysisPanel(Static):
     _RETEST_PTS:  int = 20     # must return within 20pts after departure
     _why_tag: str = ""         # human-readable reason why no trade entered yet
 
+    # ── re-entry state (after SL hit) ─────────────────────────────────────────
+    _last_sl_time: float   = 0.0   # time.time() when last SL/trail closed
+    _last_sl_option: str   = ""    # direction of that closed trade
+    _had_open_trade: bool  = False  # track trade→no-trade transition
+    _REENTRY_COOLDOWN: int = 600   # 10 minutes
+
     def on_mount(self) -> None:
         self.border_title = "Overall Analysis"
         self._refresh()
@@ -202,7 +208,10 @@ class OverallAnalysisPanel(Static):
         pcr_extreme_bear = _pcr_filter > adaptive_params.get("pcr_bear_block")
 
         # ── trade validity ────────────────────────────────────────────────
-        from uptox.services.market_calendar import is_trade_window, is_premarket
+        from uptox.services.market_calendar import is_trade_window, is_premarket, get_event_today, event_min_score
+        today_event   = get_event_today()
+        req_score     = max(int(adaptive_params.get("min_score")), event_min_score())
+
         no_trade_reason = None
         if not live_ltp:
             no_trade_reason = "No live data"
@@ -216,14 +225,16 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = "Trend too weak"
         elif high_iv:
             no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
-        elif bn_conflict:
-            no_trade_reason = f"Bank Nifty conflicts (BN score={bn_score:+d})"
         elif (option == "CE" and pcr_extreme_bull) or (option == "PE" and pcr_extreme_bear):
             no_trade_reason = f"PCR extreme ({_pcr_filter:.2f}) — crowded trade, skip"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
             no_trade_reason = "SMA vs Flow divergence"
-        elif abs(total) < adaptive_params.get("min_score"):
-            no_trade_reason = "Weak conviction"
+        elif abs(total) < req_score:
+            if today_event:
+                no_trade_reason = f"Event day ({today_event}) — need score ≥{req_score}, got {total:+d}"
+            else:
+                no_trade_reason = "Weak conviction"
+        # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
         tradeable = no_trade_reason is None
 
@@ -248,9 +259,21 @@ class OverallAnalysisPanel(Static):
             entry_strike, entry_key, entry_price = atm, None, 0.0
         entry_live = feed_store.get(entry_key) if entry_key else None
 
+        # ── detect SL close → arm re-entry window ─────────────────────────
+        has_trade = trade_book.has_open_trade()
+        if self._had_open_trade and not has_trade:
+            all_t = trade_book.get_all_trades()
+            if all_t:
+                last_t = all_t[-1]
+                if last_t.get("exit_reason") in ("sl_hit", "trail_sl"):
+                    self._last_sl_time   = time.time()
+                    self._last_sl_option = last_t.get("option", "")
+                    log.info("Re-entry window armed: %s SL closed", self._last_sl_option)
+        self._had_open_trade = has_trade
+
         # ── breakout watch + retest entry logic ───────────────────────────
         watch_tag = ""   # status line shown in panel
-        entry_type: str | None = None  # "retest" | "momentum" | None
+        entry_type: str | None = None  # "retest" | "momentum" | "reentry" | None
         self._why_tag = ""  # reset each tick; set below to explain no-trade reason
 
         bk_min_dist = adaptive_params.get("bk_min_dist")
@@ -266,6 +289,38 @@ class OverallAnalysisPanel(Static):
 
             if not trade_book.has_open_trade():
                 watch_dir = f"WATCH_{option}"
+
+                # ── re-entry check (after SL, same direction, cooled down) ──
+                cooldown_done = (time.time() - self._last_sl_time) >= self._REENTRY_COOLDOWN
+                same_dir      = self._last_sl_option == option
+                reentry_armed = self._last_sl_time > 0 and cooldown_done and same_dir
+
+                if reentry_armed and entry_key and entry_price and entry_live:
+                    # Guard 1: move potential ≥ 10%
+                    lvl_re     = capital_service.levels(entry_price, entry_live.delta)
+                    potential  = (lvl_re["target"] - entry_price) / entry_price if entry_price else 0
+                    # Guard 2: premium velocity — delta × half-ATR / price ≥ 8%
+                    from uptox.services import atr_service
+                    atr_pts   = atr_service.get_atr(NIFTY, TimeFrame.M5) or 30.0
+                    delta_val = abs(entry_live.delta) if entry_live.delta else 0.3
+                    exp_move  = delta_val * (atr_pts * 0.4) / entry_price if entry_price else 0
+                    if potential < 0.10:
+                        self._why_tag = (
+                            f"Re-entry skip: target only {potential*100:.0f}% away — premium too high"
+                        )
+                        watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — low potential ({potential*100:.0f}%)[/]"
+                    elif exp_move < 0.08:
+                        self._why_tag = (
+                            f"Re-entry skip: option moving too slowly (exp {exp_move*100:.0f}%/move)"
+                        )
+                        watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — slow premium ({exp_move*100:.0f}%)[/]"
+                    else:
+                        entry_type = "reentry"
+                        self._last_sl_time = 0.0  # consume the re-entry window
+                        log.info(
+                            "Re-entry triggered: %s %s @ %.1f  potential=%.0f%%  vel=%.0f%%",
+                            option, entry_key, entry_price, potential * 100, exp_move * 100,
+                        )
 
                 if self._watch == "IDLE":
                     # Breakout just confirmed — start watching for retest
@@ -422,6 +477,10 @@ class OverallAnalysisPanel(Static):
                 f"[dim]{'PCR':<12}[/] [{pcr_color}]{pcr_str}[/]",
                 f"[dim]{'Max Pain':<12}[/] [dim white]{mp_str}[/]",
             ]
+            if bn_conflict:
+                lines.append(f"[dim]{'BN':<12}[/] [yellow]⚠ BN diverges (score {bn_score:+d}) — advisory[/]")
+            if today_event:
+                lines.append(f"[dim]{'Event':<12}[/] [bold yellow]⚡ {today_event} — min score {req_score}[/]")
         else:
             otm_label  = f" [dim](OTM from {atm})[/]" if (entry_strike and entry_strike != atm) else ""
             disp_strike = entry_strike if (tradeable and entry_strike) else atm
@@ -451,6 +510,10 @@ class OverallAnalysisPanel(Static):
                 f"[dim]{'PCR':<12}[/] [{pcr_color}]{pcr_str}[/]",
                 f"[dim]{'Max Pain':<12}[/] [dim white]{mp_str}[/]",
             ]
+            if bn_conflict:
+                lines.append(f"[dim]{'BN':<12}[/] [yellow]⚠ BN diverges (score {bn_score:+d}) — advisory[/]")
+            if today_event:
+                lines.append(f"[dim]{'Event':<12}[/] [bold yellow]⚡ {today_event} — min score {req_score}[/]")
 
         self.update("\n".join(lines))
 

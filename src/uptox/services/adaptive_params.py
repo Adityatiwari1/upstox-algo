@@ -21,9 +21,9 @@ _DEFAULTS: dict[str, float | int] = {
     "atr_multiplier":   1.5,    # ATR × this = Nifty SL points
     "bk_min_dist":      11.0,   # breakout min departure (pts) before retest
     "bk_timeout":       300,    # seconds to wait for retest
-    "sr_tolerance":     35.0,   # Nifty pts — block if within this of S/R
-    "pcr_bull_block":   0.7,    # PCR below this → skip CE
-    "pcr_bear_block":   1.5,    # PCR above this → skip PE
+    "sr_tolerance":     15.0,   # Nifty pts — block if within this of S/R
+    "pcr_bull_block":   0.5,    # PCR below this → skip CE
+    "pcr_bear_block":   2.0,    # PCR above this → skip PE
     "iv_rank_block":    70.0,   # IV rank above this → skip entry
 }
 
@@ -33,9 +33,9 @@ _BOUNDS: dict[str, tuple] = {
     "atr_multiplier":  (1.0,  2.5,  0.1),
     "bk_min_dist":     (8.0,  20.0, 1.0),
     "bk_timeout":      (120,  600,  30),
-    "sr_tolerance":    (20.0, 60.0, 5.0),
-    "pcr_bull_block":  (0.5,  0.9,  0.05),
-    "pcr_bear_block":  (1.1,  2.0,  0.05),
+    "sr_tolerance":    (10.0, 40.0, 5.0),
+    "pcr_bull_block":  (0.4,  0.7,  0.05),
+    "pcr_bear_block":  (1.5,  2.5,  0.05),
     "iv_rank_block":   (50.0, 85.0, 5.0),
 }
 
