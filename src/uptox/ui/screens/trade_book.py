@@ -2,7 +2,7 @@
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer
 from textual.widget import Widget
-from textual.widgets import Static, Input, TabbedContent, TabPane
+from textual.widgets import Static, Input, TabbedContent, TabPane, DataTable, Label
 from uptox.services import trade_book, trailing_sl_service
 
 _OUTCOME_COLOR = {
@@ -379,55 +379,66 @@ class AnalysisPanel(Widget):
 
 # ── Trade History ─────────────────────────────────────────────────────────────
 
-class TradeHistoryPanel(Static):
+class TradeHistoryPanel(Widget):
+    DEFAULT_CSS = """
+    TradeHistoryPanel { height: auto; width: 100%; layout: vertical; }
+    TradeHistoryPanel Label { padding: 0 1; }
+    TradeHistoryPanel DataTable { height: auto; width: 100%; }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Label("")
+        yield DataTable(show_cursor=False)
 
     def on_mount(self) -> None:
+        tbl = self.query_one(DataTable)
+        tbl.add_columns("#", "Date", "In", "Out", "Strike", "T",
+                        "Entry", "Exit", "Peak", "P&L pts", "Max pts",
+                        "P&L ₹", "Outcome", "Reason")
         self._refresh()
         self.set_interval(2.0, self._refresh)
 
     def _refresh(self) -> None:
-        trades  = trade_book.get_all_trades()
-        last20  = list(reversed(trades))[:20]
-        total   = len(trades)
+        trades = trade_book.get_all_trades()
+        last20 = list(reversed(trades))[:20]
+        total  = len(trades)
 
-        hdr = (
-            f"[bold cyan]▸ Trade History[/]  [dim](last 20 of {total})[/]\n\n"
-            "[dim]"
-            f"{'#':>3}  {'Date':<11}{'In':>6} {'Out':>6}"
-            f"  {'Strike':>6} {'T':<3}"
-            f"  {'Entry':>6} {'Exit':>6} {'Peak':>6}"
-            f"  {'P&L pts':>8} {'Max pts':>8}  {'P&L ₹':>9}  {'Outcome':<12}  Reason"
-            "[/]"
+        self.query_one(Label).update(
+            f"[bold cyan]▸ Trade History[/]  [dim](last 20 of {total})[/]"
         )
 
-        if not last20:
-            self.update(hdr + "\n[dim white]No closed trades yet.[/]")
-            return
+        tbl = self.query_one(DataTable)
+        tbl.clear()
 
-        rows = [hdr]
         for i, t in enumerate(last20, 1):
             col   = _OUTCOME_COLOR.get(t["outcome"], "white")
             pnl_c = "green" if t["pnl_pts"] >= 0 else "red"
             opt_c = "green" if t["option"] == "CE" else "red"
-            exit_p = f"{t['exit_price']:.1f}" if t["exit_price"] is not None else "—"
+
+            exit_p   = f"{t['exit_price']:.1f}" if t.get("exit_price") is not None else "—"
             peak_p   = t.get("peak_price")
             max_pts  = t.get("max_pnl_pts")
-            peak_str = f"{peak_p:.1f}" if peak_p is not None else "—"
+            peak_str = f"{peak_p:.1f}"    if peak_p  is not None else "—"
             maxp_str = f"{max_pts:+.1f}" if max_pts is not None else "—"
-            rows.append(
-                f"[dim]{i:>3}[/]  "
-                f"[dim]{t['date']:<11}[/]"
-                f"[white]{t.get('time_entry','—'):>6}[/] "
-                f"[dim]{t.get('time_exit','—'):>6}[/]"
-                f"  [{opt_c}]{t['strike']:>6} {t['option']:<3}[/]"
-                f"  [white]{t['entry_price']:>6.1f}[/] [dim]{exit_p:>6}[/] [yellow]{peak_str:>6}[/]"
-                f"  [{pnl_c}]{t['pnl_pts']:>+8.1f}[/] [yellow]{maxp_str:>8}[/]"
-                f"  [{pnl_c}]{t['pnl_rs']:>+9,.0f}[/]"
-                f"  [{col}]{t['outcome']:<12}[/]"
-                f"  [dim]{t.get('exit_reason','—')}[/]"
-            )
+            pnl_str  = f"{t['pnl_pts']:+.1f}"
+            rs_str   = f"{t['pnl_rs']:+,.0f}"
 
-        self.update("\n".join(rows))
+            tbl.add_row(
+                str(i),
+                t["date"],
+                t.get("time_entry", "—"),
+                t.get("time_exit",  "—"),
+                str(t["strike"]),
+                f"[{opt_c}]{t['option']}[/]",
+                f"{t['entry_price']:.1f}",
+                exit_p,
+                f"[yellow]{peak_str}[/]",
+                f"[{pnl_c}]{pnl_str}[/]",
+                f"[yellow]{maxp_str}[/]",
+                f"[{pnl_c}]{rs_str}[/]",
+                f"[{col}]{t['outcome']}[/]",
+                t.get("exit_reason", "—"),
+            )
 
 
 # ── Screen ────────────────────────────────────────────────────────────────────
