@@ -71,8 +71,7 @@ class OptionChainScreen(Static):
 
         if not is_trading_day():
             nd = next_trading_day()
-            status_lbl.update(f"[dim]Market closed — next trading day {nd.strftime('%a %d %b')}[/]")
-            return
+            status_lbl.update(f"[dim]Closed — next {nd.strftime('%a %d %b')}[/]")
 
         t = feed_store.get(NIFTY)
         ltp = (t.ltp if t else 0.0) or option_chain_service.get_spot()

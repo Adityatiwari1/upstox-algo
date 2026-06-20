@@ -45,10 +45,10 @@ class UptoxApp(App):
         from uptox.services.market_calendar import is_trading_day, market_status
         if not is_trading_day():
             self.notify(market_status(), severity="warning", timeout=0)
-            return
         if settings.access_token:
-            self.run_worker(self._start_feed(), exclusive=True, name="market-feed")
-            self.run_worker(self._prime_smas(), name="sma-prime")
+            if is_trading_day():
+                self.run_worker(self._start_feed(), exclusive=True, name="market-feed")
+                self.run_worker(self._prime_smas(), name="sma-prime")
             self.run_worker(self._prime_option_chain(), name="oc-prime")
 
     async def _start_feed(self) -> None:
