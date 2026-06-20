@@ -65,12 +65,19 @@ class OptionChainScreen(Static):
         )
 
     def _refresh(self) -> None:
+        from uptox.services.market_calendar import is_trading_day, next_trading_day
         self._tick += 1
+        status_lbl = self.query_one("#expiry-status", Label)
+
+        if not is_trading_day():
+            nd = next_trading_day()
+            status_lbl.update(f"[dim]Market closed — next trading day {nd.strftime('%a %d %b')}[/]")
+            return
+
         t = feed_store.get(NIFTY)
         ltp = (t.ltp if t else 0.0) or option_chain_service.get_spot()
         expiry = option_chain_service.get_expiry()
         expiries = option_chain_service.get_all_expiries()
-        status_lbl = self.query_one("#expiry-status", Label)
 
         # ── Populate Select once expiries arrive ──────────────────────────────
         if expiries and not self._expiries_loaded:

@@ -43,14 +43,11 @@ def _ensure_auth() -> None:
 
 def main() -> None:
     from uptox.services.market_calendar import is_trading_day, market_status
-    if not is_trading_day():
-        log.info("Non-trading day — skipping auth and feed. %s", market_status())
-        # Still launch UI so user can view trade history / settings
-        app = UptoxApp()
-        app.run()
-        return
     _ensure_auth()
-    log.info("Starting Uptox Trading")
+    if not is_trading_day():
+        log.info("Non-trading day — skipping feed. %s", market_status())
+    else:
+        log.info("Starting Uptox Trading")
     app = UptoxApp()
     app.run()
 
