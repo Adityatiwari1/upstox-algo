@@ -31,10 +31,11 @@ def get_max_consec_losses() -> int:      return _max_consec_losses
 
 def set_capital(c: float) -> None:
     global _base_capital, _capital
+    delta         = max(1_000.0, float(c)) - _base_capital
     _base_capital = max(1_000.0, float(c))
-    _capital      = _base_capital
+    _capital      = round(_capital + delta, 2)
     _save_base()
-    log.info("Base capital → ₹%s", f"{_base_capital:,.0f}")
+    log.info("Base capital → ₹%s  (current ₹%s)", f"{_base_capital:,.0f}", f"{_capital:,.0f}")
 
 
 def adjust_for_pnl(pnl_rs: float) -> None:

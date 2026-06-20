@@ -88,29 +88,28 @@ def _load() -> None:
     if _OPEN_TRADE_FILE.exists():
         try:
             raw = _OPEN_TRADE_FILE.read_text(encoding="utf-8").strip()
-            if not raw:
-                return
-            data = json.loads(raw)
-            if data.get("outcome") == "OPEN":
-                _open_trade = data
-                ep      = float(data.get("entry_price", 0))
-                sl      = float(data.get("sl", 0))
-                opt     = data.get("option", "")
-                opt_key = data.get("option_key", "")
-                hz      = bool(data.get("hero_zero", False))
-                if ep:
-                    from uptox.services import trailing_sl_service
-                    tgt = float(data.get("target", 0))
-                    if hz:
-                        trailing_sl_service.activate_hero_zero(ep, opt, opt_key)
-                    else:
-                        trailing_sl_service.set_entry(
-                            ep, opt, opt_key, target=tgt, initial_sl=sl,
-                        )
-                log.info(
-                    "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
-                    opt, data.get("strike"), ep, sl,
-                )
+            if raw:
+                data = json.loads(raw)
+                if data.get("outcome") == "OPEN":
+                    _open_trade = data
+                    ep      = float(data.get("entry_price", 0))
+                    sl      = float(data.get("sl", 0))
+                    opt     = data.get("option", "")
+                    opt_key = data.get("option_key", "")
+                    hz      = bool(data.get("hero_zero", False))
+                    if ep:
+                        from uptox.services import trailing_sl_service
+                        tgt = float(data.get("target", 0))
+                        if hz:
+                            trailing_sl_service.activate_hero_zero(ep, opt, opt_key)
+                        else:
+                            trailing_sl_service.set_entry(
+                                ep, opt, opt_key, target=tgt, initial_sl=sl,
+                            )
+                    log.info(
+                        "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
+                        opt, data.get("strike"), ep, sl,
+                    )
         except Exception as e:
             log.error("open_trade restore error: %s", e)
             _open_trade = None
