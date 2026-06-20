@@ -237,8 +237,8 @@ def open_trade(
         return  # already in a trade
     _open_trade = {
         "id":          str(uuid.uuid4())[:8],
-        "date":        datetime.now().strftime("%Y-%m-%d"),
-        "time_entry":  datetime.now().strftime("%H:%M:%S"),
+        "date":        datetime.now(_IST).strftime("%Y-%m-%d"),
+        "time_entry":  datetime.now(_IST).strftime("%H:%M:%S"),
         "entry_ts":    time.time(),
         "time_exit":   None,
         "strike":      strike,
@@ -318,7 +318,7 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
 
     _open_trade.update({
         "exit_price":   round(exit_price, 1),
-        "time_exit":    datetime.now().strftime("%H:%M:%S"),
+        "time_exit":    datetime.now(_IST).strftime("%H:%M:%S"),
         "pnl_pts":      pnl_pts,
         "pnl_rs":       pnl_rs,
         "outcome":      outcome,
@@ -369,7 +369,7 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
         "lots":        close_lots,
         "invested":    round(close_lots * (_open_trade["invested"] / total_lots), 0),
         "exit_price":  round(exit_price, 1),
-        "time_exit":   datetime.now().strftime("%H:%M:%S"),
+        "time_exit":   datetime.now(_IST).strftime("%H:%M:%S"),
         "pnl_pts":     pnl_pts,
         "pnl_rs":      pnl_rs,
         "outcome":     "WIN",
