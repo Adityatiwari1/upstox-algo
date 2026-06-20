@@ -16,10 +16,11 @@ _IST    = ZoneInfo("Asia/Kolkata")
 
 _REPORT_TIME       = dt_time(15, 30)
 _report_sent_today: str = ""
+_last_bar_slot:     int = -1   # minute // 5, used to detect 5-min bar close
 
 
 async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
-    global _report_sent_today
+    global _report_sent_today, _last_bar_slot
 
     tick = TickData(instrument_key=instrument_key)
 
@@ -62,6 +63,15 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         return
 
     sma_service.update_realtime(instrument_key, tick.ltp)
+
+    # ── 5-min bar close detection (Nifty only) ────────────────────────────────
+    if instrument_key == _NIFTY:
+        now      = datetime.now(_IST)
+        bar_slot = now.hour * 12 + now.minute // 5
+        if bar_slot != _last_bar_slot and _last_bar_slot != -1:
+            from uptox.services.data_recorder import record_bar
+            record_bar()
+        _last_bar_slot = bar_slot
 
     # ── IV rank update (ATM option ticks only) ────────────────────────────────
     if tick.iv and instrument_key not in (_NIFTY, _BANK):
