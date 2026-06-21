@@ -118,6 +118,7 @@ class OverallAnalysisPanel(Static):
     _had_open_trade: bool  = False  # track trade→no-trade transition
     _REENTRY_COOLDOWN: int = 600   # 10 minutes
 
+
     def on_mount(self) -> None:
         self.border_title = "Overall Analysis"
         self._refresh()
@@ -137,6 +138,7 @@ class OverallAnalysisPanel(Static):
         sma20 = smas.get(20)
         sma50 = smas.get(50)
         sma_ready = sma20 is not None and sma50 is not None
+        sma200_h1 = sma_service.get_smas(NIFTY, TimeFrame.H1).get(200)
         sma_score = 0
         if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
         if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
@@ -207,6 +209,12 @@ class OverallAnalysisPanel(Static):
         pcr_extreme_bull = _pcr_filter > 0 and _pcr_filter < adaptive_params.get("pcr_bull_block")
         pcr_extreme_bear = _pcr_filter > adaptive_params.get("pcr_bear_block")
 
+        # Bid-ask spread on entry-side ATM option (hard block — objective liquidity check)
+        _entry_tick = (_tce if option == "CE" else _tpe) if atm else None
+        _spread = 0.0
+        if _entry_tick and _entry_tick.asks and _entry_tick.bids:
+            _spread = (_entry_tick.asks[0]["price"] - _entry_tick.bids[0]["price"])
+
         # ── trade validity ────────────────────────────────────────────────
         from uptox.services.market_calendar import is_trade_window, is_premarket, get_event_today, event_min_score
         today_event   = get_event_today()
@@ -227,6 +235,12 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
         elif (option == "CE" and pcr_extreme_bull) or (option == "PE" and pcr_extreme_bear):
             no_trade_reason = f"PCR extreme ({_pcr_filter:.2f}) — crowded trade, skip"
+        elif sma200_h1 is not None and option == "CE" and ltp < sma200_h1 - 50:
+            no_trade_reason = f"Well below 1H SMA200 ({sma200_h1:.0f}) — macro bearish, skip CE"
+        elif sma200_h1 is not None and option == "PE" and ltp > sma200_h1 + 50:
+            no_trade_reason = f"Well above 1H SMA200 ({sma200_h1:.0f}) — macro bullish, skip PE"
+        elif _spread > 5:
+            no_trade_reason = f"Bid-ask spread {_spread:.1f}pts — liquidity thin"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
             no_trade_reason = "SMA vs Flow divergence"
         elif abs(total) < req_score:
