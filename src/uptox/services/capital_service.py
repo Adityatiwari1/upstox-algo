@@ -5,7 +5,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-NIFTY_LOT_SIZE = 75   # NSE F&O standard lot
+NIFTY_LOT_SIZE = 65   # NSE F&O standard lot
 
 _CAPITAL_FILE = Path("logs/capital.json")
 

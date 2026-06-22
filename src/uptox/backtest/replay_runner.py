@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 _DATA_DIR    = Path("logs/market_data")
 ATM_DELTA    = 0.45
-NIFTY_LOT    = 75
+NIFTY_LOT    = 65
 
 
 # ── Bar dataclass ─────────────────────────────────────────────────────────────

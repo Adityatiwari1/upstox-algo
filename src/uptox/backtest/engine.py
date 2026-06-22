@@ -135,7 +135,7 @@ def _atr(candles: list[Candle], period: int = 14) -> float:
 
 # ── Capital sizing (mirrors capital_service logic) ────────────────────────────
 
-def _size_lots(capital: float, entry: float, sl: float, lot_size: int = 75) -> int:
+def _size_lots(capital: float, entry: float, sl: float, lot_size: int = 65) -> int:
     risk_per_lot = (entry - sl) * lot_size
     if risk_per_lot <= 0:
         return 0
@@ -174,7 +174,7 @@ class BacktestEngine:
         atr_mult:         float = 1.5,
         rr_ratio:         float = 2.0,
         min_score:        int   = 2,
-        lot_size:         int   = 75,
+        lot_size:         int   = 65,
         max_trades_day:   int   = 3,
         daily_loss_pct:   float = 2.0,
         cooldown_bars:    int   = 6,   # 30-min gap between entries (6 × 5-min bars)
