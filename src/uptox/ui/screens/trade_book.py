@@ -70,31 +70,22 @@ class OpenTradePanel(Static):
         cur      = ot.get("current_price", ot["entry_price"])
         pnl_col  = "green" if pnl_pts >= 0 else "red"
         opt_col  = "green" if ot["option"] == "CE" else "red"
-        hz       = ot.get("hero_zero", False)
-        multiple = round(cur / ot["entry_price"], 2) if ot["entry_price"] else 1.0
 
         trail_lines = []
         if ts["active"]:
-            tsl_col  = "bold red" if ts["stopped_out"] else "red"
-            sl_label = "Step SL" if hz else "Trail SL"
-            sl_detail = (
-                f"  [dim]{multiple:.2f}x entry[/]"
-                if hz else
-                f"  [dim]({int((ts['trail_pct'] or 0)*100)}% below peak)[/]"
-            )
+            tsl_col      = "bold red" if ts["stopped_out"] else "red"
+            sl_detail    = f"  [dim]({int((ts['trail_pct'] or 0)*100)}% below peak)[/]"
             phase_labels = {0: "Phase 0 — initial", 1: "Phase 1 — breakeven", 2: "Phase 2 — 50% locked", 3: "Phase 3 — tight trail"}
             phase_str    = phase_labels.get(ts.get("phase", 0), "")
-            progress_str = f"  [dim]{ts.get('progress_pct', 0):.0f}% to target[/]" if not hz else ""
-            floor_str    = f"  [dim]floor={ts.get('sl_floor', 0):.1f}[/]" if not hz else ""
+            progress_str = f"  [dim]{ts.get('progress_pct', 0):.0f}% to target[/]"
+            floor_str    = f"  [dim]floor={ts.get('sl_floor', 0):.1f}[/]"
             trail_lines = [
                 "",
-                f"[dim]── {'Hero/Zero Step SL' if hz else 'Trailing SL'} {'⚡' if hz else ''}─────────────────[/]",
-                f"[dim]{'Entry':<16}[/] [white]{ts['entry']:.1f}[/]"
-                + (f"  [dim]target={ts.get('target', 0):.1f}[/]" if not hz else ""),
-                f"[dim]{'Peak':<16}[/] [yellow]{ts['peak']:.1f}[/]"
-                + (f"  [dim]({multiple:.1f}x)[/]" if hz else progress_str),
-                f"[dim]{sl_label:<16}[/] [{tsl_col}]{ts['trail_sl']:.1f}[/]{sl_detail}{floor_str}",
-                f"[dim]{'Phase':<16}[/] [dim white]{phase_str}  trail={int((ts['trail_pct'] or 0)*100)}%[/]" if not hz else "",
+                "[dim]── Trailing SL ─────────────────────────────[/]",
+                f"[dim]{'Entry':<16}[/] [white]{ts['entry']:.1f}[/]  [dim]target={ts.get('target', 0):.1f}[/]",
+                f"[dim]{'Peak':<16}[/] [yellow]{ts['peak']:.1f}[/]{progress_str}",
+                f"[dim]{'Trail SL':<16}[/] [{tsl_col}]{ts['trail_sl']:.1f}[/]{sl_detail}{floor_str}",
+                f"[dim]{'Phase':<16}[/] [dim white]{phase_str}  trail={int((ts['trail_pct'] or 0)*100)}%[/]",
                 f"[dim]{'P&L':<16}[/] [{pnl_col}]{ts['pnl_pts']:+.1f}pts[/]",
                 f"[dim]{'Status':<16}[/] " + (
                     "[bold red]STOPPED OUT — press x[/]" if ts["stopped_out"]
@@ -102,11 +93,9 @@ class OpenTradePanel(Static):
                     else "[yellow]Tracking...[/]"
                 ),
             ]
-            trail_lines = [l for l in trail_lines if l]  # drop empty strings
 
-        hz_badge = "  [bold yellow]⚡ HERO/ZERO[/]" if hz else ""
         self.update("\n".join([
-            f"[bold cyan]▸ Open Trade[/]{hz_badge}", "",
+            "[bold cyan]▸ Open Trade[/]", "",
             f"[dim]{'Option':<16}[/] [{opt_col}]{ot['option']} {ot['strike']}[/]"
             f"   [dim]Expiry:[/] [white]{ot['expiry']}[/]",
             f"[dim]{'Entry Time':<16}[/] [white]{ot['time_entry']}[/]"

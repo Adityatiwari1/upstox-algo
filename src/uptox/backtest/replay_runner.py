@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 _DATA_DIR    = Path("logs/market_data")
 ATM_DELTA    = 0.45
-NIFTY_LOT    = 65
+NIFTY_LOT    = 65   # NSE F&O lot size
 
 
 # ── Bar dataclass ─────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ def _size_lots(capital: float, entry: float, sl: float,
 def run_replay(
     bars:            list[Bar],
     capital:         float = 30_000,
-    atr_mult:        float = 1.5,
+    atr_mult:        float = 1.5,   # noqa: kept for CLI compat, no longer used for SL
     rr_ratio:        float = 2.0,
     min_score:       int   = 2,
     max_trades_day:  int   = 3,
@@ -201,7 +201,7 @@ def run_replay(
     entry_ts  = ""
     phase     = 0
     sl_floor  = 0.0
-    trail_pct = 0.15
+    risk_pts  = 0.0
 
     for i, bar in enumerate(bars):
         if not bar.nifty:
@@ -224,15 +224,21 @@ def run_replay(
             )
             peak_opt = max(peak_opt, opt_now)
 
-            progress = (opt_now - opt_entry) / (target - opt_entry) if (target - opt_entry) > 0 else 0
-            if phase < 1 and progress >= 0.50:
-                phase = 1; trail_pct = 0.15; sl_floor = opt_entry
-            if phase < 2 and progress >= 0.75:
-                phase = 2; trail_pct = 0.12; sl_floor = opt_entry + (target - opt_entry) * 0.50
+            rng      = target - opt_entry
+            progress = (opt_now - opt_entry) / rng if rng > 0 else 0
             if phase < 3 and progress >= 1.0:
-                phase = 3; trail_pct = 0.10; sl_floor = opt_entry + (target - opt_entry) * 0.75
-            trail_sl     = max(peak_opt * (1 - trail_pct), sl_floor)
-            effective_sl = max(sl, trail_sl) if phase > 0 else sl
+                phase = 3; sl_floor = round(opt_entry + 0.50 * rng, 1)
+            elif phase < 2 and progress >= 0.66:
+                phase = 2; sl_floor = round(opt_entry + 0.25 * rng, 1)
+            elif phase < 1 and progress >= 0.33:
+                phase = 1; sl_floor = opt_entry
+            # Post-phase1: half-R trail captures small moves
+            if phase >= 1 and half_risk > 0:
+                sl_floor = max(sl_floor, round(opt_now - half_risk, 1))
+            # Post-target: upgrade to full 1R trail
+            if phase >= 3 and risk_pts > 0:
+                sl_floor = max(sl_floor, round(opt_now - risk_pts, 1))
+            effective_sl = max(sl, sl_floor)
 
             exit_reason: str | None = None
             opt_exit = opt_now
@@ -240,8 +246,9 @@ def run_replay(
                 exit_reason = "sl_hit" if phase == 0 else "trail_sl"
                 opt_exit    = effective_sl
             elif opt_now >= target:
-                exit_reason = "target_hit"
-                opt_exit    = target
+                # Extend target by 1R above current price — let trail SL exit
+                target   = round(opt_now + risk_pts * rr_ratio, 1)
+                sl_floor = max(sl_floor, effective_sl)
             else:
                 # Signal flip check
                 flow  = (1 if bar.cum_delta > 0 else -1) if bar.cum_delta else 0
@@ -299,15 +306,27 @@ def run_replay(
         if not opt_ltp or opt_ltp < 2:
             continue
 
-        # ATR approximation from recent nifty range (no tick data stored)
-        recent  = bars[max(0, i-14):i+1]
-        nifty_range = max((b.nifty for b in recent), default=bar.nifty) - \
-                      min((b.nifty for b in recent), default=bar.nifty)
-        atr_est = max(nifty_range / 3, 20.0)
+        # Regime from recent nifty range (proxy for ATR)
+        recent_bars = bars[max(0, i-14):i+1]
+        nifty_hi    = max((b.nifty for b in recent_bars), default=bar.nifty)
+        nifty_lo    = min((b.nifty for b in recent_bars), default=bar.nifty)
+        atr_est     = max((nifty_hi - nifty_lo) / 3, 10.0)
+        if atr_est >= 35:
+            regime_sl_pct, regime_rr = 0.10, 3.0   # TRENDING
+        elif atr_est <= 20:
+            regime_sl_pct, regime_rr = 0.05, 1.5   # CONSOLIDATING
+        else:
+            regime_sl_pct, regime_rr = 0.08, 2.0   # NORMAL
 
-        sl_opt     = round(opt_ltp - ATM_DELTA * atr_est * atr_mult, 1)
-        sl_opt     = max(sl_opt, opt_ltp * 0.30)
-        target_opt = round(opt_ltp + (opt_ltp - sl_opt) * rr_ratio, 1)
+        pct_sl_pts = round(opt_ltp * regime_sl_pct, 1)
+        if opt_ltp < 50:    min_sl = 8.0
+        elif opt_ltp < 100: min_sl = 12.0
+        elif opt_ltp < 200: min_sl = 18.0
+        else:               min_sl = pct_sl_pts
+        sl_pts_entry = max(pct_sl_pts, min_sl)
+
+        sl_opt     = round(max(0.5, opt_ltp - sl_pts_entry), 1)
+        target_opt = round(opt_ltp + sl_pts_entry * regime_rr, 1)
 
         n = _size_lots(cap, opt_ltp, sl_opt, NIFTY_LOT, max_lots)
         if n == 0:
@@ -320,8 +339,9 @@ def run_replay(
         target    = target_opt
         sl_floor  = sl_opt
         phase     = 0
-        trail_pct = 0.15
         peak_opt  = opt_ltp
+        risk_pts  = sl_pts_entry
+        half_risk = round(risk_pts / 2, 1)
         lots      = n
         entry_ts  = bar.ts
         day_trades += 1
@@ -359,7 +379,7 @@ def main():
     p = argparse.ArgumentParser(description="Replay backtest on real recorded market data")
     p.add_argument("--days",              type=int,   default=30,    help="Calendar days to replay (default 30)")
     p.add_argument("--capital",           type=float, default=30000, help="Starting capital (default 30000)")
-    p.add_argument("--atr-mult",          type=float, default=1.5)
+    p.add_argument("--atr-mult",          type=float, default=1.5,  help="Unused, kept for compat")
     p.add_argument("--rr",                type=float, default=2.0)
     p.add_argument("--min-score",         type=int,   default=2)
     p.add_argument("--max-trades",        type=int,   default=3)

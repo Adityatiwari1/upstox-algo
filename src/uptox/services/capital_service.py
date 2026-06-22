@@ -5,7 +5,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-NIFTY_LOT_SIZE = 65   # NSE F&O standard lot
+NIFTY_LOT_SIZE = 65   # NSE F&O lot size
 
 _CAPITAL_FILE = Path("logs/capital.json")
 
@@ -218,24 +218,79 @@ def _zero_sizing() -> dict:
             "risk_rs": 0.0, "risk_pct": 0.0, "capped_by": "unaffordable"}
 
 
+# ── Expiry afternoon detection ────────────────────────────────────────────────
+
+def is_expiry_afternoon() -> bool:
+    """True if today is expiry day AND time is after 13:00 IST."""
+    from datetime import datetime, time as dt_time
+    from zoneinfo import ZoneInfo
+    try:
+        from uptox.services import option_chain_service
+        expiry = option_chain_service.get_expiry()
+        if not expiry:
+            return False
+        now = datetime.now(ZoneInfo("Asia/Kolkata"))
+        return now.strftime("%Y-%m-%d") == expiry and now.time() >= dt_time(13, 0)
+    except Exception:
+        return False
+
+
 # ── SL / Target ───────────────────────────────────────────────────────────────
 
-def levels(buy_price: float, delta: float | None) -> dict:
+def levels(buy_price: float, delta: float | None = None, iv: float = 0.0) -> dict:  # delta unused; kept for API compat
     if not buy_price:
-        return {"sl": 0.0, "target": 0.0, "sl_pts": None, "tgt_pts": None}
+        return {"sl": 0.0, "target": 0.0, "sl_pts": None, "tgt_pts": None, "regime": "UNKNOWN"}
 
-    if delta and abs(delta) > 0.01:
-        # ATR-based Nifty SL (1.5× ATR14 on 5min), fallback 30pt
-        from uptox.services.atr_service import nifty_sl_points
-        sl_nifty  = nifty_sl_points("NSE_INDEX|Nifty 50", multiplier=1.5, fallback=30.0)
-        tgt_nifty = round(sl_nifty * _risk_reward, 1)
-        sl        = round(max(0.5, buy_price - abs(delta) * sl_nifty), 1)
-        target    = round(buy_price + abs(delta) * tgt_nifty, 1)
-        return {"sl": sl, "target": target, "sl_pts": sl_nifty, "tgt_pts": tgt_nifty}
+    from uptox.services.atr_service import get_regime, min_sl_pts
+    r        = get_regime(iv=iv)
+    sl_pct   = r["sl_pct"]
+    rr       = r["rr"]
 
-    sl     = round(max(0.5, buy_price * 0.70), 1)
-    target = round(buy_price * (1.0 + 0.30 * _risk_reward), 1)
-    return {"sl": sl, "target": target, "sl_pts": None, "tgt_pts": None}
+    # Expiry day after 13:00 IST → tight SL only; target stays regime-based so big spikes run
+    if is_expiry_afternoon():
+        sl_pct = 0.05
+        r      = {**r, "regime": f"{r['regime']}+EXPIRY"}
+
+    pct_sl   = round(buy_price * sl_pct, 1)
+    abs_sl   = min_sl_pts(buy_price)          # tiered floor — prevents noise hits
+    sl_pts   = max(pct_sl, abs_sl)            # always at least the tiered minimum
+    sl       = round(max(0.5, buy_price - sl_pts), 1)
+    tgt_pts  = round(sl_pts * rr, 1)
+    target   = round(buy_price + tgt_pts, 1)
+    return {
+        "sl": sl, "target": target,
+        "sl_pts": sl_pts, "tgt_pts": tgt_pts,
+        "regime": r["regime"], "atr": r["atr"],
+    }
+
+
+# ── Expiry sizing ─────────────────────────────────────────────────────────────
+
+_EXPIRY_ALLOC_PCT: float = 0.10   # max 10% of capital as premium (full-loss scenario)
+_EXPIRY_MAX_LOTS:  int   = 20
+
+
+def sizing_expiry(buy_price: float) -> dict:
+    """
+    Expiry afternoon sizing — binary bet, not risk-per-SL.
+    Allocate up to 10% of capital as max premium (worst case = full loss of premium).
+    """
+    if not buy_price or buy_price <= 0:
+        return _zero_sizing()
+    lot_cost   = round(buy_price * NIFTY_LOT_SIZE, 2)
+    affordable = max(1, int(_capital / lot_cost))
+    max_alloc  = _capital * _EXPIRY_ALLOC_PCT
+    alloc_lots = max(1, int(max_alloc / lot_cost))
+    lots       = min(affordable, alloc_lots, _EXPIRY_MAX_LOTS)
+    invested   = round(lots * lot_cost, 2)
+    return {
+        "lots":      lots,
+        "lot_cost":  lot_cost,
+        "invested":  invested,
+        "risk_rs":   invested,        # worst case = full premium
+        "risk_pct":  round(invested / _capital * 100, 2) if _capital else 0.0,
+        "capped_by": "expiry_10pct",
+    }
 
 
 # ── Load on import ────────────────────────────────────────────────────────────

@@ -21,8 +21,6 @@ except ImportError:
     _XLSX_OK = False
 
 _IST              = ZoneInfo("Asia/Kolkata")
-_HZ_START         = dt_time(15, 30)   # Hero/Zero window: last 15 mins before 3:45 close
-_HZ_FORCE_CLOSE   = dt_time(15, 44)   # force exit 1 min before 3:45 PM settlement
 _SESSION_CLOSE    = dt_time(15, 25)   # force-exit ALL trades at 3:25 PM IST
 
 log = logging.getLogger(__name__)
@@ -56,7 +54,6 @@ _XLSX_COLS = [
     ("Score",        "score"),
     ("SMA Score",    "sma_score"),
     ("Flow Score",   "flow_score"),
-    ("Hero/Zero",    "hero_zero"),
 ]
 
 
@@ -96,16 +93,14 @@ def _load() -> None:
                     sl      = float(data.get("sl", 0))
                     opt     = data.get("option", "")
                     opt_key = data.get("option_key", "")
-                    hz      = bool(data.get("hero_zero", False))
                     if ep:
                         from uptox.services import trailing_sl_service
+                        from uptox.services.capital_service import is_expiry_afternoon
                         tgt = float(data.get("target", 0))
-                        if hz:
-                            trailing_sl_service.activate_hero_zero(ep, opt, opt_key)
-                        else:
-                            trailing_sl_service.set_entry(
-                                ep, opt, opt_key, target=tgt, initial_sl=sl,
-                            )
+                        trailing_sl_service.set_entry(
+                            ep, opt, opt_key, target=tgt, initial_sl=sl,
+                            expiry_afternoon=is_expiry_afternoon(),
+                        )
                     log.info(
                         "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
                         opt, data.get("strike"), ep, sl,
@@ -187,24 +182,6 @@ def _save_xlsx() -> None:
         log.error("trade_book xlsx save error: %s", e)
 
 
-# ── Hero/Zero detection ───────────────────────────────────────────────────────
-
-def is_hero_zero_window(expiry: str) -> bool:
-    """True if current time is in the last 15 mins of the expiry date."""
-    now = datetime.now(_IST)
-    return now.strftime("%Y-%m-%d") == expiry and now.time() >= _HZ_START
-
-
-def should_force_close() -> bool:
-    """True at 3:44 PM on expiry day — force exit Hero/Zero before settlement."""
-    ot = _open_trade
-    if not ot or not ot.get("hero_zero"):
-        return False
-    now = datetime.now(_IST)
-    return (now.strftime("%Y-%m-%d") == ot.get("expiry", "")
-            and now.time() >= _HZ_FORCE_CLOSE)
-
-
 def should_session_close() -> bool:
     """True at or after 3:30 PM IST — force-exit ALL open trades, end of session."""
     if not _open_trade:
@@ -263,26 +240,18 @@ def open_trade(
         "sma_score":    sma_score,
         "flow_score":   flow_score,
     }
-    # Hero/Zero: last 15 mins of expiry → step-SL mode, 50% initial risk
-    hz = is_hero_zero_window(expiry)
-    _open_trade["hero_zero"] = hz   # type: ignore[index]
-
     from uptox.services import trailing_sl_service
-    if hz:
-        trailing_sl_service.activate_hero_zero(entry_price, option, option_key)
-        log.info(
-            "Paper OPEN [HERO/ZERO]: %s %s @ %.1f  SL=%.1f (50%%)  lots=%d",
-            option, strike, entry_price, round(entry_price * 0.50, 1), lots,
-        )
-    else:
-        trailing_sl_service.set_entry(
-            entry_price, option, option_key,
-            target=target, initial_sl=sl,
-        )
-        log.info(
-            "Paper OPEN: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",
-            option, strike, entry_price, sl, target, lots,
-        )
+    from uptox.services.capital_service import is_expiry_afternoon
+    ea = is_expiry_afternoon()
+    trailing_sl_service.set_entry(
+        entry_price, option, option_key,
+        target=target, initial_sl=sl,
+        expiry_afternoon=ea,
+    )
+    log.info(
+        "Paper OPEN%s: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",
+        " [EXPIRY]" if ea else "", option, strike, entry_price, sl, target, lots,
+    )
     _save_open()
     from uptox.services.telegram_service import notify_trade_open
     notify_trade_open(_open_trade)
@@ -439,12 +408,6 @@ def get_target_action(current_price: float) -> str:
     if not _open_trade:
         return "close"
 
-    # Hero/Zero: never close at target — let step-SL handle it
-    if _open_trade.get("hero_zero"):
-        log.info("Target crossed in Hero/Zero mode — step-SL continues, trade stays open")
-        _open_trade["market_mode"] = "HERO_ZERO"
-        return "trail"
-
     elapsed_min = max((time.time() - _open_trade.get("entry_ts", time.time())) / 60, 0.5)
     velocity    = _open_trade["pnl_pts"] / elapsed_min   # pts/min
 
@@ -479,6 +442,14 @@ def get_target_action(current_price: float) -> str:
         "Target: TRENDING market (vel=%.1f pts/min, IV=%.1f) → trail past target",
         velocity, iv,
     )
+    # Shift target forward by 1R so update_open_pnl doesn't re-trigger on the same price
+    entry  = _open_trade.get("entry_price", 0.0)
+    sl     = _open_trade.get("sl", 0.0)
+    risk   = entry - sl if entry > sl else entry * 0.09
+    new_tgt = round(current_price + risk * 2, 1)
+    _open_trade["target"] = new_tgt
+    from uptox.services import trailing_sl_service
+    trailing_sl_service.shift_target(new_tgt)
     return "trail"
 
 

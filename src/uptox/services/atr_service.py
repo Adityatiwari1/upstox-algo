@@ -2,6 +2,53 @@
 from __future__ import annotations
 from uptox.services.sma_service import TimeFrame
 
+_NIFTY = "NSE_INDEX|Nifty 50"
+
+# Regime thresholds (Nifty 5-min ATR14, Nifty points)
+_ATR_TRENDING     = 35.0   # above → trending
+_ATR_CONSOLIDATING = 20.0  # below → consolidating
+
+# IV thresholds (option IV %)
+_IV_TRENDING      = 18.0
+_IV_CONSOLIDATING = 13.0
+
+
+def min_sl_pts(entry_price: float) -> float:
+    """Minimum absolute SL distance in option points, tiered by entry price.
+    Prevents noise-triggered SL on cheap options where % SL is too tight.
+    """
+    if entry_price < 50:
+        return 8.0
+    elif entry_price < 100:
+        return 12.0
+    elif entry_price < 200:
+        return 18.0
+    else:
+        return round(entry_price * 0.08, 1)
+
+
+def get_regime(iv: float = 0.0, instrument_key: str = _NIFTY) -> dict:
+    """
+    Detect market regime from ATR + IV and return trading params.
+
+    Returns dict with keys:
+      regime   : "TRENDING" | "NORMAL" | "CONSOLIDATING"
+      sl_pct   : SL as fraction of option entry price
+      rr       : reward-to-risk ratio for target
+      atr      : current ATR value used
+    """
+    atr = get_atr(instrument_key) or 25.0
+
+    trending     = atr >= _ATR_TRENDING     or (iv > 0 and iv >= _IV_TRENDING)
+    consolidating = atr <= _ATR_CONSOLIDATING and (iv <= 0 or iv < _IV_CONSOLIDATING)
+
+    if trending:
+        return {"regime": "TRENDING",      "sl_pct": 0.10, "rr": 3.0, "atr": atr}
+    elif consolidating:
+        return {"regime": "CONSOLIDATING", "sl_pct": 0.05, "rr": 1.5, "atr": atr}
+    else:
+        return {"regime": "NORMAL",        "sl_pct": 0.08, "rr": 2.0, "atr": atr}
+
 
 def get_atr(instrument_key: str, tf: TimeFrame = TimeFrame.M5, period: int = 14) -> float | None:
     """Wilder ATR over `period` bars. Returns None if insufficient history."""

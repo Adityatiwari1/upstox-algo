@@ -171,7 +171,8 @@ class BacktestEngine:
     def __init__(
         self,
         capital:          float = 30_000,
-        atr_mult:         float = 1.5,
+        atr_mult:         float = 1.5,   # noqa: kept for CLI compat, no longer used for SL
+        sl_pct:           float = 0.09,  # SL = entry × sl_pct (8–10% recommended)
         rr_ratio:         float = 2.0,
         min_score:        int   = 2,
         lot_size:         int   = 65,
@@ -183,7 +184,7 @@ class BacktestEngine:
         max_lots:         int   = 10,  # hard cap on position size regardless of capital
     ):
         self.capital          = capital
-        self.atr_mult         = atr_mult
+        self.sl_pct           = sl_pct
         self.rr_ratio         = rr_ratio
         self.min_score        = min_score
         self.lot_size         = lot_size
@@ -214,12 +215,12 @@ class BacktestEngine:
         # Trade state
         opt_entry = sl = target = 0.0
         direction: str = ""
-        peak_opt  = 0.0
-        lots      = 0
-        trade_idx = 0
-        sl_floor  = 0.0
-        trail_pct = 0.15
-        phase     = 0
+        peak_opt   = 0.0
+        lots       = 0
+        trade_idx  = 0
+        sl_floor   = 0.0
+        phase      = 0
+        risk_pts   = 0.0   # initial SL distance — used to extend target
 
         for i in range(warmup, len(candles)):
             c     = candles[i]
@@ -245,24 +246,28 @@ class BacktestEngine:
 
             option = "CE" if score >= self.min_score else "PE" if score <= -self.min_score else None
 
-            atr = _atr(candles[max(0, i-14):i+1])
-
             # ── Manage open trade ──────────────────────────────────────────
             if in_trade:
                 opt_now  = max(0.1, opt_entry + (close - candles[trade_idx][3]) * ATM_DELTA
                                * (1 if direction == "CE" else -1))
                 peak_opt = max(peak_opt, opt_now)
 
-                # ── Milestone trail SL ─────────────────────────────────────
-                progress = (opt_now - opt_entry) / (target - opt_entry) if (target - opt_entry) > 0 else 0
-                if phase < 1 and progress >= 0.50:
-                    phase = 1; trail_pct = 0.15; sl_floor = opt_entry
-                if phase < 2 and progress >= 0.75:
-                    phase = 2; trail_pct = 0.12; sl_floor = opt_entry + (target - opt_entry) * 0.50
+                # ── Step-floor SL (matches trailing_sl_service logic) ──────
+                rng      = target - opt_entry
+                progress = (opt_now - opt_entry) / rng if rng > 0 else 0
                 if phase < 3 and progress >= 1.0:
-                    phase = 3; trail_pct = 0.10; sl_floor = opt_entry + (target - opt_entry) * 0.75
-                trail_sl = max(peak_opt * (1 - trail_pct), sl_floor)
-                effective_sl = max(sl, trail_sl) if phase > 0 else sl
+                    phase = 3; sl_floor = round(opt_entry + 0.50 * rng, 1)
+                elif phase < 2 and progress >= 0.66:
+                    phase = 2; sl_floor = round(opt_entry + 0.25 * rng, 1)
+                elif phase < 1 and progress >= 0.33:
+                    phase = 1; sl_floor = opt_entry
+                # Post-phase1: half-R trail captures small moves
+                if phase >= 1 and half_risk > 0:
+                    sl_floor = max(sl_floor, round(opt_now - half_risk, 1))
+                # Post-target: upgrade to full 1R trail
+                if phase >= 3 and risk_pts > 0:
+                    sl_floor = max(sl_floor, round(opt_now - risk_pts, 1))
+                effective_sl = max(sl, sl_floor)
 
                 # ── Check exit conditions ──────────────────────────────────
                 exit_reason: str | None = None
@@ -272,8 +277,9 @@ class BacktestEngine:
                     exit_reason = "sl_hit" if phase == 0 else "trail_sl"
                     opt_exit    = effective_sl
                 elif opt_now >= target:
-                    exit_reason = "target_hit"
-                    opt_exit    = target
+                    # Extend target by 1R above current price — never exit here, let trail SL close
+                    target   = round(opt_now + risk_pts * self.rr_ratio, 1)
+                    sl_floor = max(sl_floor, effective_sl)
                 elif option and option != direction:
                     exit_reason = "signal_flip"
 
@@ -319,10 +325,25 @@ class BacktestEngine:
             if opt_entry < 5:
                 opt_entry = 5.0
 
-            nifty_sl_pts = atr * self.atr_mult
-            sl_opt       = round(opt_entry - ATM_DELTA * nifty_sl_pts, 1)
-            sl_opt       = max(sl_opt, opt_entry * 0.3)   # floor at 30% of premium
-            target_opt   = round(opt_entry + (opt_entry - sl_opt) * self.rr_ratio, 1)
+            # Regime-based SL/target — ATR from last 14 bars
+            entry_atr = _atr(candles[max(0, i-14):i+1])
+            if entry_atr >= 35:
+                entry_sl_pct, entry_rr = 0.10, 3.0   # TRENDING
+            elif entry_atr <= 20:
+                entry_sl_pct, entry_rr = 0.05, 1.5   # CONSOLIDATING
+            else:
+                entry_sl_pct, entry_rr = 0.08, 2.0   # NORMAL
+
+            # Tiered minimum SL — prevents noise hits on cheap options
+            pct_sl_pts = round(opt_entry * entry_sl_pct, 1)
+            if opt_entry < 50:   min_sl = 8.0
+            elif opt_entry < 100: min_sl = 12.0
+            elif opt_entry < 200: min_sl = 18.0
+            else:                 min_sl = pct_sl_pts
+            sl_pts_entry = max(pct_sl_pts, min_sl)
+
+            sl_opt     = round(max(0.5, opt_entry - sl_pts_entry), 1)
+            target_opt = round(opt_entry + sl_pts_entry * entry_rr, 1)
 
             lots = min(_size_lots(capital, opt_entry, sl_opt, lot_size), self.max_lots)
             if lots == 0:
@@ -334,8 +355,9 @@ class BacktestEngine:
             sl        = sl_opt
             target    = target_opt
             sl_floor  = sl_opt
-            trail_pct = 0.15
             phase     = 0
+            risk_pts  = sl_pts_entry          # 1R — used to extend target on each new high
+            half_risk = round(risk_pts / 2, 1)
             peak_opt  = opt_entry
             trade_idx = i
             day_trades += 1

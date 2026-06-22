@@ -71,6 +71,12 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         if bar_slot != _last_bar_slot and _last_bar_slot != -1:
             from uptox.services.data_recorder import record_bar
             record_bar()
+            # Advance trailing SL phase on bar close — not per tick — to avoid noise shakeouts
+            ot = trade_book.get_open_trade()
+            if ot:
+                opt_tick = feed_store.get(ot.get("option_key", ""))
+                if opt_tick and opt_tick.ltp:
+                    trailing_sl_service.on_bar_close(opt_tick.ltp)
         _last_bar_slot = bar_slot
 
     # ── IV rank update (ATM option ticks only) ────────────────────────────────

@@ -39,20 +39,24 @@ def _kv(rows: list[tuple[str, str, str]]) -> str:
 
 def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]:
     """
-    Return (strike, instrument_key, ltp) of cheapest affordable strike.
-    Tries ATM first, then OTM in 50pt steps (up to 4 OTM).
-    CE OTM = higher strike (cheaper); PE OTM = lower strike (cheaper).
-    Returns (atm, None, 0.0) if nothing is affordable.
+    Return (strike, instrument_key, price) of best tradeable strike.
+
+    Priority:
+      1. ATM if price >= ₹50 and capital affordable
+      2. ITM (1-4 steps) if ATM < ₹50 — cheap-ATM day, ITM has intrinsic value
+      3. OTM (1-4 steps) if ATM > capital — price too high, go cheaper
+
+    Returns (atm, None, 0.0) if no suitable strike found.
     """
-    atm  = round(ltp / 50) * 50
-    step = 50 if option == "CE" else -50
-    for n in range(5):
-        strike = atm + n * step
-        key    = option_chain_service.get_key(strike, option)
+    atm      = round(ltp / 50) * 50
+    itm_step = -50 if option == "CE" else 50   # ITM: lower for CE, higher for PE
+    otm_step = -itm_step                        # OTM: opposite direction
+
+    def _get_price(strike: int) -> tuple[str | None, float]:
+        key = option_chain_service.get_key(strike, option)
         if not key:
-            continue
+            return None, 0.0
         lo = feed_store.get(key)
-        # For BUY orders always use best ask (limit price); fall back to ltp then snapshot
         if lo and lo.asks:
             price = float(lo.asks[0].get("price", 0.0)) or lo.ltp
         elif lo:
@@ -61,7 +65,24 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
             price = float(
                 (option_chain_service.get_option(strike, option) or {}).get("ltp", 0.0)
             )
-        if price and capital_service.sizing(price)["lots"] > 0:
+        return key, price
+
+    atm_key, atm_price = _get_price(atm)
+
+    # ATM < ₹50 → cheap-ATM day, try ITM for intrinsic value
+    if 0 < atm_price < 50:
+        for n in range(1, 5):
+            strike      = atm + n * itm_step
+            key, price  = _get_price(strike)
+            if key and price >= 50 and capital_service.sizing(price)["lots"] > 0:
+                return strike, key, price
+        return atm, None, 0.0   # even ITM < ₹50, market too cheap — skip
+
+    # Normal path: ATM first, OTM if ATM unaffordable
+    for n in range(5):
+        strike     = atm + n * otm_step
+        key, price = _get_price(strike)
+        if key and price and capital_service.sizing(price)["lots"] > 0:
             return strike, key, price
     return atm, None, 0.0
 
@@ -266,9 +287,18 @@ class OverallAnalysisPanel(Static):
         live_opt = feed_store.get(key) if key else None
         cur_price = live_opt.ltp if live_opt else 0.0
 
-        # Affordable entry strike (ATM or OTM if ATM too expensive)
+        expiry_pm = capital_service.is_expiry_afternoon()
+
+        # Entry strike selection:
+        #   Expiry afternoon → always ATM (binary bet, no OTM/ITM search)
+        #   Normal           → ATM first, ITM if ATM cheap, OTM if ATM expensive
         if atm and option != "—":
-            entry_strike, entry_key, entry_price = _affordable_strike(ltp, option)
+            if expiry_pm:
+                entry_strike = atm
+                entry_key    = key
+                entry_price  = cur_price
+            else:
+                entry_strike, entry_key, entry_price = _affordable_strike(ltp, option)
         else:
             entry_strike, entry_key, entry_price = atm, None, 0.0
         entry_live = feed_store.get(entry_key) if entry_key else None
@@ -387,14 +417,19 @@ class OverallAnalysisPanel(Static):
                             log.info("Entry blocked by S/R: %s @ %.1f  (%s)", option, ltp, sr_block)
                             entry_type = None  # stay in WATCH, retry next tick
                         elif not entry_key or not entry_price:
-                            # No affordable strike — wait for price to drop
+                            # No suitable strike — ATM unaffordable or all strikes < ₹50 even after ITM search
                             atm_p = cur_price or 0.0
-                            self._why_tag = (
-                                f"ATM ₹{atm_p:.1f} too expensive "
-                                f"(cap ₹{capital_service.get_capital():.0f}) — waiting for cheaper price"
-                            )
-                            watch_tag = f"  [bold red]⚠ NO CAPITAL — ATM ₹{atm_p:.1f}[/]"
-                            log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
+                            if 0 < atm_p < 50:
+                                self._why_tag = f"ATM ₹{atm_p:.1f} too cheap, ITM also < ₹50 — skipping"
+                                watch_tag = f"  [bold red]⚠ SKIP — market too cheap ₹{atm_p:.1f}[/]"
+                                log.info("Entry skipped: ATM %.1f < 50, no ITM strike viable", atm_p)
+                            else:
+                                self._why_tag = (
+                                    f"ATM ₹{atm_p:.1f} too expensive "
+                                    f"(cap ₹{capital_service.get_capital():.0f}) — waiting for cheaper price"
+                                )
+                                watch_tag = f"  [bold red]⚠ NO CAPITAL — ATM ₹{atm_p:.1f}[/]"
+                                log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
                             entry_type = None
                         else:
                             # Daily limit check before opening
@@ -405,17 +440,29 @@ class OverallAnalysisPanel(Static):
                                 entry_type = None
                             else:
                               delta  = entry_live.delta if entry_live else None
-                              lvl    = capital_service.levels(entry_price, delta)
-                              sz     = capital_service.sizing_with_risk(entry_price, lvl["sl"])
+                              iv     = entry_live.iv if entry_live else 0.0
+                              lvl    = capital_service.levels(entry_price, delta, iv=iv)
+                              sz = (
+                                  capital_service.sizing_expiry(entry_price)
+                                  if expiry_pm
+                                  else capital_service.sizing_with_risk(entry_price, lvl["sl"])
+                              )
                               if sz["lots"] == 0:
                                   self._why_tag = "Risk sizing: 0 lots — price or SL too wide for capital"
                                   watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots[/]"
                                   entry_type = None
                               else:
-                                otm_note = f" OTM{entry_strike}" if entry_strike != atm else ""
+                                _strike_note = "[EXPIRY ATM]" if expiry_pm else ""
+                                if not expiry_pm:
+                                    _itm = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
+                                    _strike_note = (
+                                        f" ITM{entry_strike}" if (_itm and entry_strike != atm) else
+                                        f" OTM{entry_strike}" if entry_strike != atm else ""
+                                    )
                                 reason = (
                                     f"{entry_type} | SMA{sma_score:+d} Flow{flow_score:+d}"
-                                    f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{otm_note}"
+                                    f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{_strike_note}"
+                                    f" | {lvl['regime']} ATR={lvl['atr']:.0f}"
                                     f" | risk=₹{sz['risk_rs']:.0f} ({sz['risk_pct']:.1f}%)"
                                 )
                                 trade_book.open_trade(
@@ -428,11 +475,12 @@ class OverallAnalysisPanel(Static):
                                     entry_reason=reason,
                                     score=total, sma_score=sma_score, flow_score=flow_score,
                                 )
+                                _loc = "ITM" if _itm else "OTM"
                                 log.info(
                                     "Trade opened (%s): %s %s @ %.1f  lots=%d  risk=₹%.0f (%.1f%%)  cap=%s%s",
                                     entry_type, option, entry_strike, entry_price,
                                     sz["lots"], sz["risk_rs"], sz["risk_pct"], sz["capped_by"],
-                                    f"  [OTM from ATM {atm}]" if entry_strike != atm else "",
+                                    f"  [{_loc} from ATM {atm}]" if entry_strike != atm else "",
                                 )
                                 self._watch = "IDLE"
                                 self._why_tag = ""
@@ -496,7 +544,13 @@ class OverallAnalysisPanel(Static):
             if today_event:
                 lines.append(f"[dim]{'Event':<12}[/] [bold yellow]⚡ {today_event} — min score {req_score}[/]")
         else:
-            otm_label  = f" [dim](OTM from {atm})[/]" if (entry_strike and entry_strike != atm) else ""
+            if expiry_pm:
+                otm_label = " [dim](EXPIRY ATM)[/]"
+            elif entry_strike and entry_strike != atm:
+                _is_itm   = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
+                otm_label = f" [dim]({'ITM' if _is_itm else 'OTM'} from {atm})[/]"
+            else:
+                otm_label = ""
             disp_strike = entry_strike if (tradeable and entry_strike) else atm
             strike_str  = f"{disp_strike} {option}{otm_label}" if (disp_strike and tradeable) else (f"{atm}" if atm else "—")
             buy_str     = f"{buy_price:.1f}" if buy_price else "—"
