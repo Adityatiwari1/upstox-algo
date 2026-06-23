@@ -153,7 +153,7 @@ def update(instrument_key: str, ltp: float) -> bool:
     Phase advancement happens only in on_bar_close() — not here.
     Returns True when SL triggered for first time.
     """
-    global _peak, _trail_sl, _stopped_out
+    global _peak, _trail_sl, _stopped_out, _sl_floor
 
     if not _active or not ltp or not _option_key:
         return False
