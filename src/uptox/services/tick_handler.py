@@ -76,7 +76,12 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
             if ot:
                 opt_tick = feed_store.get(ot.get("option_key", ""))
                 if opt_tick and opt_tick.ltp:
-                    trailing_sl_service.on_bar_close(opt_tick.ltp)
+                    from uptox.services.atr_service import get_atr
+                    from uptox.services.sma_service import TimeFrame
+                    trailing_sl_service.on_bar_close(
+                        opt_tick.ltp,
+                        atr_pts=get_atr(_NIFTY, TimeFrame.M5),
+                    )
         _last_bar_slot = bar_slot
 
     # ── IV rank update (ATM option ticks only) ────────────────────────────────

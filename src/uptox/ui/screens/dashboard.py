@@ -139,6 +139,11 @@ class OverallAnalysisPanel(Static):
     _had_open_trade: bool  = False  # track trade→no-trade transition
     _REENTRY_COOLDOWN: int = 600   # 10 minutes
 
+    # ── sustained-signal tracking (consecutive 5-min bars same sma_score ±2) ──
+    _consec_sma_bars: int   = 0
+    _last_sma_bar_slot: int = -1
+    _last_sma_score: int    = 0
+
 
     def on_mount(self) -> None:
         self.border_title = "Overall Analysis"
@@ -163,6 +168,23 @@ class OverallAnalysisPanel(Static):
         sma_score = 0
         if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
         if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
+
+        # Track consecutive 5-min bars where |sma_score| == 2 (for sustained-signal entry)
+        from datetime import datetime as _dt
+        from zoneinfo import ZoneInfo as _ZI
+        _bar_slot = _dt.now(_ZI("Asia/Kolkata")).hour * 12 + _dt.now(_ZI("Asia/Kolkata")).minute // 5
+        if _bar_slot != self._last_sma_bar_slot:
+            if self._last_sma_bar_slot != -1:
+                if abs(sma_score) == 2 and sma_score == self._last_sma_score:
+                    self._consec_sma_bars += 1
+                elif abs(sma_score) == 2:
+                    self._consec_sma_bars = 1
+                else:
+                    self._consec_sma_bars = 0
+            else:
+                self._consec_sma_bars = 1 if abs(sma_score) == 2 else 0
+            self._last_sma_bar_slot = _bar_slot
+            self._last_sma_score = sma_score
 
         # Order flow score — IndexFullFeed v3 has no tbq/tsq/oi; read from ATM options
         if atm:
@@ -408,6 +430,16 @@ class OverallAnalysisPanel(Static):
                             f" [dim]{depart_str}  {remaining}s[/]"
                         )
 
+                    # Sustained-signal entry: ≥4 bars same sma_score + OI not contradicting
+                    # OI gate replaces the retest quality-check that this entry type skips
+                    _oi_ok = (sma_score < 0 and oi_sc <= 0) or (sma_score > 0 and oi_sc >= 0)
+                    if not entry_type and self._consec_sma_bars >= 4 and abs(sma_score) == 2 and _oi_ok:
+                        entry_type = "sustained"
+                        log.info(
+                            "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d — entering without retest",
+                            option, sma_score, self._consec_sma_bars, oi_sc,
+                        )
+
                     if entry_type:
                         # S/R check — block entry if near a key level
                         sr_block = _near_sr(ltp, option)
@@ -474,6 +506,8 @@ class OverallAnalysisPanel(Static):
                                     option_key=entry_key, delta=delta, spot=ltp,
                                     entry_reason=reason,
                                     score=total, sma_score=sma_score, flow_score=flow_score,
+                                    atr_at_entry=lvl.get("atr", 0.0),
+                                    expiry_day=capital_service.is_expiry_day(),
                                 )
                                 _loc = "ITM" if _itm else "OTM"
                                 log.info(

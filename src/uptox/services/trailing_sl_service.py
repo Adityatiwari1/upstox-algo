@@ -33,6 +33,7 @@ _phase:          int   = 0     # 0/1/2/3  (3 = at/beyond target)
 _active:          bool  = False
 _stopped_out:     bool  = False
 _expiry_afternoon: bool  = False   # per-tick multiple SL active on expiry day
+_expiry_day:       bool  = False   # any expiry-day entry → wide bar trail post-target
 
 # Expiry afternoon per-tick step SL — locks in at price multiples (intrabar spike protection)
 _EXPIRY_STEPS = [
@@ -87,11 +88,13 @@ def set_entry(
     target: float         = 0.0,
     initial_sl: float     = 0.0,
     expiry_afternoon: bool = False,
+    expiry_day: bool      = False,
 ) -> None:
-    """Milestone-based trailing SL. On expiry_afternoon, also applies per-tick multiple SL."""
+    """Milestone-based trailing SL. On expiry_afternoon, also applies per-tick multiple SL.
+    On expiry_day (any time), uses 35% of bar-close as post-target trail to survive deep retrace."""
     global _entry_price, _initial_sl, _initial_risk, _half_risk, _target, _side, _option_key
     global _peak, _trail_sl, _trail_pct, _sl_floor
-    global _p50, _p75, _phase, _active, _stopped_out, _expiry_afternoon
+    global _p50, _p75, _phase, _active, _stopped_out, _expiry_afternoon, _expiry_day
 
     _entry_price      = price
     _initial_sl       = initial_sl if initial_sl else round(price * 0.91, 1)
@@ -103,6 +106,7 @@ def set_entry(
     _active           = True
     _stopped_out      = False
     _expiry_afternoon = expiry_afternoon
+    _expiry_day       = expiry_day
 
     _initial_risk = round(price - _initial_sl, 1)   # 1R distance
     _half_risk    = round(_initial_risk / 2, 1)      # half-R — post-phase1 bar trail
@@ -122,22 +126,34 @@ def set_entry(
     )
 
 
-def on_bar_close(ltp: float) -> None:
+def on_bar_close(ltp: float, atr_pts: float | None = None) -> None:
     """
     Call at every 5-min bar close.
     Phase 0-2: advance SL floor when milestone reached.
-    Phase 3+ (at/beyond target): trail SL = bar_close - 1R, so SL follows price up.
+    Phase 3+ (at/beyond target): trail SL follows price up.
+      Expiry day: 35% flat trail (options retrace deeply before final surge).
+      Normal: ATR-scaled trail — 8% at quiet (ATR=10), 12% at baseline (ATR=20), 18% at volatile (ATR=40+).
     """
     global _trail_sl, _sl_floor
     if not _active or not ltp:
         return
     _advance_phase(ltp)
     if _phase >= 3 and _initial_risk > 0:
-        # Post-target: trail 1R below bar close
-        bar_trail = round(ltp - _initial_risk, 1)
+        if _expiry_day:
+            trail_dist = round(ltp * 0.35, 1)
+            label = "[expiry-35%]"
+        else:
+            atr = atr_pts if (atr_pts and atr_pts > 0) else 20.0
+            trail_pct = min(0.18, max(0.08, 0.12 * (atr / 20.0)))
+            trail_dist = max(_initial_risk, round(ltp * trail_pct, 1))
+            label = f"[{trail_pct*100:.0f}% atr={atr:.0f}]"
+        bar_trail = round(ltp - trail_dist, 1)
         if bar_trail > _sl_floor:
             _sl_floor = bar_trail
-            log.info("Post-target trail: bar_close=%.1f  SL → %.1f", ltp, _sl_floor)
+            log.info(
+                "Post-target trail: bar_close=%.1f  SL → %.1f  %s",
+                ltp, _sl_floor, label,
+            )
     elif _phase >= 1 and _half_risk > 0:
         # Post-breakeven: trail half-R below bar close — captures small moves
         bar_trail = round(ltp - _half_risk, 1)
@@ -204,11 +220,12 @@ def shift_target(new_target: float) -> None:
 
 
 def exit_trade() -> None:
-    global _active, _stopped_out, _phase, _expiry_afternoon
+    global _active, _stopped_out, _phase, _expiry_afternoon, _expiry_day
     _active           = False
     _stopped_out      = False
     _phase            = 0
     _expiry_afternoon = False
+    _expiry_day       = False
     log.info("Trail SL: exited")
 
 
@@ -223,6 +240,7 @@ def get_status() -> dict:
         "active":           _active,
         "stopped_out":      _stopped_out,
         "expiry_afternoon": _expiry_afternoon,
+        "expiry_day":       _expiry_day,
         "entry":            _entry_price,
         "target":           _target,
         "side":             _side,

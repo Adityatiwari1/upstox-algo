@@ -54,6 +54,8 @@ _XLSX_COLS = [
     ("Score",        "score"),
     ("SMA Score",    "sma_score"),
     ("Flow Score",   "flow_score"),
+    ("ATR Entry",    "atr_at_entry"),
+    ("Expiry Day",   "expiry_day"),
 ]
 
 
@@ -95,11 +97,12 @@ def _load() -> None:
                     opt_key = data.get("option_key", "")
                     if ep:
                         from uptox.services import trailing_sl_service
-                        from uptox.services.capital_service import is_expiry_afternoon
+                        from uptox.services.capital_service import is_expiry_afternoon, is_expiry_day
                         tgt = float(data.get("target", 0))
                         trailing_sl_service.set_entry(
                             ep, opt, opt_key, target=tgt, initial_sl=sl,
                             expiry_afternoon=is_expiry_afternoon(),
+                            expiry_day=is_expiry_day(),
                         )
                     log.info(
                         "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
@@ -208,6 +211,8 @@ def open_trade(
     score: int = 0,
     sma_score: int = 0,
     flow_score: int = 0,
+    atr_at_entry: float = 0.0,
+    expiry_day: bool = False,
 ) -> None:
     global _open_trade
     if _open_trade:
@@ -239,14 +244,17 @@ def open_trade(
         "score":        score,
         "sma_score":    sma_score,
         "flow_score":   flow_score,
+        "atr_at_entry": round(atr_at_entry, 1),
+        "expiry_day":   expiry_day,
     }
     from uptox.services import trailing_sl_service
-    from uptox.services.capital_service import is_expiry_afternoon
+    from uptox.services.capital_service import is_expiry_afternoon, is_expiry_day
     ea = is_expiry_afternoon()
     trailing_sl_service.set_entry(
         entry_price, option, option_key,
         target=target, initial_sl=sl,
         expiry_afternoon=ea,
+        expiry_day=is_expiry_day(),
     )
     log.info(
         "Paper OPEN%s: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",

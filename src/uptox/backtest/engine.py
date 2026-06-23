@@ -195,10 +195,16 @@ class BacktestEngine:
         self.consec_sl_limit  = consec_sl_limit
         self.max_lots         = max_lots
 
-    def run(self, candles: list[Candle], dates: list[str] | None = None) -> BacktestResult:
+    def run(
+        self,
+        candles: list[Candle],
+        dates: list[str] | None = None,
+        expiry_dates: set[str] | None = None,
+    ) -> BacktestResult:
         """
         Run backtest over `candles` (5-min bars, oldest first).
-        `dates` optional parallel list of date strings for display.
+        `dates`: optional parallel date strings for display.
+        `expiry_dates`: set of "YYYY-MM-DD" strings — enables 35% post-target trail on those days.
         """
         result        = BacktestResult(start_capital=self.capital, final_capital=self.capital)
         capital       = self.capital
@@ -211,6 +217,8 @@ class BacktestEngine:
         consec_sl     = 0
         prev_date     = ""
         last_exit_bar = -999   # cooldown tracker
+        is_expiry_d   = False  # current bar's date is a weekly expiry date
+        trail_pct     = 0.12   # ATR-scaled trail %, set at entry
 
         # Trade state
         opt_entry = sl = target = 0.0
@@ -233,6 +241,7 @@ class BacktestEngine:
                 day_bar_count = 0
                 day_loss      = 0.0
                 consec_sl     = 0
+                is_expiry_d   = expiry_dates is not None and date_str in expiry_dates
                 prev_date     = date_str
             day_bar_count += 1
 
@@ -264,16 +273,22 @@ class BacktestEngine:
                 # Post-phase1: half-R trail captures small moves
                 if phase >= 1 and half_risk > 0:
                     sl_floor = max(sl_floor, round(opt_now - half_risk, 1))
-                # Post-target: upgrade to full 1R trail
+                # Post-target: ATR-scaled trail (normal) or 35% flat (expiry day)
                 if phase >= 3 and risk_pts > 0:
-                    sl_floor = max(sl_floor, round(opt_now - risk_pts, 1))
+                    if is_expiry_d:
+                        sl_floor = max(sl_floor, round(opt_now * 0.65, 1))
+                    else:
+                        sl_floor = max(sl_floor, round(opt_now * (1 - trail_pct), 1))
                 effective_sl = max(sl, sl_floor)
 
                 # ── Check exit conditions ──────────────────────────────────
                 exit_reason: str | None = None
                 opt_exit = opt_now
 
-                if opt_now <= effective_sl:
+                # Force exit near session close (bar 73 ≈ 3:20 PM)
+                if day_bar_count >= 73:
+                    exit_reason = "session_close"
+                elif opt_now <= effective_sl:
                     exit_reason = "sl_hit" if phase == 0 else "trail_sl"
                     opt_exit    = effective_sl
                 elif opt_now >= target:
@@ -327,6 +342,7 @@ class BacktestEngine:
 
             # Regime-based SL/target — ATR from last 14 bars
             entry_atr = _atr(candles[max(0, i-14):i+1])
+            trail_pct = min(0.18, max(0.08, 0.12 * (entry_atr / 20.0)))
             if entry_atr >= 35:
                 entry_sl_pct, entry_rr = 0.10, 3.0   # TRENDING
             elif entry_atr <= 20:

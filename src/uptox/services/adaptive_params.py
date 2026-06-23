@@ -17,26 +17,26 @@ _FILE = Path("logs/adaptive_params.json")
 
 # ── Default values ────────────────────────────────────────────────────────────
 _DEFAULTS: dict[str, float | int] = {
-    "min_score":        2,      # minimum |score| to consider a trade
-    "atr_multiplier":   1.5,    # ATR × this = Nifty SL points
-    "bk_min_dist":      11.0,   # breakout min departure (pts) before retest
-    "bk_timeout":       300,    # seconds to wait for retest
-    "sr_tolerance":     15.0,   # Nifty pts — block if within this of S/R
-    "pcr_bull_block":   0.5,    # PCR below this → skip CE
-    "pcr_bear_block":   2.0,    # PCR above this → skip PE
-    "iv_rank_block":    70.0,   # IV rank above this → skip entry
+    "min_score":           2,      # minimum |score| to consider a trade
+    "trail_atr_baseline":  20.0,   # ATR at which 12% post-target trail applies; scales linearly
+    "bk_min_dist":         11.0,   # breakout min departure (pts) before retest
+    "bk_timeout":          300,    # seconds to wait for retest
+    "sr_tolerance":        15.0,   # Nifty pts — block if within this of S/R
+    "pcr_bull_block":      0.5,    # PCR below this → advisory warning CE crowded
+    "pcr_bear_block":      2.0,    # PCR above this → advisory warning PE crowded
+    "iv_rank_block":       70.0,   # IV rank above this → skip entry (bypassed on expiry PM)
 }
 
 # ── Bounds (min, max, step) ───────────────────────────────────────────────────
 _BOUNDS: dict[str, tuple] = {
-    "min_score":       (2,    4,    1),
-    "atr_multiplier":  (1.0,  2.5,  0.1),
-    "bk_min_dist":     (8.0,  20.0, 1.0),
-    "bk_timeout":      (120,  600,  30),
-    "sr_tolerance":    (10.0, 40.0, 5.0),
-    "pcr_bull_block":  (0.4,  0.7,  0.05),
-    "pcr_bear_block":  (1.5,  2.5,  0.05),
-    "iv_rank_block":   (50.0, 85.0, 5.0),
+    "min_score":           (2,    4,    1),
+    "trail_atr_baseline":  (10.0, 35.0, 2.5),
+    "bk_min_dist":         (8.0,  20.0, 1.0),
+    "bk_timeout":          (120,  600,  30),
+    "sr_tolerance":        (10.0, 40.0, 5.0),
+    "pcr_bull_block":      (0.4,  0.7,  0.05),
+    "pcr_bear_block":      (1.5,  2.5,  0.05),
+    "iv_rank_block":       (50.0, 85.0, 5.0),
 }
 
 _params: dict[str, float | int] = dict(_DEFAULTS)

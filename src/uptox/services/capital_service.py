@@ -235,6 +235,20 @@ def is_expiry_afternoon() -> bool:
         return False
 
 
+def is_expiry_day() -> bool:
+    """True any time on expiry date (regardless of hour)."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    try:
+        from uptox.services import option_chain_service
+        expiry = option_chain_service.get_expiry()
+        if not expiry:
+            return False
+        return datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d") == expiry
+    except Exception:
+        return False
+
+
 # ── SL / Target ───────────────────────────────────────────────────────────────
 
 def levels(buy_price: float, delta: float | None = None, iv: float = 0.0) -> dict:  # delta unused; kept for API compat
