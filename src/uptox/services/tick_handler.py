@@ -97,9 +97,6 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         if trade_book.should_session_close():
             _close_and_notify(tick.ltp, "session_close_3:25PM")
             return
-        if trade_book.should_force_close():
-            _close_and_notify(tick.ltp, "expiry_force_close")
-            return
 
         target_just_crossed = trade_book.update_open_pnl(tick.ltp)
         closed = False
