@@ -164,7 +164,6 @@ class OverallAnalysisPanel(Static):
         sma20 = smas.get(20)
         sma50 = smas.get(50)
         sma_ready = sma20 is not None and sma50 is not None
-        sma200_h1 = sma_service.get_smas(NIFTY, TimeFrame.H1).get(200)
         sma_score = 0
         if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
         if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
@@ -194,10 +193,9 @@ class OverallAnalysisPanel(Static):
             _tpe = feed_store.get(_pk) if _pk else None
             _csn = option_chain_service.get_option(atm, "CE") or {}
             _psn = option_chain_service.get_option(atm, "PE") or {}
-            raw_delta = (
-                (_tce.tbq if _tce else 0.0) + (_tpe.tbq if _tpe else 0.0)
-                - (_tce.tsq if _tce else 0.0) - (_tpe.tsq if _tpe else 0.0)
-            )
+            _ce_buy, _ce_sell = feed_store.flow_qty(_tce)
+            _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
+            raw_delta = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
             cum    = feed_store.cum_delta(_ck) if _ck else 0.0
             oi_dir = _psn.get("change_oi", 0.0) - _csn.get("change_oi", 0.0)
         else:
@@ -278,10 +276,6 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
         elif (option == "CE" and pcr_extreme_bull) or (option == "PE" and pcr_extreme_bear):
             no_trade_reason = f"PCR extreme ({_pcr_filter:.2f}) — crowded trade, skip"
-        elif sma200_h1 is not None and option == "CE" and ltp < sma200_h1 - 50:
-            no_trade_reason = f"Well below 1H SMA200 ({sma200_h1:.0f}) — macro bearish, skip CE"
-        elif sma200_h1 is not None and option == "PE" and ltp > sma200_h1 + 50:
-            no_trade_reason = f"Well above 1H SMA200 ({sma200_h1:.0f}) — macro bullish, skip PE"
         elif _spread > 5:
             no_trade_reason = f"Bid-ask spread {_spread:.1f}pts — liquidity thin"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
@@ -672,6 +666,9 @@ class SMAPanel(Static):
 
 
 class OrderFlowPanel(Static):
+    _cum_delta_local: float = 0.0   # session running total — CE+PE combined (feed_store tracks per-key only)
+    _prev_imbalance: float | None = None   # last refresh's (buy-sell) snapshot, for delta tracking
+
     def on_mount(self) -> None:
         self.border_title = "Order Flow"
         self._refresh()
@@ -688,16 +685,21 @@ class OrderFlowPanel(Static):
             t_ce   = feed_store.get(ce_key) if ce_key else None
             t_pe   = feed_store.get(pe_key) if pe_key else None
 
-            # tbq/tsq only on MarketFullFeed (options); index feed has none
-            ce_tbq = t_ce.tbq if t_ce else 0.0
-            ce_tsq = t_ce.tsq if t_ce else 0.0
-            pe_tbq = t_pe.tbq if t_pe else 0.0
-            pe_tsq = t_pe.tsq if t_pe else 0.0
-            total_buy  = ce_tbq + pe_tbq
-            total_sell = ce_tsq + pe_tsq
-            raw_delta  = total_buy - total_sell
-            cum        = feed_store.cum_delta(ce_key) if ce_key else 0.0
-            ratio      = (total_buy / total_sell) if total_sell else 0.0
+            # flow_qty: tbq/tsq when Upstox sends them, else live depth qty proxy
+            ce_buy, ce_sell = feed_store.flow_qty(t_ce)
+            pe_buy, pe_sell = feed_store.flow_qty(t_pe)
+            total_buy  = ce_buy + pe_buy
+            total_sell = ce_sell + pe_sell
+
+            raw_delta = total_buy - total_sell
+
+            # Cumulative delta = running sum of tick-over-tick imbalance changes (order-flow style)
+            if self._prev_imbalance is not None:
+                self._cum_delta_local += raw_delta - self._prev_imbalance
+            self._prev_imbalance = raw_delta
+            cum = self._cum_delta_local
+
+            ratio = (total_buy / total_sell) if total_sell else 0.0
 
             # OI: live tick preferred, REST snapshot fallback (ATM only)
             ce_sn_atm = option_chain_service.get_option(atm, "CE") or {}
@@ -841,10 +843,9 @@ class BestEntryPanel(Static):
             _pk  = option_chain_service.get_key(atm, "PE")
             _tce = feed_store.get(_ck) if _ck else None
             _tpe = feed_store.get(_pk) if _pk else None
-            raw_delta = (
-                (_tce.tbq if _tce else 0.0) + (_tpe.tbq if _tpe else 0.0)
-                - (_tce.tsq if _tce else 0.0) - (_tpe.tsq if _tpe else 0.0)
-            )
+            _ce_buy, _ce_sell = feed_store.flow_qty(_tce)
+            _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
+            raw_delta = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
             cum = feed_store.cum_delta(_ck) if _ck else 0.0
         else:
             raw_delta = cum = 0.0
@@ -1058,8 +1059,9 @@ class CapitalPanel(Widget):
             _pk  = option_chain_service.get_key(atm_c, "PE")
             _tce = feed_store.get(_ck) if _ck else None
             _tpe = feed_store.get(_pk) if _pk else None
-            _rd  = ((_tce.tbq if _tce else 0.0) + (_tpe.tbq if _tpe else 0.0)
-                    - (_tce.tsq if _tce else 0.0) - (_tpe.tsq if _tpe else 0.0))
+            _ce_buy, _ce_sell = feed_store.flow_qty(_tce)
+            _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
+            _rd  = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
             _cum = feed_store.cum_delta(_ck) if _ck else 0.0
             fc   = (1 if _rd > 0 else -1 if _rd < 0 else 0) + (1 if _cum > 0 else -1 if _cum < 0 else 0)
             total = sc + fc

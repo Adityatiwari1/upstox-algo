@@ -14,3 +14,7 @@ dist/
 logs/uptox.log
 
 results.csv
+
+generate_doc.py
+
+docs/uptox_trading_system.pdf

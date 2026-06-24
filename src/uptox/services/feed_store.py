@@ -38,16 +38,35 @@ _cum_delta: dict[str, float] = {}   # session cumulative delta per instrument
 _feed_status: dict[str, str] = {"status": "disconnected"}
 
 
+def flow_qty(tick: TickData | None) -> tuple[float, float]:
+    """
+    (buy, sell) quantity for order-flow scoring.
+    Uses Upstox tbq/tsq when present. Upstox often sends tbq=tsq=0 for index
+    options (known feed limitation) — falls back to live depth (bid/ask qty sum).
+    """
+    if not tick:
+        return 0.0, 0.0
+    if tick.tbq or tick.tsq:
+        return tick.tbq, tick.tsq
+    buy  = sum(float(l.get("qty", 0)) for l in tick.bids) if tick.bids else 0.0
+    sell = sum(float(l.get("qty", 0)) for l in tick.asks) if tick.asks else 0.0
+    return buy, sell
+
+
 def update(instrument_key: str, tick: TickData) -> None:
     prev = _store.get(instrument_key)
     _store[instrument_key] = tick
-    # cumulative delta: session running total of (tbq - tsq) delta
-    tick_delta = tick.tbq - tick.tsq
+    # cumulative delta: session running total of (buy - sell) change, tick-over-tick
+    buy, sell   = flow_qty(tick)
+    tick_delta  = buy - sell
     if instrument_key not in _cum_delta:
         _cum_delta[instrument_key] = 0.0
-    if prev and (tick.tbq != prev.tbq or tick.tsq != prev.tsq):
-        _cum_delta[instrument_key] += tick_delta - (prev.tbq - prev.tsq)
-    elif not prev:
+    if prev:
+        pbuy, psell = flow_qty(prev)
+        prev_delta  = pbuy - psell
+        if tick_delta != prev_delta:
+            _cum_delta[instrument_key] += tick_delta - prev_delta
+    else:
         _cum_delta[instrument_key] = tick_delta
 
 
