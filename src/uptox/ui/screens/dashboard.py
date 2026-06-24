@@ -863,7 +863,7 @@ class BestEntryPanel(Static):
             delta     = live.delta if live else None
 
         lvl  = capital_service.levels(buy_price, delta)
-        sz   = capital_service.sizing(buy_price)
+        sz   = capital_service.sizing_with_risk(buy_price, lvl["sl"])
         expiry = option_chain_service.get_expiry() or "—"
         opt_color = "green" if opt_type == "CE" else "red" if opt_type == "PE" else "dim white"
 
