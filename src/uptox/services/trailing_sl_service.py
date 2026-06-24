@@ -1,12 +1,23 @@
 """
 Trailing stop-loss tracker for a single open options position.
 
-Step-floor SL advances only on 5-min bar close (not per tick) to avoid noise shakeouts.
+Checked every tick (not just bar close) — intrabar spikes lock in profit
+immediately instead of waiting for a 5-min candle close.
 
-  Phase 0 (0–33% to tgt):   SL = initial_sl  (fixed)
-  Phase 1 (≥33%):           SL = entry        (breakeven) + half-R bar trail
-  Phase 2 (≥66%):           SL = entry + 25%×range + half-R bar trail
-  Phase 3 (≥100% / target): SL = entry + 50%×range + 1R bar trail → target extends
+  Phase 0 (0–33% to tgt):    floor = initial_sl
+  Phase 1 (≥33%):            floor = entry            (breakeven)
+  Phase 2 (≥50%):            floor = entry + 25%×range
+  Phase 3 (≥66%):            floor = entry + 50%×range
+  Phase 4 (≥100% / target):  floor = entry + 66%×range — target then extends
+
+Post-target (phase 4+), every time the target extends further:
+  anchor = previous target, ext_range = new_target − anchor
+  floor steps up by 25%×ext_range every time price advances another 25% of
+  ext_range — a constant 25-point lag that repeats on every further extension.
+
+Expiry day uses a separate mechanism (bar-close 35% trail) — unaffected by
+the phase system above, since expiry-day option decay/spike behaviour is
+fundamentally different from a normal trending day.
 """
 from __future__ import annotations
 import logging
@@ -15,25 +26,24 @@ log = logging.getLogger(__name__)
 
 _entry_price:    float = 0.0
 _initial_sl:     float = 0.0
-_initial_risk:   float = 0.0   # entry - initial_sl — used for post-target bar trailing
-_half_risk:      float = 0.0   # initial_risk / 2 — used for post-phase1 bar trailing
+_initial_risk:   float = 0.0   # entry - initial_sl — kept for display/back-compat
 _target:         float = 0.0
 _side:           str   = ""
 _option_key:     str   = ""
 
 _peak:           float = 0.0
 _trail_sl:       float = 0.0
-_trail_pct:      float = 0.20
 _sl_floor:       float = 0.0   # SL never drops below this
 
-_p50:            float = 0.0
-_p75:            float = 0.0
-_phase:          int   = 0     # 0/1/2/3  (3 = at/beyond target)
+_phase:          int   = 0     # 0/1/2/3/4
+
+_post_target_anchor: float = 0.0   # previous target — anchor for the repeating 25%-lag rule
+_post_target_range:  float = 0.0   # latest extension's range (new_target - anchor); 0 = not extended yet
 
 _active:          bool  = False
 _stopped_out:     bool  = False
 _expiry_afternoon: bool  = False   # per-tick multiple SL active on expiry day
-_expiry_day:       bool  = False   # any expiry-day entry → wide bar trail post-target
+_expiry_day:       bool  = False   # bar-close 35% trail instead of phase system above
 
 # Expiry afternoon per-tick step SL — locks in at price multiples (intrabar spike protection)
 _EXPIRY_STEPS = [
@@ -43,39 +53,60 @@ _EXPIRY_STEPS = [
 ]
 
 
-def _advance_phase(ltp: float) -> None:
+def _update_phase(ltp: float) -> None:
     """
-    Advance SL phase based on progress milestones.
-    Called ONLY on 5-min bar close — not every tick — to avoid noise shakeouts.
-
-    Phases (progress = (ltp - entry) / range):
-      0: 0–33%   → floor = initial_sl       (no movement)
-      1: ≥33%    → floor = entry             (breakeven)
-      2: ≥66%    → floor = entry + 25%×range
-      3: ≥100%   → floor = entry + 50%×range (target extends separately)
+    Checked every tick. Advances SL floor through milestones 33/50/66/100%,
+    then applies the repeating 25%-lag rule once target starts extending.
+    Floor only ever increases.
     """
-    global _phase, _sl_floor
+    global _phase, _sl_floor, _post_target_anchor, _post_target_range
 
     if not _entry_price or not _target:
         return
 
-    rng      = _target - _entry_price
-    progress = (ltp - _entry_price) / rng if rng > 0 else 0.0
+    rng = _target - _entry_price
+    if rng <= 0:
+        return
+    progress = (ltp - _entry_price) / rng
 
-    if _phase < 3 and progress >= 1.0:
-        _phase    = 3
-        _sl_floor = round(_entry_price + 0.50 * rng, 1)
-        log.info("Trail SL phase→3 (100%% bar close): SL floor → %.1f", _sl_floor)
+    if _phase < 4 and progress >= 1.0:
+        _phase = 4
+        new_floor = round(_entry_price + 0.66 * rng, 1)
+        if new_floor > _sl_floor:
+            _sl_floor = new_floor
+            log.info("Trail SL phase→4 (target hit): floor → %.1f", _sl_floor)
+        _post_target_anchor = _target
+        _post_target_range  = 0.0   # set by shift_target() when target extends
 
-    elif _phase < 2 and progress >= 0.66:
-        _phase    = 2
-        _sl_floor = round(_entry_price + 0.25 * rng, 1)
-        log.info("Trail SL phase→2 (66%% bar close): SL floor → %.1f", _sl_floor)
+    elif _phase < 3 and progress >= 0.66:
+        _phase = 3
+        new_floor = round(_entry_price + 0.50 * rng, 1)
+        if new_floor > _sl_floor:
+            _sl_floor = new_floor
+            log.info("Trail SL phase→3 (66%%): floor → %.1f", _sl_floor)
+
+    elif _phase < 2 and progress >= 0.50:
+        _phase = 2
+        new_floor = round(_entry_price + 0.25 * rng, 1)
+        if new_floor > _sl_floor:
+            _sl_floor = new_floor
+            log.info("Trail SL phase→2 (50%%): floor → %.1f", _sl_floor)
 
     elif _phase < 1 and progress >= 0.33:
-        _phase    = 1
-        _sl_floor = _entry_price
-        log.info("Trail SL phase→1 (33%% bar close): SL floor → %.1f (breakeven)", _sl_floor)
+        _phase = 1
+        if _entry_price > _sl_floor:
+            _sl_floor = _entry_price
+            log.info("Trail SL phase→1 (33%%, breakeven): floor → %.1f", _sl_floor)
+
+    # Repeating 25%-lag rule — normal days only (expiry day uses bar-close 35% trail instead)
+    if not _expiry_day and _phase >= 4 and _post_target_range > 0:
+        progress2 = (ltp - _post_target_anchor) / _post_target_range
+        step = int(progress2 / 0.25)   # 0,1,2,3,4...
+        if step >= 1:
+            new_floor = round(_post_target_anchor + (step - 1) * 0.25 * _post_target_range, 1)
+            if new_floor > _sl_floor:
+                _sl_floor = new_floor
+                log.info("Post-target trail (25%% lag): floor → %.1f", _sl_floor)
 
 
 # ── public API ────────────────────────────────────────────────────────────────
@@ -90,11 +121,13 @@ def set_entry(
     expiry_afternoon: bool = False,
     expiry_day: bool      = False,
 ) -> None:
-    """Milestone-based trailing SL. On expiry_afternoon, also applies per-tick multiple SL.
-    On expiry_day (any time), uses 35% of bar-close as post-target trail to survive deep retrace."""
-    global _entry_price, _initial_sl, _initial_risk, _half_risk, _target, _side, _option_key
-    global _peak, _trail_sl, _trail_pct, _sl_floor
-    global _p50, _p75, _phase, _active, _stopped_out, _expiry_afternoon, _expiry_day
+    """Milestone-based trailing SL, checked every tick.
+    On expiry_afternoon: also applies per-tick multiple SL.
+    On expiry_day: bar-close 35% trail used instead of the milestone system above."""
+    global _entry_price, _initial_sl, _initial_risk, _target, _side, _option_key
+    global _peak, _trail_sl, _sl_floor, _phase
+    global _post_target_anchor, _post_target_range
+    global _active, _stopped_out, _expiry_afternoon, _expiry_day
 
     _entry_price      = price
     _initial_sl       = initial_sl if initial_sl else round(price * 0.91, 1)
@@ -108,65 +141,38 @@ def set_entry(
     _expiry_afternoon = expiry_afternoon
     _expiry_day       = expiry_day
 
-    _initial_risk = round(price - _initial_sl, 1)   # 1R distance
-    _half_risk    = round(_initial_risk / 2, 1)      # half-R — post-phase1 bar trail
+    _initial_risk = round(price - _initial_sl, 1)
     _sl_floor     = _initial_sl
     _trail_sl     = _initial_sl
-
-    rng  = (_target - _entry_price) if _target > _entry_price else 0.0
-    _p50 = round(_entry_price + 0.25 * rng, 1) if rng else 0.0   # phase-2 floor
-    _p75 = round(_entry_price + 0.50 * rng, 1) if rng else 0.0   # phase-3 floor
+    _post_target_anchor = 0.0
+    _post_target_range  = 0.0
 
     log.info(
-        "Trail SL: %s %s @ %.1f  SL=%.1f  tgt=%.1f  "
-        "floors: BE=%.1f  p2=%.1f  p3=%.1f  p4=%.1f",
+        "Trail SL: %s %s @ %.1f  SL=%.1f  tgt=%.1f",
         side, option_key, price, _trail_sl, _target,
-        _entry_price, _p50, _p75,
-        round(_entry_price + 0.75 * rng, 1) if rng else 0.0,
     )
 
 
 def on_bar_close(ltp: float, atr_pts: float | None = None) -> None:
     """
-    Call at every 5-min bar close.
-    Phase 0-2: advance SL floor when milestone reached.
-    Phase 3+ (at/beyond target): trail SL follows price up.
-      Expiry day: 35% flat trail (options retrace deeply before final surge).
-      Normal: ATR-scaled trail — 8% at quiet (ATR=10), 12% at baseline (ATR=20), 18% at volatile (ATR=40+).
+    Expiry-day only: bar-close 35% trail (deep retracements before final surge).
+    Normal days: phase milestones are checked per-tick in update() — this is a no-op.
     """
-    global _trail_sl, _sl_floor
-    if not _active or not ltp:
+    global _sl_floor
+    if not _active or not ltp or not _expiry_day:
         return
-    _advance_phase(ltp)
-    if _phase >= 3 and _initial_risk > 0:
-        if _expiry_day:
-            trail_dist = round(ltp * 0.35, 1)
-            label = "[expiry-35%]"
-        else:
-            atr = atr_pts if (atr_pts and atr_pts > 0) else 20.0
-            trail_pct = min(0.18, max(0.08, 0.12 * (atr / 20.0)))
-            trail_dist = max(_initial_risk, round(ltp * trail_pct, 1))
-            label = f"[{trail_pct*100:.0f}% atr={atr:.0f}]"
-        bar_trail = round(ltp - trail_dist, 1)
+    if _phase >= 4:
+        trail_dist = round(ltp * 0.35, 1)
+        bar_trail  = round(ltp - trail_dist, 1)
         if bar_trail > _sl_floor:
             _sl_floor = bar_trail
-            log.info(
-                "Post-target trail: bar_close=%.1f  SL → %.1f  %s",
-                ltp, _sl_floor, label,
-            )
-    elif _phase >= 1 and _half_risk > 0:
-        # Post-breakeven: trail half-R below bar close — captures small moves
-        bar_trail = round(ltp - _half_risk, 1)
-        if bar_trail > _sl_floor:
-            _sl_floor = bar_trail
-            log.info("Post-BE trail: bar_close=%.1f  SL → %.1f", ltp, _sl_floor)
-    _trail_sl = max(_sl_floor, _trail_sl)
+            log.info("Expiry post-target trail: bar_close=%.1f  SL → %.1f  [35%%]", ltp, _sl_floor)
 
 
 def update(instrument_key: str, ltp: float) -> bool:
     """
-    Called every tick. Checks SL hit against current floor.
-    Phase advancement happens only in on_bar_close() — not here.
+    Called every tick. Advances phase milestones (non-expiry days), checks
+    expiry-afternoon per-tick steps, then checks SL hit against current floor.
     Returns True when SL triggered for first time.
     """
     global _peak, _trail_sl, _stopped_out, _sl_floor
@@ -179,8 +185,14 @@ def update(instrument_key: str, ltp: float) -> bool:
     if ltp > _peak:
         _peak = ltp
 
+    # Phase milestones — every tick, not just bar close, so intrabar spikes
+    # lock in profit immediately. Runs for expiry-day trades too (so phase
+    # reaches 4 and on_bar_close's 35% trail can activate); only the
+    # repeating 25%-lag extension rule inside is normal-day-only.
+    _update_phase(ltp)
+
     # Expiry afternoon: per-tick multiple SL — catches intrabar spikes that retrace
-    # Works alongside bar-close phase trail; whichever floor is higher wins
+    # Works alongside the phase/bar-close floor; whichever is higher wins
     if _expiry_afternoon and _entry_price:
         multiple = _peak / _entry_price
         expiry_floor = 0.0
@@ -195,7 +207,7 @@ def update(instrument_key: str, ltp: float) -> bool:
                 _peak, multiple, _sl_floor,
             )
 
-    _trail_sl = _sl_floor   # floor set by on_bar_close() + expiry per-tick above
+    _trail_sl = _sl_floor
 
     if not _stopped_out and ltp <= _trail_sl:
         _stopped_out = True
@@ -208,24 +220,33 @@ def update(instrument_key: str, ltp: float) -> bool:
 
 
 def shift_target(new_target: float) -> None:
-    """Extend target forward (called when price blows past original target in trending market)."""
-    global _target, _p50, _p75
+    """
+    Extend target forward (called when price blows past current target).
+    Anchors the repeating 25%-lag rule at the old target so the next leg
+    of the move gets the same step-up trail treatment.
+    """
+    global _target, _post_target_anchor, _post_target_range
     if not _active or new_target <= _target:
         return
+    _post_target_anchor = _target
+    _post_target_range  = new_target - _target
     _target = new_target
-    rng  = (_target - _entry_price) if _target > _entry_price else 0.0
-    _p50 = round(_entry_price + 0.50 * rng, 1) if rng else _p50
-    _p75 = round(_entry_price + 0.75 * rng, 1) if rng else _p75
-    log.info("Target shifted → %.1f  new p50=%.1f  p75=%.1f", _target, _p50, _p75)
+    log.info(
+        "Target shifted → %.1f  anchor=%.1f  ext_range=%.1f",
+        _target, _post_target_anchor, _post_target_range,
+    )
 
 
 def exit_trade() -> None:
     global _active, _stopped_out, _phase, _expiry_afternoon, _expiry_day
-    _active           = False
-    _stopped_out      = False
-    _phase            = 0
-    _expiry_afternoon = False
-    _expiry_day       = False
+    global _post_target_anchor, _post_target_range
+    _active             = False
+    _stopped_out        = False
+    _phase              = 0
+    _expiry_afternoon   = False
+    _expiry_day         = False
+    _post_target_anchor = 0.0
+    _post_target_range  = 0.0
     log.info("Trail SL: exited")
 
 
@@ -234,8 +255,9 @@ def is_active() -> bool:
 
 
 def get_status() -> dict:
-    rng      = (_target - _entry_price) if (_target and _entry_price) else 0.0
-    progress = round((_peak - _entry_price) / rng * 100, 1) if rng > 0 else 0.0
+    rng         = (_target - _entry_price) if (_target and _entry_price) else 0.0
+    progress    = round((_peak - _entry_price) / rng * 100, 1) if rng > 0 else 0.0
+    trail_pct   = round((_peak - _sl_floor) / _peak, 4) if _peak else 0.0
     return {
         "active":           _active,
         "stopped_out":      _stopped_out,
@@ -247,7 +269,7 @@ def get_status() -> dict:
         "peak":             _peak,
         "trail_sl":         _trail_sl,
         "sl_floor":         _sl_floor,
-        "trail_pct":        _trail_pct,
+        "trail_pct":        trail_pct,
         "phase":            _phase,
         "progress_pct":     progress,
         "pnl_pts":          round(_peak - _entry_price, 1) if _active else 0.0,

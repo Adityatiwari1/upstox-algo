@@ -120,3 +120,48 @@ def notify_daily_report() -> None:
 
 def notify_daily_limit_hit(reason: str) -> None:
     send(f"🚫 <b>DAILY LIMIT HIT</b>\n{reason}\nNo more trades today.")
+
+
+def notify_trade_update(trade: dict, status: dict) -> None:
+    """Periodic (every 15 min) status ping while a trade is open."""
+    pnl_pts = trade.get("pnl_pts", 0.0)
+    pnl_rs  = trade.get("pnl_rs",  0.0)
+    icon    = "🟢" if pnl_pts >= 0 else "🔴"
+    phase_names = {0: "Initial SL", 1: "Breakeven", 2: "25% locked", 3: "50% locked", 4: "Target+ (trailing)"}
+    send(
+        f"{icon} <b>TRADE UPDATE</b>  {trade['option']} {trade['strike']}\n"
+        f"Entry  : ₹{trade['entry_price']:.1f}  →  Now: ₹{trade.get('current_price', 0):.1f}\n"
+        f"P&amp;L   : {pnl_pts:+.1f} pts  ₹{pnl_rs:+,.0f}\n"
+        f"Peak   : ₹{status.get('peak', 0):.1f}\n"
+        f"Trail SL: ₹{status.get('trail_sl', 0):.1f}\n"
+        f"Phase  : {phase_names.get(status.get('phase', 0), '—')}\n"
+        f"Target : ₹{trade.get('target', 0):.1f}"
+    )
+
+
+def notify_feed_status(status: str, detail: str = "") -> None:
+    icons = {"disconnected": "⚠️", "reconnecting": "🔄", "connected": "✅"}
+    icon  = icons.get(status, "ℹ️")
+    send(f"{icon} <b>FEED {status.upper()}</b>" + (f"\n{detail}" if detail else ""))
+
+
+def notify_approaching_limit(pnl_pct: float, limit_pct: float) -> None:
+    send(
+        f"⚠️ <b>APPROACHING DAILY LOSS LIMIT</b>\n"
+        f"Current: {pnl_pct:+.1f}%   Limit: −{limit_pct:.1f}%\n"
+        f"Consider pausing manually if this continues."
+    )
+
+
+def notify_market_update(snapshot: dict) -> None:
+    """Periodic (every 30 min) market snapshot — sent regardless of open trade."""
+    trend_icon = "📈" if snapshot["sma_score"] > 0 else "📉" if snapshot["sma_score"] < 0 else "➖"
+    send(
+        f"{trend_icon} <b>MARKET UPDATE</b>  {snapshot['time']}\n"
+        f"Nifty  : {snapshot['ltp']:,.1f}\n"
+        f"Trend  : {snapshot['trend']}  (SMA{snapshot['sma_score']:+d} Flow{snapshot['flow_score']:+d})\n"
+        f"Regime : {snapshot['regime']}  ATR={snapshot['atr']:.0f}\n"
+        f"PCR    : {snapshot['pcr']:.2f}\n"
+        f"OI Bias: {snapshot['oi_bias']}\n"
+        f"Trade  : {snapshot['trade_status']}"
+    )

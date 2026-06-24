@@ -137,6 +137,7 @@ async def run_feed(
     keys  = instrument_keys or DEFAULT_INSTRUMENTS
     token = settings.access_token
     delay = 1.0   # initial backoff
+    was_disconnected = False   # only alert "connected" on recovery, not first startup
 
     while True:
         await _wait_for_market_open()
@@ -155,6 +156,10 @@ async def run_feed(
                 delay = 1.0   # reset backoff on successful connect
                 _log.info("[feed] Connected — %d instruments in '%s' mode",
                           len(keys) + len(_extra_keys), mode)
+                if was_disconnected:
+                    from uptox.services.telegram_service import notify_feed_status
+                    notify_feed_status("connected", "Feed recovered — resuming live data")
+                    was_disconnected = False
 
                 async def _sender() -> None:
                     while True:
@@ -191,6 +196,10 @@ async def run_feed(
         except Exception as e:
             feed_store.set_status("disconnected")
             _log.error("[feed] Disconnected: %s", e, exc_info=True)
+            if not was_disconnected:
+                from uptox.services.telegram_service import notify_feed_status
+                notify_feed_status("disconnected", f"{type(e).__name__}: {e}"[:200])
+                was_disconnected = True
             if not reconnect:
                 break
             feed_store.set_status("reconnecting")
