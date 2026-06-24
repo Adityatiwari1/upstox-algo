@@ -26,6 +26,7 @@ class UptoxApp(App):
         ("r",     "cycle_rr",                  "Cycle RR"),
         ("e",     "set_entry",                 "Set Entry"),
         ("x",     "exit_trade",                "Exit Trade"),
+        ("R",     "reload_config",             "Reload .env"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -71,6 +72,14 @@ class UptoxApp(App):
 
     def action_cycle_rr(self) -> None:
         capital_service.cycle_rr()
+
+    def action_reload_config(self) -> None:
+        """Re-read .env in place — no restart. Feed/open trade/SMA state untouched."""
+        settings.reload()
+        self.notify(
+            f"Config reloaded — telegram={'set' if settings.telegram_token else 'empty'}",
+            severity="information",
+        )
 
     def action_capital_input(self) -> None:
         try:

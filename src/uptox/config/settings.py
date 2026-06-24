@@ -20,5 +20,12 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+    def reload(self) -> None:
+        """Re-read .env into this same instance — no process restart needed.
+        Feed/trade state untouched; only config fields (tokens, thresholds) refresh."""
+        fresh = Settings()
+        for field in self.model_fields:
+            setattr(self, field, getattr(fresh, field))
+
 
 settings = Settings()
