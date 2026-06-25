@@ -370,14 +370,14 @@ class AnalysisPanel(Widget):
 
 class TradeHistoryPanel(Widget):
     DEFAULT_CSS = """
-    TradeHistoryPanel { height: auto; width: 100%; layout: vertical; }
+    TradeHistoryPanel { height: 1fr; width: 100%; layout: vertical; }
     TradeHistoryPanel Label { padding: 0 1; }
-    TradeHistoryPanel DataTable { height: auto; width: 100%; }
+    TradeHistoryPanel DataTable { height: 1fr; width: 100%; overflow-x: auto; overflow-y: auto; }
     """
 
     def compose(self) -> ComposeResult:
         yield Label("")
-        yield DataTable(show_cursor=False)
+        yield DataTable(show_cursor=True)
 
     def on_mount(self) -> None:
         tbl = self.query_one(DataTable)
@@ -436,10 +436,15 @@ class TradeBookScreen(ScrollableContainer):
     DEFAULT_CSS = """
     TradeBookScreen { height: 1fr; }
     TradeBookScreen TabbedContent { height: 1fr; }
-    TradeBookScreen TabPane { height: 1fr; overflow-y: auto; overflow-x: hidden; padding: 0; }
-    OpenTradePanel, PerformancePanel, AnalysisPanel, TradeHistoryPanel {
+    TradeBookScreen TabPane { height: 1fr; overflow-y: auto; overflow-x: auto; padding: 0; }
+    OpenTradePanel, PerformancePanel, AnalysisPanel {
         width: 100%;
         height: auto;
+        padding: 0 1;
+    }
+    TradeHistoryPanel {
+        width: 100%;
+        height: 1fr;
         padding: 0 1;
     }
     """
