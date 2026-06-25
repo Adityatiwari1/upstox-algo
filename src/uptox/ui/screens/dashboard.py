@@ -246,9 +246,9 @@ class OverallAnalysisPanel(Static):
                 s = atm + off * 50
                 _ce_oi += float((option_chain_service.get_option(s, "CE") or {}).get("oi", 0))
                 _pe_oi += float((option_chain_service.get_option(s, "PE") or {}).get("oi", 0))
-        _pcr_filter      = round(_pe_oi / _ce_oi, 2) if _ce_oi else 0.0
-        pcr_extreme_bull = _pcr_filter > 0 and _pcr_filter < adaptive_params.get("pcr_bull_block")
-        pcr_extreme_bear = _pcr_filter > adaptive_params.get("pcr_bear_block")
+        _pcr_filter    = round(_pe_oi / _ce_oi, 2) if _ce_oi else 0.0
+        _pcr_bull_warn = _pcr_filter > 0 and _pcr_filter < adaptive_params.get("pcr_bull_block")
+        _pcr_bear_warn = _pcr_filter > adaptive_params.get("pcr_bear_block")
 
         # Bid-ask spread on entry-side ATM option (hard block — objective liquidity check)
         _entry_tick = (_tce if option == "CE" else _tpe) if atm else None
@@ -274,8 +274,6 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = "Trend too weak"
         elif high_iv:
             no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
-        elif (option == "CE" and pcr_extreme_bull) or (option == "PE" and pcr_extreme_bear):
-            no_trade_reason = f"PCR extreme ({_pcr_filter:.2f}) — crowded trade, skip"
         elif _spread > 5:
             no_trade_reason = f"Bid-ask spread {_spread:.1f}pts — liquidity thin"
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
@@ -608,6 +606,8 @@ class OverallAnalysisPanel(Static):
             ]
             if bn_conflict:
                 lines.append(f"[dim]{'BN':<12}[/] [yellow]⚠ BN diverges (score {bn_score:+d}) — advisory[/]")
+            if (option == "CE" and _pcr_bull_warn) or (option == "PE" and _pcr_bear_warn):
+                lines.append(f"[dim]{'PCR':<12}[/] [yellow]⚠ PCR {_pcr_filter:.2f} crowded — advisory[/]")
             if today_event:
                 lines.append(f"[dim]{'Event':<12}[/] [bold yellow]⚡ {today_event} — min score {req_score}[/]")
 
