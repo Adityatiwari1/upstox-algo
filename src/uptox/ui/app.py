@@ -4,6 +4,7 @@ from uptox.ui.screens.dashboard import DashboardScreen
 from uptox.ui.screens.orders import OrdersScreen
 from uptox.ui.screens.option_chain import OptionChainScreen
 from uptox.ui.screens.trade_book import TradeBookScreen
+from uptox.ui.screens.settings import SettingsScreen
 from uptox.config.settings import settings
 from uptox.services import capital_service
 
@@ -40,6 +41,8 @@ class UptoxApp(App):
                 yield OptionChainScreen()
             with TabPane("Trade Book", id="trade-book"):
                 yield TradeBookScreen()
+            with TabPane("Settings", id="settings"):
+                yield SettingsScreen()
         yield Footer()
 
     def on_mount(self) -> None:

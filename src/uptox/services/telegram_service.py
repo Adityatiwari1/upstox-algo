@@ -2,6 +2,8 @@
 Telegram notification service.
 Sends messages via Bot API using token + chat_id from settings.
 All sends are fire-and-forget (non-blocking).
+Each notify_* function checks notification_settings before sending —
+configurable from the Settings UI tab.
 """
 from __future__ import annotations
 import asyncio
@@ -17,6 +19,11 @@ _sent_daily_report_date: date | None = None
 def _get_config() -> tuple[str, str]:
     from uptox.config.settings import settings
     return getattr(settings, "telegram_token", ""), getattr(settings, "telegram_chat_id", "")
+
+
+def _enabled(key: str) -> bool:
+    from uptox.services import notification_settings
+    return notification_settings.is_enabled(key)
 
 
 async def _send_async(text: str) -> None:
@@ -51,6 +58,8 @@ def send(text: str) -> None:
 # ── Formatted messages ────────────────────────────────────────────────────────
 
 def notify_trade_open(trade: dict) -> None:
+    if not _enabled("trade_open"):
+        return
     opt_icon = "🟢" if trade["option"] == "CE" else "🔴"
     send(
         f"{opt_icon} <b>TRADE OPEN</b>\n"
@@ -66,6 +75,8 @@ def notify_trade_open(trade: dict) -> None:
 
 
 def notify_trade_close(trade: dict) -> None:
+    if not _enabled("trade_close"):
+        return
     pnl_pts = trade.get("pnl_pts", 0.0)
     pnl_rs  = trade.get("pnl_rs",  0.0)
     peak    = trade.get("peak_price")
@@ -82,6 +93,8 @@ def notify_trade_close(trade: dict) -> None:
 
 
 def notify_partial_close(trade: dict, closed_lots: int, exit_price: float, pnl_rs: float) -> None:
+    if not _enabled("partial_exit"):
+        return
     send(
         f"🔶 <b>PARTIAL EXIT</b>  {trade['option']} {trade['strike']}\n"
         f"Closed  : {closed_lots} lot(s) @ ₹{exit_price:.1f}\n"
@@ -96,6 +109,8 @@ def notify_daily_report() -> None:
     if _sent_daily_report_date == today:
         return
     _sent_daily_report_date = today
+    if not _enabled("daily_report"):
+        return
 
     from uptox.services import trade_book, capital_service
     ds  = trade_book.get_daily_stats()
@@ -118,12 +133,80 @@ def notify_daily_report() -> None:
     )
 
 
+def _period_summary(trades: list[dict]) -> dict:
+    wins   = [t for t in trades if t.get("pnl_pts", 0) > 0]
+    losses = [t for t in trades if t.get("pnl_pts", 0) <= 0]
+    pnl_rs = sum(t.get("pnl_rs", 0) for t in trades)
+    wr     = len(wins) / len(trades) * 100 if trades else 0.0
+    best   = max(trades, key=lambda t: t.get("pnl_pts", 0)) if trades else None
+    worst  = min(trades, key=lambda t: t.get("pnl_pts", 0)) if trades else None
+    return {
+        "total": len(trades), "wins": len(wins), "losses": len(losses),
+        "pnl_rs": pnl_rs, "win_rate": wr, "best": best, "worst": worst,
+    }
+
+
+def notify_weekly_report() -> None:
+    if not _enabled("weekly_report"):
+        return
+    from uptox.services import trade_book, capital_service
+    today = date.today()
+    iso_year, iso_week, _ = today.isocalendar()
+    all_t = trade_book.get_all_trades()
+    week_trades = [
+        t for t in all_t
+        if t.get("date") and date.fromisoformat(t["date"]).isocalendar()[:2] == (iso_year, iso_week)
+    ]
+    s = _period_summary(week_trades)
+    sign = "+" if s["pnl_rs"] >= 0 else ""
+    lines = [
+        f"📅 <b>Weekly Report — ISO Week {iso_week}, {iso_year}</b>",
+        f"Trades : {s['total']}  ({s['wins']}W / {s['losses']}L)  WR: {s['win_rate']:.0f}%",
+        f"Week P&amp;L: {sign}₹{s['pnl_rs']:,.0f}",
+        f"Capital : ₹{capital_service.get_capital():,.0f}",
+    ]
+    if s["best"]:
+        lines.append(f"Best   : {s['best']['option']} {s['best']['strike']} +{s['best']['pnl_pts']:.1f}pts")
+    if s["worst"] and s["worst"]["pnl_pts"] < 0:
+        lines.append(f"Worst  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
+    send("\n".join(lines))
+
+
+def notify_monthly_report() -> None:
+    if not _enabled("monthly_report"):
+        return
+    from uptox.services import trade_book, capital_service
+    today = date.today()
+    all_t = trade_book.get_all_trades()
+    month_trades = [
+        t for t in all_t
+        if t.get("date") and t["date"][:7] == today.strftime("%Y-%m")
+    ]
+    s = _period_summary(month_trades)
+    sign = "+" if s["pnl_rs"] >= 0 else ""
+    lines = [
+        f"🗓️ <b>Monthly Report — {today.strftime('%B %Y')}</b>",
+        f"Trades : {s['total']}  ({s['wins']}W / {s['losses']}L)  WR: {s['win_rate']:.0f}%",
+        f"Month P&amp;L: {sign}₹{s['pnl_rs']:,.0f}",
+        f"Capital : ₹{capital_service.get_capital():,.0f}  (base ₹{capital_service.get_base_capital():,.0f})",
+    ]
+    if s["best"]:
+        lines.append(f"Best   : {s['best']['option']} {s['best']['strike']} +{s['best']['pnl_pts']:.1f}pts")
+    if s["worst"] and s["worst"]["pnl_pts"] < 0:
+        lines.append(f"Worst  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
+    send("\n".join(lines))
+
+
 def notify_daily_limit_hit(reason: str) -> None:
+    if not _enabled("daily_limit_hit"):
+        return
     send(f"🚫 <b>DAILY LIMIT HIT</b>\n{reason}\nNo more trades today.")
 
 
 def notify_trade_update(trade: dict, status: dict) -> None:
-    """Periodic (every 15 min) status ping while a trade is open."""
+    """Periodic status ping while a trade is open. Interval set in notification_settings."""
+    if not _enabled("trade_update"):
+        return
     pnl_pts = trade.get("pnl_pts", 0.0)
     pnl_rs  = trade.get("pnl_rs",  0.0)
     icon    = "🟢" if pnl_pts >= 0 else "🔴"
@@ -140,12 +223,16 @@ def notify_trade_update(trade: dict, status: dict) -> None:
 
 
 def notify_feed_status(status: str, detail: str = "") -> None:
+    if not _enabled("feed_status"):
+        return
     icons = {"disconnected": "⚠️", "reconnecting": "🔄", "connected": "✅"}
     icon  = icons.get(status, "ℹ️")
     send(f"{icon} <b>FEED {status.upper()}</b>" + (f"\n{detail}" if detail else ""))
 
 
 def notify_approaching_limit(pnl_pct: float, limit_pct: float) -> None:
+    if not _enabled("approaching_limit"):
+        return
     send(
         f"⚠️ <b>APPROACHING DAILY LOSS LIMIT</b>\n"
         f"Current: {pnl_pct:+.1f}%   Limit: −{limit_pct:.1f}%\n"
@@ -154,7 +241,9 @@ def notify_approaching_limit(pnl_pct: float, limit_pct: float) -> None:
 
 
 def notify_market_update(snapshot: dict) -> None:
-    """Periodic (every 30 min) market snapshot — sent regardless of open trade."""
+    """Periodic market snapshot, sent regardless of open trade. Interval set in notification_settings."""
+    if not _enabled("market_update"):
+        return
     trend_icon = "📈" if snapshot["sma_score"] > 0 else "📉" if snapshot["sma_score"] < 0 else "➖"
     send(
         f"{trend_icon} <b>MARKET UPDATE</b>  {snapshot['time']}\n"

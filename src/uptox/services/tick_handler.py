@@ -88,25 +88,37 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
 
             _bar_closes_seen += 1
 
-            # Every 3rd bar close (15 min): trade status ping, if a trade is open
-            if _bar_closes_seen % 3 == 0 and ot:
-                from uptox.services.telegram_service import notify_trade_update
-                notify_trade_update(ot, trailing_sl_service.get_status())
+            # Periodic notifications only fire during the trading window — feed
+            # keeps sending closing/settlement ticks after 15:30 which were
+            # previously still advancing the bar counter and firing alerts late.
+            from uptox.services.market_calendar import is_trade_window
+            if is_trade_window():
+                from uptox.services import notification_settings
 
-            # Every 6th bar close (30 min): market snapshot, regardless of trade state
-            if _bar_closes_seen % 6 == 0:
-                _send_market_update(tick.ltp, ot)
+                # Trade status ping, if a trade is open — interval configurable in Settings (0 = off)
+                trade_int = notification_settings.get_sub("trade_update", "interval_min")
+                trade_every = max(1, trade_int // 5)
+                if ot and trade_int > 0 and _bar_closes_seen % trade_every == 0:
+                    from uptox.services.telegram_service import notify_trade_update
+                    notify_trade_update(ot, trailing_sl_service.get_status())
 
-            # Approaching daily loss limit — warn once per day at 75% of the limit
-            from uptox.services import capital_service
-            today_str = now.strftime("%Y-%m-%d")
-            ds = trade_book.get_daily_stats()
-            loss_limit = capital_service.get_daily_loss_limit_pct()
-            if (_limit_warned_today != today_str
-                    and ds["pnl_pct_today"] <= -0.75 * loss_limit):
-                _limit_warned_today = today_str
-                from uptox.services.telegram_service import notify_approaching_limit
-                notify_approaching_limit(ds["pnl_pct_today"], loss_limit)
+                # Market snapshot, regardless of trade state — interval configurable (0 = off)
+                market_int = notification_settings.get_sub("market_update", "interval_min")
+                market_every = max(1, market_int // 5)
+                if market_int > 0 and _bar_closes_seen % market_every == 0:
+                    _send_market_update(tick.ltp, ot)
+
+                # Approaching daily loss limit — warn once per day at configurable threshold
+                from uptox.services import capital_service
+                today_str = now.strftime("%Y-%m-%d")
+                ds = trade_book.get_daily_stats()
+                loss_limit = capital_service.get_daily_loss_limit_pct()
+                warn_pct   = notification_settings.get_sub("approaching_limit", "threshold_pct") / 100.0
+                if (_limit_warned_today != today_str
+                        and ds["pnl_pct_today"] <= -warn_pct * loss_limit):
+                    _limit_warned_today = today_str
+                    from uptox.services.telegram_service import notify_approaching_limit
+                    notify_approaching_limit(ds["pnl_pct_today"], loss_limit)
         _last_bar_slot = bar_slot
 
     # ── IV rank update (ATM option ticks only) ────────────────────────────────
@@ -144,14 +156,23 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
             _close_and_notify(tick.ltp, "trail_sl")
 
-    # ── Daily report + learning at 3:30 PM (once) ────────────────────────────
+    # ── Daily/weekly/monthly report + learning at 3:30 PM (once) ─────────────
     now   = datetime.now(_IST)
     today = now.strftime("%Y-%m-%d")
     if now.time() >= _REPORT_TIME and _report_sent_today != today:
         _report_sent_today = today
-        from uptox.services.telegram_service import notify_daily_report
+        from uptox.services.telegram_service import (
+            notify_daily_report, notify_weekly_report, notify_monthly_report,
+        )
         from uptox.services import learning_service
+        from uptox.services.market_calendar import (
+            is_last_trading_day_of_week, is_last_trading_day_of_month,
+        )
         notify_daily_report()
+        if is_last_trading_day_of_week():
+            notify_weekly_report()
+        if is_last_trading_day_of_month():
+            notify_monthly_report()
         asyncio.create_task(asyncio.to_thread(learning_service.run))
 
 

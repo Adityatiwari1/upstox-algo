@@ -136,6 +136,22 @@ def event_min_score() -> int:
     return _EVENT_MIN_SCORE if get_event_today() else 2
 
 
+def is_last_trading_day_of_week(check_date: date | None = None) -> bool:
+    """True if no more trading days remain in the current ISO week (Mon-Sun)."""
+    import datetime as _dt
+    d = check_date or datetime.now(_IST).date()
+    nxt = next_trading_day(d + _dt.timedelta(days=1))
+    return nxt.isocalendar()[1] != d.isocalendar()[1] or nxt.year != d.year
+
+
+def is_last_trading_day_of_month(check_date: date | None = None) -> bool:
+    """True if no more trading days remain in the current calendar month."""
+    import datetime as _dt
+    d = check_date or datetime.now(_IST).date()
+    nxt = next_trading_day(d + _dt.timedelta(days=1))
+    return nxt.month != d.month or nxt.year != d.year
+
+
 # ── Fallback (no exchange_calendars) ─────────────────────────────────────────
 
 _NSE_HOLIDAYS: set[date] = {
