@@ -19242,3 +19242,1197 @@ P&amp;L: +₹+7,157
 ✅ No parameter changes — system performing within expected range
 2026-06-24 10:00:00,074 ERROR    uptox.services.telegram_service: Telegram dispatch: There is no current event loop in thread 'asyncio_0'.
 2026-06-24 10:00:00,711 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-24 11:22:37,696 INFO     uptox.services.capital_service: Capital synced: base=₹50000  realised=₹12835  current=₹62835
+2026-06-24 11:22:37,696 INFO     uptox.services.adaptive_params: Adaptive params loaded: {'min_score': 2, 'trail_atr_baseline': 20.0, 'bk_min_dist': 11.0, 'bk_timeout': 300, 'sr_tolerance': 15.0, 'pcr_bull_block': 0.5, 'pcr_bear_block': 2.0, 'iv_rank_block': 70.0}
+2026-06-24 11:22:37,810 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/user/profile "HTTP/1.1 200 OK"
+2026-06-24 11:22:37,811 INFO     __main__: Existing token valid
+2026-06-24 11:22:38,078 INFO     __main__: Starting Uptox Trading
+2026-06-24 11:22:38,220 INFO     uptox.api.feed_client: [feed] Market closed — sleeping 58042s until 2026-06-25 09:00 IST
+2026-06-24 11:22:38,548 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-24/2026-04-05 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,550 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-24/2026-04-05 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,554 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-06-24/2026-03-26 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,555 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-24/2026-05-30 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,559 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 1hr: 378 bars  SMA200=23667.1
+2026-06-24 11:22:38,562 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 1hr: 378 bars  SMA200=55123.2
+2026-06-24 11:22:38,591 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-24/2026-06-14 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,592 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/1minute/2026-06-24/2026-05-30 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,595 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/market-quote/ltp?instrument_key=NSE_INDEX%7CNifty+Bank "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,595 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,598 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/1minute/2026-06-24/2026-06-14 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,601 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-06-24/2026-03-26 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,607 INFO     uptox.services.option_chain_service: Bank Nifty LTP fetched: 58150.35
+2026-06-24 11:22:38,615 INFO     uptox.services.option_chain_service: Fetched 18 future expiries: ['2026-06-30', '2026-07-07', '2026-07-14', '2026-07-21', '2026-07-28']
+2026-06-24 11:22:38,625 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 5min: 525 bars  SMA200=24036.1
+2026-06-24 11:22:38,663 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 5min: 525 bars  SMA200=57697.1
+2026-06-24 11:22:38,725 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 15min: 425 bars  SMA200=57388.4
+2026-06-24 11:22:38,744 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 15min: 425 bars  SMA200=23944.0
+2026-06-24 11:22:38,788 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%20Bank/30minute/2026-03-25/2025-12-25 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,794 INFO     uptox.services.sma_service: NSE_INDEX|Nifty Bank 4hr: 240 bars  SMA200=56413.5
+2026-06-24 11:22:38,795 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/historical-candle/NSE_INDEX%7CNifty%2050/30minute/2026-03-25/2025-12-25 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,803 INFO     uptox.services.sma_service: NSE_INDEX|Nifty 50 4hr: 240 bars  SMA200=24188.4
+2026-06-24 11:22:38,823 INFO     httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-06-30 "HTTP/1.1 200 OK"
+2026-06-24 11:22:38,827 INFO     uptox.services.option_chain_service: oc loaded 144 strikes, expiry=2026-06-30
+2026-06-25 03:30:01,026 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 401 Unauthorized"
+2026-06-25 03:30:01,027 WARNING  uptox.api.feed_client: [feed] Token expired — re-authenticating...
+2026-06-25 03:30:14,853 INFO     httpx: HTTP Request: POST https://api.upstox.com/v2/login/authorization/token "HTTP/1.1 200 OK"
+2026-06-25 03:30:14,857 INFO     uptox.api.feed_client: [feed] Re-authentication successful.
+2026-06-25 03:30:14,916 INFO     httpx: HTTP Request: GET https://api.upstox.com/v3/feed/market-data-feed/authorize "HTTP/1.1 200 OK"
+2026-06-25 03:30:14,972 INFO     uptox.api.feed_client: [feed] Connected — 2 instruments in 'full' mode
+2026-06-25 04:00:00,121 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:00:00,122 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24147.2
+2026-06-25 04:00:00,954 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:00:01,118 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 200 bars oi_sc=+1 — entering without retest
+2026-06-25 04:00:01,119 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|79734 @ 116.0  SL=98.0  tgt=152.1
+2026-06-25 04:00:01,119 INFO     uptox.services.trade_book: Paper OPEN: CE 24150 @ 116.0  SL=98.0  TGT=152.1  lots=2
+2026-06-25 04:00:01,130 INFO     uptox.ui.screens.dashboard: Trade opened (sustained): CE 24150 @ 116.0  lots=2  risk=₹2346 (3.7%)  cap=5pct_risk
+2026-06-25 04:00:01,746 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:15:00,685 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:21:13,867 INFO     uptox.services.trailing_sl_service: Trail SL phase→1 (33%, breakeven): floor → 116.0
+2026-06-25 04:21:24,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:21:26,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:22:05,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:22:08,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:22:14,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:22:15,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:22:16,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:22:46,867 INFO     uptox.services.trailing_sl_service: Trail SL phase→2 (50%): floor → 125.1
+2026-06-25 04:24:26,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:24:34,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:24:35,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:24:45,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:24:46,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:24:47,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:24:48,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:24:51,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:24:53,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:24:54,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:24:56,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:26:44,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:26:58,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:26:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:28:51,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:28:53,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:28:54,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:28:59,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:30:00,698 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:30:00,739 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:30:16,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:30:17,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:30:54,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:31:43,107 WARNING  uptox.services.trailing_sl_service: SL triggered phase=2: ltp=125.0 <= sl=125.1  entry=116.0  peak=136.7
+2026-06-25 04:31:43,135 INFO     uptox.services.trade_book: Trade saved to logs/trades.xlsx
+2026-06-25 04:31:43,136 INFO     uptox.services.capital_service: Capital adjusted by ₹1170 → ₹64,005
+2026-06-25 04:31:43,136 INFO     uptox.services.trailing_sl_service: Trail SL: exited
+2026-06-25 04:31:43,136 INFO     uptox.services.trade_book: Paper CLOSE: WIN  P&L=9.0pts  ₹1170  reason=trail_sl
+2026-06-25 04:31:43,146 INFO     uptox.ui.screens.dashboard: Re-entry window armed: CE SL closed
+2026-06-25 04:31:43,146 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24169.8
+2026-06-25 04:31:43,792 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:31:44,119 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 206 bars oi_sc=+1 — entering without retest
+2026-06-25 04:31:44,119 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|79734 @ 125.7  SL=107.7  tgt=161.7
+2026-06-25 04:31:44,119 INFO     uptox.services.trade_book: Paper OPEN: CE 24150 @ 125.7  SL=107.7  TGT=161.7  lots=2
+2026-06-25 04:31:44,127 INFO     uptox.ui.screens.dashboard: Trade opened (sustained): CE 24150 @ 125.7  lots=2  risk=₹2340 (3.7%)  cap=5pct_risk
+2026-06-25 04:31:44,759 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:34:26,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:34:27,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:34:31,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:34:34,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:34:35,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:34:51,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:34:52,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:34:53,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:34:55,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:35:34,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:35:35,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:35:36,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:35:43,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:35:46,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:35:47,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:35:50,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:44:18,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:45:00,688 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:45:51,657 INFO     uptox.services.trailing_sl_service: Trail SL phase→1 (33%, breakeven): floor → 125.7
+2026-06-25 04:47:37,270 WARNING  uptox.services.trailing_sl_service: SL triggered phase=1: ltp=125.6 <= sl=125.7  entry=125.7  peak=137.9
+2026-06-25 04:47:37,288 INFO     uptox.services.trade_book: Trade saved to logs/trades.xlsx
+2026-06-25 04:47:37,289 INFO     uptox.services.capital_service: Capital adjusted by ₹-13 → ₹63,992
+2026-06-25 04:47:37,289 INFO     uptox.services.trailing_sl_service: Trail SL: exited
+2026-06-25 04:47:37,289 INFO     uptox.services.trade_book: Paper CLOSE: LOSS  P&L=-0.1pts  ₹-13  reason=trail_sl
+2026-06-25 04:47:37,913 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:47:38,119 INFO     uptox.ui.screens.dashboard: Re-entry window armed: CE SL closed
+2026-06-25 04:47:56,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:47:56,119 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24174.0
+2026-06-25 04:47:57,119 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 209 bars oi_sc=+1 — entering without retest
+2026-06-25 04:47:57,119 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|79734 @ 125.0  SL=107.0  tgt=161.0
+2026-06-25 04:47:57,119 INFO     uptox.services.trade_book: Paper OPEN: CE 24150 @ 125.0  SL=107.0  TGT=161.0  lots=2
+2026-06-25 04:47:57,128 INFO     uptox.ui.screens.dashboard: Trade opened (sustained): CE 24150 @ 125.0  lots=2  risk=₹2340 (3.7%)  cap=5pct_risk
+2026-06-25 04:47:57,744 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 04:47:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:48:00,124 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:48:51,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:48:52,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:48:58,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:48:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:49:00,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:49:01,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:49:20,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:49:29,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:49:30,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:50:13,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:50:14,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:50:21,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:50:22,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:50:24,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:50:25,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:50:26,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:50:27,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:50:56,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:50:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:51:00,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:51:04,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:51:07,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:51:11,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:51:12,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:51:39,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:51:40,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:51:43,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:51:53,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:51:56,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:51:58,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:51:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:03,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:05,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:07,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:08,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:14,118 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:22,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:23,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:24,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:25,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:26,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:27,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:31,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:32,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:34,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:35,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:46,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:48,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:51,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:52:52,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:52:54,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:53:04,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:53:13,118 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:53:23,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:53:24,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:53:27,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:53:29,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:53:31,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:55:58,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:55:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:56:32,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:56:33,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:56:35,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:56:56,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:56:57,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:57:09,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:57:10,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:57:13,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:57:14,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:57:15,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:57:28,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:57:35,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:57:36,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:57:40,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 04:57:41,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 04:57:42,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:00:00,837 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 05:00:00,871 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 05:00:29,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:00:30,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:00:31,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:00:47,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:00:53,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:00:55,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:01:06,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:01:07,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:01:09,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:01:38,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:01:40,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:01:45,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:01:46,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:01:47,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:01:48,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:03:22,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:03:23,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:03:27,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:03:29,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:03:31,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:03:41,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:03:42,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:05:41,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:05:43,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:05:44,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:05:49,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:05:50,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:05:54,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:05,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:07,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:11,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:13,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:14,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:16,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:18,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:19,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:21,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:39,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:41,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:43,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:44,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:45,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:47,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:49,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:52,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:06:54,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:06:56,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:08:48,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:08:49,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:08:50,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:08:51,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:08:52,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:11:55,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:11:56,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:11:57,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:11:59,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:00,123 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:12:01,160 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:03,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:12:04,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:09,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:12:18,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:24,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:12:26,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:33,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:12:34,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:35,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:12:37,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:12:39,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:13:20,119 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:13:21,119 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:13:24,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:13:25,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:13:27,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 05:13:28,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 05:15:00,680 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 05:17:21,804 INFO     uptox.services.trailing_sl_service: Trail SL phase→1 (33%, breakeven): floor → 125.0
+2026-06-25 05:30:00,705 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 05:30:00,862 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 05:45:00,703 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 05:46:08,908 INFO     uptox.services.trailing_sl_service: Trail SL phase→2 (50%): floor → 134.0
+2026-06-25 06:00:00,735 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 06:00:00,775 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 06:00:47,309 WARNING  uptox.services.trailing_sl_service: SL triggered phase=2: ltp=134.0 <= sl=134.0  entry=125.0  peak=146.4
+2026-06-25 06:00:47,329 INFO     uptox.services.trade_book: Trade saved to logs/trades.xlsx
+2026-06-25 06:00:47,329 INFO     uptox.services.capital_service: Capital adjusted by ₹1170 → ₹65,162
+2026-06-25 06:00:47,329 INFO     uptox.services.trailing_sl_service: Trail SL: exited
+2026-06-25 06:00:47,329 INFO     uptox.services.trade_book: Paper CLOSE: WIN  P&L=9.0pts  ₹1170  reason=trail_sl
+2026-06-25 06:00:47,940 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 06:00:48,121 INFO     uptox.ui.screens.dashboard: Re-entry window armed: CE SL closed
+2026-06-25 06:30:00,705 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 07:00:00,683 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 07:30:00,699 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 07:44:37,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:44:37,121 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24172.8
+2026-06-25 07:44:38,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 244 bars oi_sc=+1 — entering without retest
+2026-06-25 07:44:38,121 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|79734 @ 127.1  SL=109.1  tgt=163.1
+2026-06-25 07:44:38,121 INFO     uptox.services.trade_book: Paper OPEN: CE 24150 @ 127.1  SL=109.1  TGT=163.1  lots=2
+2026-06-25 07:44:38,130 INFO     uptox.ui.screens.dashboard: Trade opened (sustained): CE 24150 @ 127.1  lots=2  risk=₹2340 (3.6%)  cap=5pct_risk
+2026-06-25 07:44:38,820 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 07:44:54,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:44:56,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:45:00,675 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 07:45:37,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:45:39,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:45:43,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:45:44,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:45:45,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:45:46,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:45:54,121 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:45:58,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:46:00,121 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:46:01,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:46:25,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:46:27,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:46:28,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:46:30,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:46:33,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:46:34,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 07:46:39,121 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 07:49:49,406 INFO     uptox.services.trailing_sl_service: Trail SL phase→1 (33%, breakeven): floor → 127.1
+2026-06-25 08:00:00,698 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:00:00,731 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:00:49,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:00:51,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:10:21,061 INFO     uptox.services.trailing_sl_service: Trail SL phase→2 (50%): floor → 136.1
+2026-06-25 08:15:00,676 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:17:06,957 WARNING  uptox.services.trailing_sl_service: SL triggered phase=2: ltp=135.8 <= sl=136.1  entry=127.1  peak=148.5
+2026-06-25 08:17:06,984 INFO     uptox.services.trade_book: Trade saved to logs/trades.xlsx
+2026-06-25 08:17:06,984 INFO     uptox.services.capital_service: Capital adjusted by ₹1144 → ₹66,306
+2026-06-25 08:17:06,984 INFO     uptox.services.trailing_sl_service: Trail SL: exited
+2026-06-25 08:17:06,984 INFO     uptox.services.trade_book: Paper CLOSE: WIN  P&L=8.8pts  ₹1144  reason=trail_sl
+2026-06-25 08:17:07,120 INFO     uptox.ui.screens.dashboard: Re-entry window armed: CE SL closed
+2026-06-25 08:17:07,610 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:27:44,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:27:44,120 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24173.0
+2026-06-25 08:27:45,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 253 bars oi_sc=+1 — entering without retest
+2026-06-25 08:27:45,121 INFO     uptox.services.trailing_sl_service: Trail SL: CE NSE_FO|79734 @ 125.2  SL=107.2  tgt=161.2
+2026-06-25 08:27:45,121 INFO     uptox.services.trade_book: Paper OPEN: CE 24150 @ 125.2  SL=107.2  TGT=161.2  lots=2
+2026-06-25 08:27:45,131 INFO     uptox.ui.screens.dashboard: Trade opened (sustained): CE 24150 @ 125.2  lots=2  risk=₹2346 (3.5%)  cap=5pct_risk
+2026-06-25 08:27:45,776 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:27:46,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:27:47,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:27:48,121 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:30:00,706 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:30:00,751 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:30:05,121 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:30:42,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:30:44,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:30:45,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:30:47,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:30:48,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:30:51,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:30:52,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:32:39,121 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:32:43,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:32:44,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:32:45,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:38:11,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:38:12,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:39:30,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:39:31,121 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:39:37,121 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:39:38,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:39:39,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:39:40,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:39:42,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:39:43,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:39:46,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:39:48,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 08:39:49,120 INFO     uptox.ui.screens.dashboard: Signal flip: NO TRADE → TRADE  (score=+5)
+2026-06-25 08:43:24,212 WARNING  uptox.services.trailing_sl_service: SL triggered phase=0: ltp=106.7 <= sl=107.2  entry=125.2  peak=132.2
+2026-06-25 08:43:24,238 INFO     uptox.services.trade_book: Trade saved to logs/trades.xlsx
+2026-06-25 08:43:24,238 INFO     uptox.services.capital_service: Capital adjusted by ₹-2405 → ₹63,901
+2026-06-25 08:43:24,239 INFO     uptox.services.trailing_sl_service: Trail SL: exited
+2026-06-25 08:43:24,239 INFO     uptox.services.trade_book: Paper CLOSE: SL_HIT  P&L=-18.5pts  ₹-2405  reason=trail_sl
+2026-06-25 08:43:24,849 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 08:43:25,121 INFO     uptox.ui.screens.dashboard: Re-entry window armed: CE SL closed
+2026-06-25 08:43:25,121 INFO     uptox.ui.screens.dashboard: Breakout watch started: CE @ Nifty 24149.3
+2026-06-25 08:43:26,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:27,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:28,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:29,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:30,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:31,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:32,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:33,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:34,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:35,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:36,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:37,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:38,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:39,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:40,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:41,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:42,124 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:43,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:44,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:45,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:46,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:47,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:48,124 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:49,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:50,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:51,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:52,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:53,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:54,124 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:55,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:56,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:57,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:58,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:43:59,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:44:00,125 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:44:01,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:44:02,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 256 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:45,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:46,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:47,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:48,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:49,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:50,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:51,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:52,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:53,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:54,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:55,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:56,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:57,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:58,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:45:59,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:00,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:01,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:02,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:03,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:04,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:05,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:06,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:07,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:08,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:09,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:10,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:11,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:12,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:13,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:14,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:15,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:16,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:17,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:18,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:19,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:20,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:21,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:22,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:23,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:24,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:25,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:26,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:27,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:28,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:29,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:30,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:31,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:32,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:33,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:34,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:35,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:36,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:37,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:38,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:39,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:40,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:41,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:42,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:43,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:44,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:45,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:46,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:47,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:48,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:49,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:50,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:51,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:52,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:53,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:54,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:55,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:56,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:57,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:58,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:46:59,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:00,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:01,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:02,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:03,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:04,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:05,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:06,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:07,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:08,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:09,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:10,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:11,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:12,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:13,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:14,124 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:15,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:16,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:17,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:21,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:22,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:24,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:25,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:26,125 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:27,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:47:28,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:05,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:06,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:07,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:08,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:09,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:10,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:11,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:12,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:13,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:14,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:15,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:16,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:17,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:18,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:19,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:20,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:21,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:22,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:23,121 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:24,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:48:25,120 INFO     uptox.ui.screens.dashboard: Sustained signal: CE sma_score=+2 for 257 bars oi_sc=+1 — entering without retest
+2026-06-25 08:53:48,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:53:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:53:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:53:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:53:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:53:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.6  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:53:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:53:55,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.4  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:53:56,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:53:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.8  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:53:58,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:53:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:54:00,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:54:01,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:55:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:55:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:55:53,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:55:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:55:55,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.1  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:55:56,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.8  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:55:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:55:58,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:55:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:00,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:01,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:02,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.4  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:03,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.7  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:09,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.6  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.6  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:13,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:15,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:16,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:17,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.2  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:56:22,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.9  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:56:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.1  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:56:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.9  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:26,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:27,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:28,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.2  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24100.0  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:56:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:31,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:32,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.7  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:33,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.4  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:35,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:37,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:39,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.1  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.9  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.7  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.6  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:46,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.2  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:52,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:56:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:55,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:56,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:56:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:56:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.9  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:57:00,122 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.4  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:57:01,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:57:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:57:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24100.0  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:57:15,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:57:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.8  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:57:36,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:57:37,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:57:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.9  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:57:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24100.0  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:58:06,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:08,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:09,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.4  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.4  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:12,254 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:58:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.7  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:15,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:16,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:17,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.4  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:20,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:21,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:22,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.4  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:58:26,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:27,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:58:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.9  (Resistance: Round 24100 (0pt above))
+2026-06-25 08:58:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:31,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.1  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:33,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.6  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.1  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:58:35,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 08:58:37,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 08:58:38,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.2  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:39,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:58:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:42,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.1  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:58:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.4  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:58:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.1  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:58:49,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.7  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:51,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.8  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.3  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:58:53,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.4  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.3  (Resistance: Round 24100 (6pt above))
+2026-06-25 08:58:55,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.7  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:56,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.9  (Resistance: Round 24100 (4pt above))
+2026-06-25 08:58:57,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:58:58,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.7  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:58:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:59:00,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 08:59:01,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.7  (Resistance: Round 24100 (7pt above))
+2026-06-25 08:59:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.2  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:03,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.6  (Resistance: Round 24100 (7pt above))
+2026-06-25 08:59:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.8  (Resistance: Round 24100 (7pt above))
+2026-06-25 08:59:05,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.8  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.3  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.7  (Resistance: Round 24100 (9pt above))
+2026-06-25 08:59:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.8  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.7  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.6  (Resistance: Round 24100 (7pt above))
+2026-06-25 08:59:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.5  (Resistance: Round 24100 (9pt above))
+2026-06-25 08:59:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.8  (Resistance: Round 24100 (9pt above))
+2026-06-25 08:59:13,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.2  (Resistance: Round 24100 (9pt above))
+2026-06-25 08:59:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.0  (Resistance: Round 24100 (10pt above))
+2026-06-25 08:59:15,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.9  (Resistance: Round 24100 (10pt above))
+2026-06-25 08:59:16,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.3  (Resistance: Round 24100 (10pt above))
+2026-06-25 08:59:17,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.3  (Resistance: Round 24100 (10pt above))
+2026-06-25 08:59:18,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.0  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.1  (Resistance: Round 24100 (7pt above))
+2026-06-25 08:59:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.8  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:21,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.1  (Resistance: Round 24100 (8pt above))
+2026-06-25 08:59:22,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.8  (Resistance: Round 24100 (7pt above))
+2026-06-25 08:59:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.3  (Resistance: Round 24100 (6pt above))
+2026-06-25 08:59:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.7  (Resistance: Round 24100 (5pt above))
+2026-06-25 08:59:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:59:26,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:59:27,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:59:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 08:59:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:59:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 08:59:31,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:00:00,691 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 09:10:03,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.7  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:10:06,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:10:07,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:10:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.4  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:10:10,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:13,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:15,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:16,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:17,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.1  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:19,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:22,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.2  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:26,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.4  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.6  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:10:31,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:32,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:35,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.8  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:10:36,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:37,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.7  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:38,125 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:39,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.1  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:41,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.9  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:10:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:10:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:10:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:12:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.9  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:12:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:12:22,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.1  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:12:23,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:12:24,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:12:25,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.2  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:12:26,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:12:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:12:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:12:29,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.7  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:12:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.3  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:12:31,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.0  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:12:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.8  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:12:33,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.3  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:12:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:12:35,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:12:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.6  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:12:37,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.1  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:12:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.3  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:12:39,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.0  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:12:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:12:41,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.4  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:12:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.3  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:12:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.4  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:12:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.9  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:12:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:12:46,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.0  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:12:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:12:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.5  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:12:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:12:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.0  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:12:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:16:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:16:03,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:16:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:16:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:16:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.3  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:16:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.3  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:16:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.0  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:16:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.8  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:16:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.8  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:16:11,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:16:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.3  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:16:13,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:16:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.9  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:16:15,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.8  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:16:16,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.1  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:16:17,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.2  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:16:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.3  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:16:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.8  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:16:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:16:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.8  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:16:22,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.8  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:16:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:16:58,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.0  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:17:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.5  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:17:49,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:17:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.2  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:17:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.2  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:17:52,257 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.0  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:17:53,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.9  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:17:54,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:17:55,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.0  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:17:56,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:17:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.5  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:17:58,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.5  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:17:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.6  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:18:00,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.2  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:18:01,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:18:02,146 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.4  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:18:03,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:18:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.8  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:18:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.6  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:18:06,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.8  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:18:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.5  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:18:08,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.7  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:18:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.3  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:18:38,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.6  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:18:39,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:18:40,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.8  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:18:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.0  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:18:55,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.8  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:18:56,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:18:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.3  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:18:58,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:18:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:00,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:01,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.2  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.7  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:03,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.7  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:04,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:19:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:19:08,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.3  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.2  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.1  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.8  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:13,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.7  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:15,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:16,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.4  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:19:17,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.7  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.1  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:22,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.0  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.4  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:19:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.0  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.8  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.6  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:31,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.9  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.0  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:33,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.1  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.7  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:38,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.2  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:19:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.7  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:19:43,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.0  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:19:44,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.7  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:19:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.2  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:21:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.1  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:21:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.3  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.3  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:18,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.6  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:21:20,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.2  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:21:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.8  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:38,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.8  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.2  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:21:43,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.1  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:22:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.2  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:22:22,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.6  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:23,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.0  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.0  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:26,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.8  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.8  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:28,259 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.7  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:31,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:33,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:34,123 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.9  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:35,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.7  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:37,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.7  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:39,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.0  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:40,123 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.4  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:22:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.5  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:22:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.4  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.7  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:46,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.3  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.4  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:48,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.0  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:22:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.8  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:22:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.1  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:22:52,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.8  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:22:53,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.6  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:22:54,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.9  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:22:55,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.0  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:22:56,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:22:57,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.8  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:22:58,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:22:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.6  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:00,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:01,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.3  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.7  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:03,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.5  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.2  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:05,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.6  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.5  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.2  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.0  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:10,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.6  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.5  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:23:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.3  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:13,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.2  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:14,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.0  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:23:15,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.3  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:23:16,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24091.9  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:17,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.2  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.1  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.2  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:20,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.0  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:23:22,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.1  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.0  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.8  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.9  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:26,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:23:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:23:29,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.6  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:30,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.8  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:31,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:32,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.0  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:33,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.3  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.0  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:35,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.1  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:37,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.4  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:39,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:40,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.3  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.9  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.2  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:44,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.5  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.2  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.8  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:48,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.8  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.0  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:50,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.3  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:23:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:23:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:23:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.8  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:25:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:25:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.2  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:25:51,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:25:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:25:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:25:54,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:37,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:26:39,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:26:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.1  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:42,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.7  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:26:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.6  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:46,123 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.1  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:47,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.4  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:26:48,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:26:49,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:26:52,123 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.0  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:26:53,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.8  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:26:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:26:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.6  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:27:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.2  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:07,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.9  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:08,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.7  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:27:09,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:10,125 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.6  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:27:11,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:12,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:13,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.4  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:14,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:15,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.1  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:16,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:17,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.5  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.7  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.7  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:22,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:23,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:24,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.4  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:26,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.7  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:28,123 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:29,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:30,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:31,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.3  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.2  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:33,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:34,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:35,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.7  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:37,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.7  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:39,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:27:40,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:27:42,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.2  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:27:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.4  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:44,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:48,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:27:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.7  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:54,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.7  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:55,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.1  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:56,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:57,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:27:58,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:27:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.9  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:00,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.8  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:01,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.9  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:03,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.1  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:07,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.7  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:08,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.8  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:09,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.3  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:10,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.4  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:11,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.9  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:12,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.8  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:13,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.9  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:14,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:15,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:16,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.4  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:17,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.1  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:18,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:19,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.3  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:20,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.3  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:22,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.5  (Resistance: Round 24100 (0pt above))
+2026-06-25 09:28:24,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.6  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:28:25,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:28:26,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24099.3  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:28:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.0  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.8  (Resistance: Round 24100 (1pt above))
+2026-06-25 09:28:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.1  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.0  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:31,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:33,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.9  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:34,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:35,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.6  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:36,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.8  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:37,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.2  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:39,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.1  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:40,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.5  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.3  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:43,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.5  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:45,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.5  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:47,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.2  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:48,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.0  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24094.0  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:28:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.2  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24095.2  (Resistance: Round 24100 (5pt above))
+2026-06-25 09:28:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.0  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:28:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.2  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:28:55,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:56,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.8  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:57,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.5  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:58,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24098.3  (Resistance: Round 24100 (2pt above))
+2026-06-25 09:28:59,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24097.3  (Resistance: Round 24100 (3pt above))
+2026-06-25 09:29:00,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24096.4  (Resistance: Round 24100 (4pt above))
+2026-06-25 09:29:01,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.8  (Resistance: Round 24100 (6pt above))
+2026-06-25 09:29:02,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.8  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:29:03,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.0  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:29:04,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24093.3  (Resistance: Round 24100 (7pt above))
+2026-06-25 09:29:05,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24092.5  (Resistance: Round 24100 (8pt above))
+2026-06-25 09:29:06,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.9  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:07,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.8  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:17,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:29:21,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.3  (Resistance: Round 24100 (15pt above))
+2026-06-25 09:29:22,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.1  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:23,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.8  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:24,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:25,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.7  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:26,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.0  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:27,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.4  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:28,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.6  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:29,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.2  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:29:30,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.7  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:31,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.2  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:32,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.2  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:33,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.5  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:34,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.5  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:35,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.5  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:36,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:37,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.5  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:38,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.9  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:39,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.8  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:40,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.4  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:41,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24085.9  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:42,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.1  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:43,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:44,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.0  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:45,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.5  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:46,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.2  (Resistance: Round 24100 (13pt above))
+2026-06-25 09:29:47,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.8  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:48,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.7  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:29:49,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.7  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:29:50,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.2  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:51,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.7  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:52,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.0  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:29:53,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.2  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:29:54,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.9  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:29:55,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.0  (Resistance: Round 24100 (11pt above))
+2026-06-25 09:29:56,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24086.0  (Resistance: Round 24100 (14pt above))
+2026-06-25 09:29:57,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.5  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:58,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24089.9  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:29:59,121 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24088.2  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:30:00,124 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.4  (Resistance: Round 24100 (10pt above))
+2026-06-25 09:30:00,774 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 09:30:01,120 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24090.8  (Resistance: Round 24100 (9pt above))
+2026-06-25 09:30:02,130 INFO     uptox.ui.screens.dashboard: Entry blocked by S/R: CE @ 24087.6  (Resistance: Round 24100 (12pt above))
+2026-06-25 09:55:00,120 INFO     uptox.ui.screens.dashboard: Signal flip: TRADE → NO TRADE  (score=+5)
+2026-06-25 09:55:00,120 INFO     uptox.ui.screens.dashboard: Breakout watch cancelled — signal dropped
+2026-06-25 10:00:00,069 INFO     uptox.services.learning_service: Learning summary:
+📈 <b>End-of-Day Learning — 2026-06-25</b>
+Trades: 5  (3W / 2L)  WR: 60%
+P&amp;L: +₹+1,066
+
+💡 <b>Insights:</b>
+  • ⚠ No targets hit — trail SL may be firing too early or targets too far
+  • Best trade: CE 24150 +9.0pts
+  • Worst trade: CE 24150 -18.5pts
+✅ No parameter changes — system performing within expected range
+2026-06-25 10:00:00,070 ERROR    uptox.services.telegram_service: Telegram dispatch: There is no current event loop in thread 'asyncio_3'.
+2026-06-25 10:00:00,697 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 10:00:00,727 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 10:30:00,686 INFO     httpx: HTTP Request: POST https://api.telegram.org/bot8005723124:AAFrUtraV2VpOrY_vBSapP8CUfus2X8wwbo/sendMessage "HTTP/1.1 200 OK"
+2026-06-25 15:32:24,967 INFO     uptox.services.capital_service: Base capital → ₹58,901  (current ₹72,802)
