@@ -2,7 +2,7 @@
 Telegram notification service.
 Sends messages via Bot API using token + chat_id from settings.
 All sends are fire-and-forget (non-blocking).
-Each notify_* function checks notification_settings before sending —
+Each notify_* function checks notification_settings before sending,
 configurable from the Settings UI tab.
 """
 from __future__ import annotations
@@ -12,13 +12,19 @@ from datetime import date
 
 log = logging.getLogger(__name__)
 
-_BASE_URL = "https://api.telegram.org/bot{token}/sendMessage"
+_BASE_URL     = "https://api.telegram.org/bot{token}/sendMessage"
+_DOC_URL      = "https://api.telegram.org/bot{token}/sendDocument"
 _sent_daily_report_date: date | None = None
 
 
-def _get_config() -> tuple[str, str]:
+def _get_token() -> str:
     from uptox.config.settings import settings
-    return getattr(settings, "telegram_token", ""), getattr(settings, "telegram_chat_id", "")
+    return getattr(settings, "telegram_token", "")
+
+
+def _get_chat_ids() -> list[str]:
+    from uptox.services import telegram_recipients
+    return telegram_recipients.get_all()
 
 
 def _enabled(key: str) -> bool:
@@ -27,20 +33,70 @@ def _enabled(key: str) -> bool:
 
 
 async def _send_async(text: str) -> None:
-    token, chat_id = _get_config()
-    if not token or not chat_id:
+    token = _get_token()
+    chat_ids = _get_chat_ids()
+    if not token or not chat_ids:
         return
+    import httpx
+    async with httpx.AsyncClient(timeout=10) as c:
+        for chat_id in chat_ids:
+            try:
+                r = await c.post(
+                    _BASE_URL.format(token=token),
+                    json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
+                )
+                if r.status_code != 200:
+                    log.warning("Telegram HTTP %d (chat %s): %s", r.status_code, chat_id, r.text[:200])
+            except Exception as e:
+                log.error("Telegram send failed (chat %s): %s", chat_id, e)
+
+
+async def _send_document_async(file_path: str, caption: str = "", delete_after: bool = False) -> None:
+    token = _get_token()
+    chat_ids = _get_chat_ids()
+    if not token or not chat_ids:
+        return
+    sent_ok = False
+    import httpx
+    fname = file_path.split("/")[-1].split("\\")[-1]
+    async with httpx.AsyncClient(timeout=60) as c:
+        for chat_id in chat_ids:
+            try:
+                with open(file_path, "rb") as f:
+                    r = await c.post(
+                        _DOC_URL.format(token=token),
+                        data={"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"},
+                        files={"document": (fname, f, "application/pdf")},
+                    )
+                if r.status_code != 200:
+                    log.warning("Telegram doc HTTP %d (chat %s): %s", r.status_code, chat_id, r.text[:200])
+                else:
+                    sent_ok = True
+            except Exception as e:
+                log.error("Telegram document send failed (chat %s): %s", chat_id, e)
+
+    if delete_after and sent_ok:
+        try:
+            from pathlib import Path
+            Path(file_path).unlink(missing_ok=True)
+            log.info("Deleted local copy after send: %s", file_path)
+        except Exception as e:
+            log.error("Failed to delete %s after send: %s", file_path, e)
+
+
+def send_document(file_path: str, caption: str = "", delete_after: bool = False) -> None:
+    """
+    Queue a document (PDF) send. Safe to call from sync or async context.
+    delete_after: remove the local file once the send is confirmed successful.
+    """
     try:
-        import httpx
-        async with httpx.AsyncClient(timeout=10) as c:
-            r = await c.post(
-                _BASE_URL.format(token=token),
-                json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
-            )
-        if r.status_code != 200:
-            log.warning("Telegram HTTP %d: %s", r.status_code, r.text[:200])
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.create_task(_send_document_async(file_path, caption, delete_after))
+        else:
+            loop.run_until_complete(_send_document_async(file_path, caption, delete_after))
     except Exception as e:
-        log.error("Telegram send failed: %s", e)
+        log.error("Telegram document dispatch: %s", e)
 
 
 def send(text: str) -> None:
@@ -70,7 +126,7 @@ def notify_trade_open(trade: dict) -> None:
         f"Target : ₹{trade['target']:.1f}\n"
         f"Expiry : {trade['expiry']}\n"
         f"Score  : {trade.get('score', 0):+d}/5\n"
-        f"Reason : {trade.get('entry_reason', '—')}"
+        f"Reason : {trade.get('entry_reason', '-')}"
     )
 
 
@@ -83,12 +139,12 @@ def notify_trade_close(trade: dict) -> None:
     max_pts = trade.get("max_pnl_pts")
     icon    = "✅" if pnl_pts >= 0 else "❌"
     send(
-        f"{icon} <b>TRADE CLOSED</b>  — {trade.get('outcome', '—')}\n"
+        f"{icon} <b>TRADE CLOSED</b>  ({trade.get('outcome', '-')})\n"
         f"Strike : {trade['option']} {trade['strike']}\n"
         f"Entry  : ₹{trade['entry_price']:.1f}  →  Exit: ₹{trade.get('exit_price', 0):.1f}\n"
         f"P&amp;L   : {pnl_pts:+.1f} pts  ₹{pnl_rs:+,.0f}\n"
         + (f"Peak   : ₹{peak:.1f}  (max {max_pts:+.1f} pts)\n" if peak and max_pts else "")
-        + f"Reason : {trade.get('exit_reason', '—')}"
+        + f"Reason : {trade.get('exit_reason', '-')}"
     )
 
 
@@ -99,7 +155,7 @@ def notify_partial_close(trade: dict, closed_lots: int, exit_price: float, pnl_r
         f"🔶 <b>PARTIAL EXIT</b>  {trade['option']} {trade['strike']}\n"
         f"Closed  : {closed_lots} lot(s) @ ₹{exit_price:.1f}\n"
         f"P&amp;L    : ₹{pnl_rs:+,.0f}\n"
-        f"Remaining: {trade.get('lots', 0)} lot(s) — trailing with tight SL"
+        f"Remaining: {trade.get('lots', 0)} lot(s), trailing with tight SL"
     )
 
 
@@ -124,7 +180,7 @@ def notify_daily_report() -> None:
 
     sign = "+" if ds["pnl_rs_today"] >= 0 else ""
     send(
-        f"📊 <b>Daily Report — {today_str}</b>\n"
+        f"📊 <b>Daily Report, {today_str}</b>\n"
         f"Trades   : {ds['trades_today']}  ({wins}W / {losses}L)\n"
         f"Day P&amp;L  : {sign}₹{ds['pnl_rs_today']:,.0f}  ({ds['pnl_pct_today']:+.1f}%)\n"
         f"Capital  : ₹{cap:,.0f}  (base ₹{base:,.0f})\n"
@@ -160,7 +216,7 @@ def notify_weekly_report() -> None:
     s = _period_summary(week_trades)
     sign = "+" if s["pnl_rs"] >= 0 else ""
     lines = [
-        f"📅 <b>Weekly Report — ISO Week {iso_week}, {iso_year}</b>",
+        f"📅 <b>Weekly Report, ISO Week {iso_week} {iso_year}</b>",
         f"Trades : {s['total']}  ({s['wins']}W / {s['losses']}L)  WR: {s['win_rate']:.0f}%",
         f"Week P&amp;L: {sign}₹{s['pnl_rs']:,.0f}",
         f"Capital : ₹{capital_service.get_capital():,.0f}",
@@ -185,7 +241,7 @@ def notify_monthly_report() -> None:
     s = _period_summary(month_trades)
     sign = "+" if s["pnl_rs"] >= 0 else ""
     lines = [
-        f"🗓️ <b>Monthly Report — {today.strftime('%B %Y')}</b>",
+        f"🗓️ <b>Monthly Report, {today.strftime('%B %Y')}</b>",
         f"Trades : {s['total']}  ({s['wins']}W / {s['losses']}L)  WR: {s['win_rate']:.0f}%",
         f"Month P&amp;L: {sign}₹{s['pnl_rs']:,.0f}",
         f"Capital : ₹{capital_service.get_capital():,.0f}  (base ₹{capital_service.get_base_capital():,.0f})",
@@ -195,6 +251,18 @@ def notify_monthly_report() -> None:
     if s["worst"] and s["worst"]["pnl_pts"] < 0:
         lines.append(f"Worst  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
     send("\n".join(lines))
+
+    if _enabled("monthly_pdf"):
+        try:
+            from uptox.services import monthly_report
+            pdf_path = monthly_report.generate(today)
+            send_document(
+                str(pdf_path),
+                caption=f"Addy's Algo Trading, Monthly Report {today.strftime('%B %Y')}",
+                delete_after=True,
+            )
+        except Exception as e:
+            log.error("Monthly PDF generation/send failed: %s", e)
 
 
 def notify_daily_limit_hit(reason: str) -> None:
@@ -217,7 +285,7 @@ def notify_trade_update(trade: dict, status: dict) -> None:
         f"P&amp;L   : {pnl_pts:+.1f} pts  ₹{pnl_rs:+,.0f}\n"
         f"Peak   : ₹{status.get('peak', 0):.1f}\n"
         f"Trail SL: ₹{status.get('trail_sl', 0):.1f}\n"
-        f"Phase  : {phase_names.get(status.get('phase', 0), '—')}\n"
+        f"Phase  : {phase_names.get(status.get('phase', 0), '-')}\n"
         f"Target : ₹{trade.get('target', 0):.1f}"
     )
 

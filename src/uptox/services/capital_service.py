@@ -30,12 +30,18 @@ def get_max_consec_losses() -> int:      return _max_consec_losses
 
 
 def set_capital(c: float) -> None:
-    global _base_capital, _capital
-    delta         = max(1_000.0, float(c)) - _base_capital
+    """Set the BASE (starting) capital, used only for lifetime % tracking. Leaves current capital untouched."""
+    global _base_capital
     _base_capital = max(1_000.0, float(c))
-    _capital      = round(_capital + delta, 2)
     _save_base()
-    log.info("Base capital → ₹%s  (current ₹%s)", f"{_base_capital:,.0f}", f"{_capital:,.0f}")
+    log.info("Base capital → ₹%s", f"{_base_capital:,.0f}")
+
+
+def set_current_capital(c: float) -> None:
+    """Directly set current capital (e.g. to match your real broker balance)."""
+    global _capital
+    _capital = max(1_000.0, round(float(c), 2))
+    log.info("Current capital → ₹%s", f"{_capital:,.0f}")
 
 
 def adjust_for_pnl(pnl_rs: float) -> None:
@@ -251,7 +257,13 @@ def is_expiry_day() -> bool:
 
 # ── SL / Target ───────────────────────────────────────────────────────────────
 
-def levels(buy_price: float, delta: float | None = None, iv: float = 0.0) -> dict:  # delta unused; kept for API compat
+def levels(buy_price: float, delta: float | None = None, iv: float = 0.0, repeat_count: int = 0) -> dict:  # delta unused; kept for API compat
+    """
+    repeat_count: how many consecutive same-direction trades already happened
+    today before this one (0 = first/fresh direction). Each repeat at the same
+    level carries more reversal risk, so SL tightens the more times in a row
+    we've tried this direction — regardless of which entry rule fired it.
+    """
     if not buy_price:
         return {"sl": 0.0, "target": 0.0, "sl_pts": None, "tgt_pts": None, "regime": "UNKNOWN"}
 
@@ -265,8 +277,17 @@ def levels(buy_price: float, delta: float | None = None, iv: float = 0.0) -> dic
         sl_pct = 0.05
         r      = {**r, "regime": f"{r['regime']}+EXPIRY"}
 
+    # Repeat same-direction trade today → higher chance of chop/reversal at this
+    # level, so cut risk further each time instead of giving it fresh-signal room.
+    tighten_factor = max(0.40, 1.0 - 0.15 * repeat_count) if repeat_count > 0 else 1.0
+    if repeat_count > 0:
+        sl_pct = round(sl_pct * tighten_factor, 4)
+        r      = {**r, "regime": f"{r['regime']}+REPEAT{repeat_count}"}
+
     pct_sl   = round(buy_price * sl_pct, 1)
     abs_sl   = min_sl_pts(buy_price)          # tiered floor — prevents noise hits
+    if repeat_count > 0:
+        abs_sl = round(abs_sl * tighten_factor, 1)  # tighten the floor too, or it dominates pct_sl
     sl_pts   = max(pct_sl, abs_sl)            # always at least the tiered minimum
     sl       = round(max(0.5, buy_price - sl_pts), 1)
     tgt_pts  = round(sl_pts * rr, 1)

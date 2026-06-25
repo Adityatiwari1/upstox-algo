@@ -143,6 +143,8 @@ class OverallAnalysisPanel(Static):
     _consec_sma_bars: int   = 0
     _last_sma_bar_slot: int = -1
     _last_sma_score: int    = 0
+    _last_ce_iv: float      = 0.0
+    _last_pe_iv: float      = 0.0
 
 
     def on_mount(self) -> None:
@@ -198,8 +200,17 @@ class OverallAnalysisPanel(Static):
             raw_delta = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
             cum    = feed_store.cum_delta(_ck) if _ck else 0.0
             oi_dir = _psn.get("change_oi", 0.0) - _csn.get("change_oi", 0.0)
+            ce_iv  = _csn.get("iv", 0.0)
+            pe_iv  = _psn.get("iv", 0.0)
+            # OI rising + IV rising = fresh buying (directional confirm)
+            # OI rising + IV falling/flat = writing (contrarian, not a confirm)
+            ce_iv_rising = bool(ce_iv and self._last_ce_iv and ce_iv > self._last_ce_iv)
+            pe_iv_rising = bool(pe_iv and self._last_pe_iv and pe_iv > self._last_pe_iv)
+            if ce_iv: self._last_ce_iv = ce_iv
+            if pe_iv: self._last_pe_iv = pe_iv
         else:
             raw_delta = cum = oi_dir = 0.0
+            ce_iv_rising = pe_iv_rising = False
         delta_sc = 1 if raw_delta > 0 else -1 if raw_delta < 0 else 0
         cum_sc   = 1 if cum > 0 else -1 if cum < 0 else 0
         oi_sc    = 1 if oi_dir > 0 else -1 if oi_dir < 0 else 0
@@ -355,7 +366,10 @@ class OverallAnalysisPanel(Static):
 
                 if reentry_armed and entry_key and entry_price and entry_live:
                     # Guard 1: move potential ≥ 10%
-                    lvl_re     = capital_service.levels(entry_price, entry_live.delta)
+                    lvl_re     = capital_service.levels(
+                        entry_price, entry_live.delta,
+                        repeat_count=trade_book.same_direction_streak(option),
+                    )
                     potential  = (lvl_re["target"] - entry_price) / entry_price if entry_price else 0
                     # Guard 2: premium velocity — delta × half-ATR / price ≥ 8%
                     from uptox.services import atr_service
@@ -422,14 +436,22 @@ class OverallAnalysisPanel(Static):
                             f" [dim]{depart_str}  {remaining}s[/]"
                         )
 
-                    # Sustained-signal entry: ≥4 bars same sma_score + OI not contradicting
-                    # OI gate replaces the retest quality-check that this entry type skips
-                    _oi_ok = (sma_score < 0 and oi_sc <= 0) or (sma_score > 0 and oi_sc >= 0)
+                    # Sustained-signal entry: ≥4 bars same sma_score + OI not contradicting.
+                    # OI gate replaces the retest quality-check that this entry type skips.
+                    # OI rising on the opposite side only contradicts if it's fresh writing
+                    # (IV flat/falling) — rising OI + rising IV is buying, which CONFIRMS
+                    # the bearish/bullish move rather than fighting it.
+                    _oi_ok = (
+                        (sma_score < 0 and (oi_sc <= 0 or pe_iv_rising))
+                        or (sma_score > 0 and (oi_sc >= 0 or ce_iv_rising))
+                    )
                     if not entry_type and self._consec_sma_bars >= 4 and abs(sma_score) == 2 and _oi_ok:
                         entry_type = "sustained"
                         log.info(
-                            "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d — entering without retest",
+                            "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d "
+                            "(ce_iv_rising=%s pe_iv_rising=%s) — entering without retest",
                             option, sma_score, self._consec_sma_bars, oi_sc,
+                            ce_iv_rising, pe_iv_rising,
                         )
 
                     if entry_type:
@@ -465,7 +487,10 @@ class OverallAnalysisPanel(Static):
                             else:
                               delta  = entry_live.delta if entry_live else None
                               iv     = entry_live.iv if entry_live else 0.0
-                              lvl    = capital_service.levels(entry_price, delta, iv=iv)
+                              lvl    = capital_service.levels(
+                                  entry_price, delta, iv=iv,
+                                  repeat_count=trade_book.same_direction_streak(option),
+                              )
                               sz = (
                                   capital_service.sizing_expiry(entry_price)
                                   if expiry_pm
@@ -1131,7 +1156,7 @@ class CapitalPanel(Widget):
             try:
                 val = float(event.value.replace(",", "").replace("₹", "").strip())
                 if val >= 1000:
-                    capital_service.set_capital(val)
+                    capital_service.set_current_capital(val)
             except ValueError:
                 pass
             self._close_input()

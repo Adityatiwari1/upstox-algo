@@ -24,6 +24,7 @@ _DEFAULTS: dict[str, dict] = {
     "daily_report":       {"enabled": True},
     "weekly_report":      {"enabled": True},
     "monthly_report":     {"enabled": True},
+    "monthly_pdf":        {"enabled": True},
     "daily_limit_hit":    {"enabled": True},
     "approaching_limit":  {"enabled": True,  "threshold_pct": 75.0},
     "feed_status":        {"enabled": True},

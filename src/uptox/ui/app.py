@@ -68,10 +68,10 @@ class UptoxApp(App):
             pass
 
     def action_capital_up(self) -> None:
-        capital_service.set_capital(capital_service.get_capital() + 5000)
+        capital_service.set_current_capital(capital_service.get_capital() + 5000)
 
     def action_capital_down(self) -> None:
-        capital_service.set_capital(max(5000, capital_service.get_capital() - 5000))
+        capital_service.set_current_capital(max(5000, capital_service.get_capital() - 5000))
 
     def action_cycle_rr(self) -> None:
         capital_service.cycle_rr()

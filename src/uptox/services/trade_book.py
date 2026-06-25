@@ -483,6 +483,23 @@ def get_open_trade() -> dict | None:
     return _open_trade
 
 
+def same_direction_streak(option: str) -> int:
+    """
+    Count consecutive most-recent CLOSED trades today in the same direction
+    as `option`, walking backward until a different direction or no more
+    trades today. 0 = fresh direction (no tightening needed).
+    """
+    today = datetime.now(_IST).strftime("%Y-%m-%d")
+    today_trades = [t for t in _trades if t.get("date") == today]
+    streak = 0
+    for t in reversed(today_trades):
+        if t.get("option") == option:
+            streak += 1
+        else:
+            break
+    return streak
+
+
 _analysis_window: int = 100
 
 

@@ -46,6 +46,50 @@ _SUB_SETTINGS: dict[str, tuple[str, str, str]] = {
 }
 
 
+class TelegramRecipientsPanel(Static):
+    """Primary chat ID comes from .env; extra chat IDs are added/removed here."""
+
+    def compose(self) -> ComposeResult:
+        from uptox.config.settings import settings
+        from uptox.services import telegram_recipients as tr
+        primary = getattr(settings, "telegram_chat_id", "").strip()
+        with Vertical(classes="notif-row"):
+            yield Label("Telegram Recipients", classes="notif-label")
+            yield Label(
+                "Primary chat ID comes from .env. Add extra chat IDs to fan alerts out to more chats or groups.",
+                classes="notif-desc",
+            )
+            if primary:
+                yield Label(f"  - {primary}  (primary)", classes="notif-desc")
+            for i, cid in enumerate(tr.get_extra()):
+                with Horizontal(classes="notif-sub"):
+                    yield Label(f"  - {cid}", classes="sub-label")
+                    yield Button("Remove", id=f"btn-rm-{i}", variant="error")
+            with Horizontal(classes="notif-sub"):
+                yield Input(placeholder="New chat ID", id="in-new-recipient", classes="sub-input")
+                yield Button("Add", id="btn-add-recipient", variant="success")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        from uptox.services import telegram_recipients as tr
+        bid = event.button.id or ""
+        if bid == "btn-add-recipient":
+            inp = self.query_one("#in-new-recipient", Input)
+            if tr.add(inp.value):
+                tr.save()
+                inp.value = ""
+                self.refresh(recompose=True)
+                self.app.notify("Recipient added", severity="information")
+            else:
+                self.app.notify("Empty or duplicate chat ID", severity="warning")
+        elif bid.startswith("btn-rm-"):
+            idx = int(bid[len("btn-rm-"):])
+            extras = tr.get_extra()
+            if 0 <= idx < len(extras) and tr.remove(extras[idx]):
+                tr.save()
+                self.refresh(recompose=True)
+                self.app.notify("Recipient removed", severity="information")
+
+
 class NotificationRow(Static):
     """One notification type: switch + label + description, with optional sub-setting input."""
 
@@ -154,6 +198,7 @@ class SettingsScreen(ScrollableContainer):
 
     def compose(self) -> ComposeResult:
         yield Label("Telegram Notification Settings", id="settings-title")
+        yield TelegramRecipientsPanel()
         for key in _NOTIF_LABELS:
             yield NotificationRow(key)
         with Horizontal(id="save-row"):
