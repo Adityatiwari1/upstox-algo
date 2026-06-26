@@ -19,6 +19,8 @@ dependencies = [
     "openpyxl>=3.1.5",
     "reportlab>=4.0",
     "matplotlib>=3.8",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.30",
 ]
 
 [project.scripts]
@@ -26,6 +28,7 @@ uptox = "uptox.main:main"
 uptox-auth = "uptox.cli.auth_command:main"
 uptox-backtest = "uptox.backtest.runner:main"
 uptox-replay   = "uptox.backtest.replay_runner:main"
+uptox-web      = "uptox.web.app:run"
 
 [build-system]
 requires = ["hatchling"]
