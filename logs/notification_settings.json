@@ -1,6 +1,6 @@
 {
   "trade_open": {
-    "enabled": false
+    "enabled": true
   },
   "trade_close": {
     "enabled": true
