@@ -1,6 +1,6 @@
 {
   "trade_open": {
-    "enabled": false
+    "enabled": true
   },
   "trade_close": {
     "enabled": true
@@ -10,7 +10,7 @@
   },
   "trade_update": {
     "enabled": true,
-    "interval_min": 0
+    "interval_min": 15.0
   },
   "market_update": {
     "enabled": true,
@@ -23,6 +23,9 @@
     "enabled": true
   },
   "monthly_report": {
+    "enabled": true
+  },
+  "monthly_pdf": {
     "enabled": true
   },
   "daily_limit_hit": {

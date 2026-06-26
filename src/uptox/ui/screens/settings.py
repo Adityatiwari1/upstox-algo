@@ -204,6 +204,19 @@ class SettingsScreen(ScrollableContainer):
         with Horizontal(id="save-row"):
             yield Button("Reset to Defaults", id="btn-reset", variant="warning")
 
+    def on_mount(self) -> None:
+        self._last_seen = ns.get_all()
+        self.set_interval(5, self._poll_external_changes)
+
+    def _poll_external_changes(self) -> None:
+        """Picks up edits made via the web API (separate process writing the same
+        logs/notification_settings.json) without needing a CLI restart."""
+        ns.load()
+        current = ns.get_all()
+        if current != self._last_seen:
+            self._last_seen = current
+            self.refresh(recompose=True)
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn-reset":
             ns.reset_all()
