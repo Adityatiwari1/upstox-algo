@@ -57,13 +57,12 @@ def _ensure_auth() -> None:
 
 
 def create_app() -> UptoxApp:
-    """Factory for `textual serve` — does auth then returns app instance (no .run())."""
+    """Factory for `textual serve` — uses saved token, no blocking auth call."""
     from uptox.services.market_calendar import is_trading_day, market_status
-    _ensure_auth()
     if not is_trading_day():
         log.info("Non-trading day — skipping feed. %s", market_status())
     else:
-        log.info("Starting Uptox Trading")
+        log.info("Starting Uptox Trading (web)")
     return UptoxApp()
 
 
