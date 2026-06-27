@@ -24,6 +24,8 @@ class Trade(BaseModel):
     entry_price: float
     exit_price: float | None = Field(default=None, description="null while open")
     lots: int
+    qty: int = Field(description="lots × lot_size — actual contract quantity")
+    lot_size: int | None = Field(default=None, description="NSE Nifty lot size used for this trade")
     invested: float
     sl: float
     target: float

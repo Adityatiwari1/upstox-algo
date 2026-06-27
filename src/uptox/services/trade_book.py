@@ -217,6 +217,7 @@ def open_trade(
     global _open_trade
     if _open_trade:
         return  # already in a trade
+    from uptox.services.capital_service import NIFTY_LOT_SIZE
     _open_trade = {
         "id":          str(uuid.uuid4())[:8],
         "date":        datetime.now(_IST).strftime("%Y-%m-%d"),
@@ -230,6 +231,8 @@ def open_trade(
         "entry_price": round(entry_price, 1),
         "exit_price":  None,
         "lots":        lots,
+        "qty":         lots * NIFTY_LOT_SIZE,
+        "lot_size":    NIFTY_LOT_SIZE,
         "invested":    round(invested, 0),
         "sl":          round(sl, 1),
         "target":      round(target, 1),
@@ -362,6 +365,7 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
     closed_rec = dict(_open_trade)
     closed_rec.update({
         "lots":        close_lots,
+        "qty":         close_lots * NIFTY_LOT_SIZE,
         "invested":    round(close_lots * (_open_trade["invested"] / total_lots), 0),
         "exit_price":  round(exit_price, 1),
         "time_exit":   datetime.now(_IST).strftime("%H:%M:%S"),
@@ -378,6 +382,7 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
     # Update open trade: reduce lots, move SL to original target (lock profit floor)
     old_target = _open_trade["target"]
     _open_trade["lots"]           = remain_lots
+    _open_trade["qty"]            = remain_lots * NIFTY_LOT_SIZE
     _open_trade["invested"]       = round(remain_lots * (_open_trade["invested"] / total_lots), 0)
     _open_trade["sl"]             = old_target          # SL now = original target
     _open_trade["target_crossed"] = False               # allow new target to form
