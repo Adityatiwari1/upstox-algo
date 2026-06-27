@@ -14,7 +14,7 @@
   },
   "market_update": {
     "enabled": true,
-    "interval_min": 30
+    "interval_min": 60
   },
   "daily_report": {
     "enabled": true
