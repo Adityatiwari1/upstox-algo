@@ -9,12 +9,23 @@ or:
 """
 from __future__ import annotations
 
+from typing import Dict, List
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 from uptox.services import notification_settings as ns
 from uptox.web import data
+from uptox.web.schemas import (
+    CapitalInfo,
+    DailyBreakdownItem,
+    NotificationEnabledBody,
+    NotificationSetting,
+    NotificationSubBody,
+    TodayStats,
+    Trade,
+    TradeStats,
+)
 
 app = FastAPI(
     title="Addy's Algo Trading — API",
@@ -30,16 +41,21 @@ app.add_middleware(
 )
 
 
-# ── Doc-only response examples (no behavior change — routes still return
-# plain dict/list, this just gives Swagger/ReDoc a real shape instead of
-# showing a bare "string" placeholder) ──────────────────────────────────────
+# ── Doc-only response shape (model + example). Routes still return plain
+# dict/list, unchanged — `responses={200: {"model": ...}}` documents the real
+# schema in Swagger/ReDoc without FastAPI coercing/validating the actual
+# response through it (no behavior change, e.g. `{}` for "no open trade"
+# still renders as `{}`, not an all-null object). ───────────────────────────
 
 _EX_CLOSED_TRADE = {
     "id": "44529b52", "date": "2026-06-25", "time_entry": "13:57:45",
-    "entry_ts": 1782376065.12, "time_exit": "14:13:24", "strike": 24150,
-    "option": "CE", "expiry": "2026-06-30", "option_key": "NSE_FO|79734",
+    "entry_ts": 1782376065.12, "time_exit": "14:13:24", "exit_ts": 1782376804.31,
+    "strike": 24150, "option": "CE", "expiry": "2026-06-30", "option_key": "NSE_FO|79734",
     "entry_price": 125.2, "exit_price": 106.7, "lots": 2, "invested": 16282.0,
-    "sl": 107.2, "target": 161.2, "delta": 0.575, "spot_entry": 24174.7,
+    "sl": 107.2, "target": 161.2, "delta": 0.575,
+    "spot_entry": 24174.7, "spot_current": 24162.3, "spot_peak": 24181.0,
+    "spot_exit": 24162.3, "spot_move_pts": -12.4, "spot_directional_pts": -12.4,
+    "spot_peak_move_pts": 6.3,
     "pnl_pts": -18.5, "pnl_rs": -2405.0, "outcome": "SL_HIT", "exit_reason": "trail_sl",
     "entry_reason": "sustained | SMA+2 Flow+3 | Nifty@24175 | CE@24150 | NORMAL ATR=28 | risk=₹2346 (3.5%)",
     "score": 5, "sma_score": 2, "flow_score": 3, "atr_at_entry": 27.8, "expiry_day": False,
@@ -51,7 +67,8 @@ _EX_OPEN_TRADE = {
     "entry_ts": 1782460930.0, "time_exit": None, "strike": 24200,
     "option": "PE", "expiry": "2026-06-30", "option_key": "NSE_FO|79801",
     "entry_price": 98.5, "exit_price": None, "lots": 1, "invested": 6402.5,
-    "sl": 88.0, "target": 119.5, "delta": -0.48, "spot_entry": 24198.3,
+    "sl": 88.0, "target": 119.5, "delta": -0.48,
+    "spot_entry": 24198.3, "spot_current": 24186.1, "spot_peak": 24180.4,
     "current_price": 104.2, "pnl_pts": 5.7, "pnl_rs": 370.0, "outcome": "OPEN",
     "exit_reason": None, "entry_reason": "retest | SMA-2 Flow-1 | Nifty@24198 | PE@24200",
     "score": -3, "sma_score": -2, "flow_score": -1, "atr_at_entry": 26.1, "expiry_day": False,
@@ -85,19 +102,20 @@ _EX_NOTIFICATIONS = {
 _EX_NOTIFICATION_SINGLE = {"enabled": True, "interval_min": 15}
 
 
-def _example(value):
-    return {200: {"content": {"application/json": {"example": value}}}}
+def _doc(model, example):
+    """200-response doc: real Pydantic schema for Swagger + a realistic example."""
+    return {200: {"model": model, "content": {"application/json": {"example": example}}}}
 
 
 @app.get("/api/open-trade", summary="Current open trade", tags=["trades"],
-          responses=_example(_EX_OPEN_TRADE))
+          responses=_doc(Trade, _EX_OPEN_TRADE))
 def api_open_trade():
     """Returns the currently open paper trade, or `{}` if none is open."""
     return data.get_open_trade() or {}
 
 
 @app.get("/api/trades", summary="Closed trade history", tags=["trades"],
-          responses=_example([_EX_CLOSED_TRADE]))
+          responses=_doc(List[Trade], [_EX_CLOSED_TRADE]))
 def api_trades(date: str | None = None):
     """All closed trades, newest first. Filter to one day with `?date=YYYY-MM-DD`."""
     trades = data.get_all_trades()
@@ -107,28 +125,28 @@ def api_trades(date: str | None = None):
 
 
 @app.get("/api/today", summary="Today's stats", tags=["analysis"],
-          responses=_example(_EX_TODAY))
+          responses=_doc(TodayStats, _EX_TODAY))
 def api_today():
     """Today's trade stats plus today's P&L as % of current capital."""
     return data.get_today_stats()
 
 
 @app.get("/api/daily", summary="Per-day breakdown", tags=["analysis"],
-          responses=_example(_EX_DAILY))
+          responses=_doc(List[DailyBreakdownItem], _EX_DAILY))
 def api_daily():
     """One stats row per trading day, most recent day first."""
     return data.get_daily_breakdown()
 
 
 @app.get("/api/capital", summary="Capital snapshot", tags=["analysis"],
-          responses=_example(_EX_CAPITAL))
+          responses=_doc(CapitalInfo, _EX_CAPITAL))
 def api_capital():
     """Base capital, current capital, and lifetime realised P&L."""
     return data.get_capital_info()
 
 
 @app.get("/api/stats", summary="Lifetime stats", tags=["analysis"],
-          responses=_example(_EX_STATS))
+          responses=_doc(TradeStats, _EX_STATS))
 def api_stats():
     """Aggregate stats (win rate, expectancy, avg RR, etc.) across all closed trades."""
     return data.get_stats()
@@ -140,30 +158,15 @@ def api_stats():
 # truth. The CLI's Settings screen polls that file every few seconds and picks
 # up changes made here without a restart.
 
-class NotificationEnabledBody(BaseModel):
-    enabled: bool
-
-    class Config:
-        json_schema_extra = {"example": {"enabled": False}}
-
-
-class NotificationSubBody(BaseModel):
-    sub_key: str
-    value: float | str
-
-    class Config:
-        json_schema_extra = {"example": {"sub_key": "interval_min", "value": 20}}
-
-
 @app.get("/api/notifications", summary="All notification settings", tags=["notifications"],
-          responses=_example(_EX_NOTIFICATIONS))
+          responses=_doc(Dict[str, NotificationSetting], _EX_NOTIFICATIONS))
 def api_get_notifications():
     """Every notification type with its current enabled flag and sub-settings."""
     return ns.get_all()
 
 
 @app.post("/api/notifications/{key}/enabled", summary="Toggle a notification type", tags=["notifications"],
-           responses=_example(_EX_NOTIFICATION_SINGLE))
+           responses=_doc(NotificationSetting, _EX_NOTIFICATION_SINGLE))
 def api_set_notification_enabled(key: str, body: NotificationEnabledBody):
     """Enable or disable one notification type (e.g. `trade_open`, `daily_report`)."""
     if key not in ns.get_all():
@@ -174,7 +177,7 @@ def api_set_notification_enabled(key: str, body: NotificationEnabledBody):
 
 
 @app.post("/api/notifications/{key}/sub", summary="Set a notification sub-setting", tags=["notifications"],
-           responses=_example(_EX_NOTIFICATION_SINGLE))
+           responses=_doc(NotificationSetting, _EX_NOTIFICATION_SINGLE))
 def api_set_notification_sub(key: str, body: NotificationSubBody):
     """
     Set a tunable sub-setting. Numeric settings (e.g. `interval_min`) are clamped
