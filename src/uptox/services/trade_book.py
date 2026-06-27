@@ -235,6 +235,8 @@ def open_trade(
         "target":      round(target, 1),
         "delta":       round(delta, 3) if delta else None,
         "spot_entry":  round(spot, 1),
+        "spot_current": round(spot, 1),
+        "spot_peak":   round(spot, 1),
         "current_price": entry_price,
         "pnl_pts":     0.0,
         "pnl_rs":      0.0,
@@ -293,9 +295,21 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
     max_pnl_pts = round(peak_price - _open_trade["entry_price"], 1)
     max_pnl_rs  = round(max_pnl_pts * _open_trade["lots"] * NIFTY_LOT_SIZE, 0)
 
+    # Nifty 50 (underlying) points moved during this trade — separate from the
+    # option premium pts above. directional_* is signed so + always means the
+    # index moved in the trade's favor (up for CE, down for PE), regardless of
+    # which way it actually moved on the tape.
+    from uptox.services import feed_store
+    nifty_tick = feed_store.get("NSE_INDEX|Nifty 50")
+    spot_entry = _open_trade.get("spot_entry", 0.0)
+    spot_peak  = _open_trade.get("spot_peak", spot_entry)
+    spot_exit  = round(nifty_tick.ltp, 1) if nifty_tick and nifty_tick.ltp else _open_trade.get("spot_current", spot_entry)
+    favorable  = 1 if _open_trade["option"] == "CE" else -1
+
     _open_trade.update({
         "exit_price":   round(exit_price, 1),
         "time_exit":    datetime.now(_IST).strftime("%H:%M:%S"),
+        "exit_ts":      time.time(),
         "pnl_pts":      pnl_pts,
         "pnl_rs":       pnl_rs,
         "outcome":      outcome,
@@ -303,6 +317,10 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
         "peak_price":   round(peak_price, 1),
         "max_pnl_pts":  max_pnl_pts,
         "max_pnl_rs":   max_pnl_rs,
+        "spot_exit":              spot_exit,
+        "spot_move_pts":          round(spot_exit - spot_entry, 1),
+        "spot_directional_pts":   round((spot_exit - spot_entry) * favorable, 1),
+        "spot_peak_move_pts":     round((spot_peak - spot_entry) * favorable, 1),
     })
     closed = dict(_open_trade)
     closed.pop("current_price", None)
@@ -376,6 +394,27 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
         close_lots, exit_price, pnl_pts, pnl_rs, remain_lots, old_target,
     )
     return {"closed_lots": close_lots, "pnl_rs": pnl_rs, "remaining_trade": _open_trade}
+
+
+def update_spot(nifty_ltp: float) -> None:
+    """
+    Tracks the Nifty 50 index's own move during the open trade — how many
+    underlying points the market gave us, separate from option premium pts.
+    spot_peak is the best Nifty level reached in the trade's favor (higher for
+    CE, lower for PE), used at close to report "points left on the table" on
+    the underlying itself, not just the option.
+    """
+    if not _open_trade or not nifty_ltp:
+        return
+    _open_trade["spot_current"] = round(nifty_ltp, 1)
+    favorable_up = _open_trade["option"] == "CE"
+    peak = _open_trade.get("spot_peak", nifty_ltp)
+    if favorable_up:
+        if nifty_ltp > peak:
+            _open_trade["spot_peak"] = round(nifty_ltp, 1)
+    else:
+        if nifty_ltp < peak:
+            _open_trade["spot_peak"] = round(nifty_ltp, 1)
 
 
 def update_open_pnl(current_price: float) -> bool:
