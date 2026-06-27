@@ -13,6 +13,8 @@ log = logging.getLogger(__name__)
 
 _FILE = Path("logs/notification_settings.json")
 
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
 # ── Defaults ───────────────────────────────────────────────────────────────────
 # Each entry: enabled flag + any sub-settings for that notification type.
 _DEFAULTS: dict[str, dict] = {
@@ -22,7 +24,7 @@ _DEFAULTS: dict[str, dict] = {
     "trade_update":       {"enabled": True,  "interval_min": 15},
     "market_update":      {"enabled": True,  "interval_min": 30},
     "daily_report":       {"enabled": True},
-    "weekly_report":      {"enabled": True},
+    "weekly_report":      {"enabled": True, "weekday": "saturday", "time": "11:00"},
     "monthly_report":     {"enabled": True},
     "monthly_pdf":        {"enabled": True},
     "daily_limit_hit":    {"enabled": True},
@@ -64,6 +66,21 @@ def set_sub(key: str, sub_key: str, value) -> None:
     if key in _settings:
         _settings[key][sub_key] = value
         log.info("Notification %s.%s -> %s", key, sub_key, value)
+
+
+def validate_sub(key: str, sub_key: str, value) -> str | None:
+    """Returns an error message if value is invalid for key.sub_key, else None."""
+    if key == "weekly_report" and sub_key == "weekday":
+        if str(value).lower() not in WEEKDAYS:
+            return f"weekday must be one of: {', '.join(WEEKDAYS)}"
+    if key == "weekly_report" and sub_key == "time":
+        try:
+            hh, mm = str(value).split(":")
+            if not (0 <= int(hh) <= 23 and 0 <= int(mm) <= 59):
+                raise ValueError
+        except Exception:
+            return "time must be in 24h HH:MM format, e.g. 11:00"
+    return None
 
 
 def get_all() -> dict:

@@ -79,6 +79,7 @@ _EX_NOTIFICATIONS = {
     "trade_open": {"enabled": True},
     "trade_update": {"enabled": True, "interval_min": 15},
     "approaching_limit": {"enabled": True, "threshold_pct": 75.0},
+    "weekly_report": {"enabled": True, "weekday": "saturday", "time": "11:00"},
 }
 
 _EX_NOTIFICATION_SINGLE = {"enabled": True, "interval_min": 15}
@@ -148,7 +149,7 @@ class NotificationEnabledBody(BaseModel):
 
 class NotificationSubBody(BaseModel):
     sub_key: str
-    value: float
+    value: float | str
 
     class Config:
         json_schema_extra = {"example": {"sub_key": "interval_min", "value": 20}}
@@ -175,9 +176,17 @@ def api_set_notification_enabled(key: str, body: NotificationEnabledBody):
 @app.post("/api/notifications/{key}/sub", summary="Set a notification sub-setting", tags=["notifications"],
            responses=_example(_EX_NOTIFICATION_SINGLE))
 def api_set_notification_sub(key: str, body: NotificationSubBody):
-    """Set a tunable sub-setting, e.g. {"sub_key": "interval_min", "value": 15}. Clamped to allowed bounds."""
+    """
+    Set a tunable sub-setting. Numeric settings (e.g. `interval_min`) are clamped
+    to allowed bounds. For the weekly report schedule, use:
+    `{"sub_key": "weekday", "value": "saturday"}` and `{"sub_key": "time", "value": "11:00"}`
+    (24h format). Default is Saturday 11:00 IST — runs independent of the market feed.
+    """
     if key not in ns.get_all():
         raise HTTPException(status_code=404, detail=f"Unknown notification key: {key}")
+    error = ns.validate_sub(key, body.sub_key, body.value)
+    if error:
+        raise HTTPException(status_code=422, detail=error)
     ns.set_sub(key, body.sub_key, body.value)
     ns.save()
     return ns.get_all()[key]
