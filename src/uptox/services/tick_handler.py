@@ -162,15 +162,14 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
     if now.time() >= _REPORT_TIME and _report_sent_today != today:
         _report_sent_today = today
         from uptox.services.telegram_service import (
-            notify_daily_report, notify_weekly_report, notify_monthly_report,
+            notify_daily_report, notify_monthly_report,
         )
         from uptox.services import learning_service
-        from uptox.services.market_calendar import (
-            is_last_trading_day_of_week, is_last_trading_day_of_month,
-        )
+        from uptox.services.market_calendar import is_last_trading_day_of_month
         notify_daily_report()
-        if is_last_trading_day_of_week():
-            notify_weekly_report()
+        # Weekly report now runs on its own configurable day/time schedule —
+        # see weekly_report_scheduler.py (default Saturday 11:00 IST), so it
+        # still fires on non-trading days when no ticks reach this handler.
         if is_last_trading_day_of_month():
             notify_monthly_report()
         asyncio.create_task(asyncio.to_thread(learning_service.run))

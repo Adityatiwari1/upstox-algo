@@ -20,7 +20,9 @@
     "enabled": true
   },
   "weekly_report": {
-    "enabled": true
+    "enabled": true,
+    "weekday": "saturday",
+    "time": "11:00"
   },
   "monthly_report": {
     "enabled": true
