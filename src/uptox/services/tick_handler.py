@@ -68,6 +68,7 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
 
     # ── 5-min bar close detection (Nifty only) ────────────────────────────────
     if instrument_key == _NIFTY:
+        trade_book.update_spot(tick.ltp)
         now      = datetime.now(_IST)
         bar_slot = now.hour * 12 + now.minute // 5
         if bar_slot != _last_bar_slot and _last_bar_slot != -1:

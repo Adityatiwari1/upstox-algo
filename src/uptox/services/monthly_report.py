@@ -403,6 +403,28 @@ def generate(month: date | None = None) -> Path:
     story.append(Table(rows, colWidths=[5*cm, 3*cm, 3.5*cm, 4.5*cm]))
     story[-1].setStyle(table_style())
 
+    # ── Section 9b: Nifty Points Captured ────────────────────────────────
+    story.append(Paragraph("Nifty 50 Points Captured", H1))
+    story.append(Paragraph(
+        "How many points the underlying Nifty 50 index itself moved in the trade's "
+        "favor, separate from the option premium P&amp;L above. Helps judge whether "
+        "small option gains came from a real index move or just IV/theta noise.",
+        BODY,
+    ))
+    def _nifty_pts_row(label: str, lst: list[dict]) -> list:
+        if not lst:
+            return [label, "0", "-", "-"]
+        total = sum(t.get("spot_directional_pts", 0) for t in lst)
+        avg   = total / len(lst)
+        avg_peak = sum(t.get("spot_peak_move_pts", 0) for t in lst) / len(lst)
+        return [label, str(len(lst)), f"{total:+.1f}", f"{avg:+.1f}  (peak avg {avg_peak:+.1f})"]
+    rows = [["Group", "Trades", "Total Pts", "Avg Pts/Trade"]]
+    rows.append(_nifty_pts_row("All Trades", trades))
+    rows.append(_nifty_pts_row("CE", ce_trades))
+    rows.append(_nifty_pts_row("PE", pe_trades))
+    story.append(Table(rows, colWidths=[4*cm, 3*cm, 4*cm, 6*cm]))
+    story[-1].setStyle(table_style())
+
     # ── Section 10: Time of Day ──────────────────────────────────────────
     story.append(Paragraph("Performance by Time of Day", H1))
     img_path = _chart_time_of_day(trades, _REPORT_DIR)

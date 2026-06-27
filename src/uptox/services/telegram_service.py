@@ -124,6 +124,7 @@ def notify_trade_open(trade: dict) -> None:
         f"Lots   : {trade['lots']}  (₹{trade['invested']:,.0f})\n"
         f"SL     : ₹{trade['sl']:.1f}\n"
         f"Target : ₹{trade['target']:.1f}\n"
+        f"Nifty@Entry: {trade.get('spot_entry', 0):,.1f}\n"
         f"Expiry : {trade['expiry']}\n"
         f"Score  : {trade.get('score', 0):+d}/5\n"
         f"Reason : {trade.get('entry_reason', '-')}"
@@ -137,6 +138,8 @@ def notify_trade_close(trade: dict) -> None:
     pnl_rs  = trade.get("pnl_rs",  0.0)
     peak    = trade.get("peak_price")
     max_pts = trade.get("max_pnl_pts")
+    spot_pts     = trade.get("spot_directional_pts")
+    spot_peak_pts = trade.get("spot_peak_move_pts")
     icon    = "✅" if pnl_pts >= 0 else "❌"
     send(
         f"{icon} <b>TRADE CLOSED</b>  ({trade.get('outcome', '-')})\n"
@@ -144,6 +147,8 @@ def notify_trade_close(trade: dict) -> None:
         f"Entry  : ₹{trade['entry_price']:.1f}  →  Exit: ₹{trade.get('exit_price', 0):.1f}\n"
         f"P&amp;L   : {pnl_pts:+.1f} pts  ₹{pnl_rs:+,.0f}\n"
         + (f"Peak   : ₹{peak:.1f}  (max {max_pts:+.1f} pts)\n" if peak and max_pts else "")
+        + (f"Nifty Move: {spot_pts:+.1f}pts in our favor  (peak {spot_peak_pts:+.1f}pts)\n"
+           if spot_pts is not None else "")
         + f"Reason : {trade.get('exit_reason', '-')}"
     )
 
@@ -177,12 +182,14 @@ def notify_daily_report() -> None:
     today_trades = [t for t in all_t if t.get("date") == today_str]
     wins   = sum(1 for t in today_trades if t.get("pnl_pts", 0) > 0)
     losses = sum(1 for t in today_trades if t.get("pnl_pts", 0) <= 0)
+    nifty_pts = sum(t.get("spot_directional_pts", 0) for t in today_trades)
 
     sign = "+" if ds["pnl_rs_today"] >= 0 else ""
     send(
         f"📊 <b>Daily Report, {today_str}</b>\n"
         f"Trades   : {ds['trades_today']}  ({wins}W / {losses}L)\n"
         f"Day P&amp;L  : {sign}₹{ds['pnl_rs_today']:,.0f}  ({ds['pnl_pct_today']:+.1f}%)\n"
+        f"Nifty Pts: {nifty_pts:+.1f} pts captured in our favor\n"
         f"Capital  : ₹{cap:,.0f}  (base ₹{base:,.0f})\n"
         f"Consec L : {ds['consec_losses']}"
         + (f"\n⚠️ {ds['blocked_reason']}" if ds.get("blocked_reason") else "")
@@ -202,6 +209,17 @@ def _period_summary(trades: list[dict]) -> dict:
     }
 
 
+def _max_drawdown_rs(trades: list[dict], start_capital: float) -> float:
+    cap = start_capital
+    peak = start_capital
+    dd = 0.0
+    for t in sorted(trades, key=lambda x: (x.get("date", ""), x.get("time_entry", ""))):
+        cap += t.get("pnl_rs", 0)
+        peak = max(peak, cap)
+        dd = max(dd, peak - cap)
+    return dd
+
+
 def notify_weekly_report() -> None:
     if not _enabled("weekly_report"):
         return
@@ -215,16 +233,62 @@ def notify_weekly_report() -> None:
     ]
     s = _period_summary(week_trades)
     sign = "+" if s["pnl_rs"] >= 0 else ""
+
     lines = [
         f"📅 <b>Weekly Report, ISO Week {iso_week} {iso_year}</b>",
         f"Trades : {s['total']}  ({s['wins']}W / {s['losses']}L)  WR: {s['win_rate']:.0f}%",
         f"Week P&amp;L: {sign}₹{s['pnl_rs']:,.0f}",
         f"Capital : ₹{capital_service.get_capital():,.0f}",
     ]
+
+    if week_trades:
+        wins   = [t for t in week_trades if t.get("pnl_pts", 0) > 0]
+        losses = [t for t in week_trades if t.get("pnl_pts", 0) <= 0]
+        avg_win_pts  = sum(t["pnl_pts"] for t in wins)   / len(wins)   if wins   else 0.0
+        avg_loss_pts = sum(t["pnl_pts"] for t in losses) / len(losses) if losses else 0.0
+        expectancy   = s["win_rate"] / 100 * avg_win_pts + (1 - s["win_rate"] / 100) * avg_loss_pts
+        gross_win    = sum(t.get("pnl_rs", 0) for t in wins)
+        gross_loss   = abs(sum(t.get("pnl_rs", 0) for t in losses))
+        profit_factor = round(gross_win / gross_loss, 2) if gross_loss else float("inf")
+        avg_rr = round(avg_win_pts / abs(avg_loss_pts), 2) if avg_loss_pts else 0.0
+
+        ce_trades = [t for t in week_trades if t.get("option") == "CE"]
+        pe_trades = [t for t in week_trades if t.get("option") == "PE"]
+        ce_pnl = sum(t.get("pnl_rs", 0) for t in ce_trades)
+        pe_pnl = sum(t.get("pnl_rs", 0) for t in pe_trades)
+
+        nifty_pts_total = sum(t.get("spot_directional_pts", 0) for t in week_trades)
+        nifty_pts_avg   = nifty_pts_total / len(week_trades)
+
+        cap_now = capital_service.get_capital()
+        cap_week_start = cap_now - s["pnl_rs"]
+        dd_rs = _max_drawdown_rs(week_trades, cap_week_start)
+
+        by_day: dict[str, float] = {}
+        for t in week_trades:
+            by_day[t["date"]] = by_day.get(t["date"], 0.0) + t.get("pnl_rs", 0)
+        best_day  = max(by_day.items(), key=lambda x: x[1]) if by_day else None
+        worst_day = min(by_day.items(), key=lambda x: x[1]) if by_day else None
+
+        lines += [
+            "",
+            "<b>Performance Detail</b>",
+            f"Avg Win/Loss : {avg_win_pts:+.1f} / {avg_loss_pts:+.1f} pts  (RR {avg_rr})",
+            f"Expectancy   : {expectancy:+.1f} pts/trade",
+            f"Profit Factor: {profit_factor if profit_factor != float('inf') else '∞'}",
+            f"Max Drawdown : ₹{dd_rs:,.0f}",
+            f"CE vs PE     : {len(ce_trades)} trades (₹{ce_pnl:+,.0f})  /  {len(pe_trades)} trades (₹{pe_pnl:+,.0f})",
+            f"Nifty Pts    : {nifty_pts_total:+.1f} total  ({nifty_pts_avg:+.1f} avg/trade in our favor)",
+        ]
+        if best_day:
+            lines.append(f"Best Day     : {best_day[0]}  ₹{best_day[1]:+,.0f}")
+        if worst_day and worst_day[1] < 0:
+            lines.append(f"Worst Day    : {worst_day[0]}  ₹{worst_day[1]:+,.0f}")
+
     if s["best"]:
-        lines.append(f"Best   : {s['best']['option']} {s['best']['strike']} +{s['best']['pnl_pts']:.1f}pts")
+        lines.append(f"Best Trade   : {s['best']['option']} {s['best']['strike']} +{s['best']['pnl_pts']:.1f}pts")
     if s["worst"] and s["worst"]["pnl_pts"] < 0:
-        lines.append(f"Worst  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
+        lines.append(f"Worst Trade  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
     send("\n".join(lines))
 
 
