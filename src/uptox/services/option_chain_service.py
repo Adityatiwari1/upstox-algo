@@ -253,6 +253,18 @@ def get_max_pain() -> int | None:
     return mp
 
 
+def get_call_wall() -> tuple[int, float] | None:
+    """Strike with highest CE OI — resistance ceiling. Returns (strike, oi)."""
+    items = [(s, d["oi"]) for (s, t), d in _chain.items() if t == "CE" and d["oi"] > 0]
+    return max(items, key=lambda x: x[1]) if items else None
+
+
+def get_put_wall() -> tuple[int, float] | None:
+    """Strike with highest PE OI — support floor. Returns (strike, oi)."""
+    items = [(s, d["oi"]) for (s, t), d in _chain.items() if t == "PE" and d["oi"] > 0]
+    return max(items, key=lambda x: x[1]) if items else None
+
+
 def get_oi_signal(ltp: float, n: int = 3) -> str:
     """Interpret cumulative OI change across ATM ±n strikes."""
     if not ltp or not _chain:

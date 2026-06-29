@@ -28,6 +28,7 @@ class UptoxApp(App):
         ("e",     "set_entry",                 "Set Entry"),
         ("x",     "exit_trade",                "Exit Trade"),
         ("R",     "reload_config",             "Reload .env"),
+        ("L",     "toggle_trade_mode",         "Toggle Live/Paper"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -53,6 +54,7 @@ class UptoxApp(App):
             if is_trading_day():
                 self.run_worker(self._start_feed(), exclusive=True, name="market-feed")
                 self.run_worker(self._prime_smas(), name="sma-prime")
+                self.run_worker(self._start_portfolio_feed(), name="portfolio-feed")
             self.run_worker(self._prime_option_chain(), name="oc-prime")
         # Independent of feed/trading day — needs the app process alive, not the market.
         self.run_worker(self._weekly_report_loop(), name="weekly-report-scheduler")
@@ -65,6 +67,10 @@ class UptoxApp(App):
         from uptox.api.feed_client import run_feed
         from uptox.services.tick_handler import on_tick
         await run_feed(on_tick)
+
+    async def _start_portfolio_feed(self) -> None:
+        from uptox.services.portfolio_feed_service import run_portfolio_feed
+        await run_portfolio_feed()
 
     def action_cycle_tf(self) -> None:
         try:
@@ -149,6 +155,31 @@ class UptoxApp(App):
             )
         else:
             trailing_sl_service.exit_trade()
+
+    def action_toggle_trade_mode(self) -> None:
+        from uptox.services import trading_mode, trade_book
+        # Block mode change while a trade is open — too risky
+        if trade_book.has_open_trade():
+            self.notify(
+                "Cannot switch mode while a trade is open — close trade first",
+                severity="error",
+                timeout=5,
+            )
+            return
+        new_mode = trading_mode.toggle()
+        if new_mode == "live":
+            self.notify(
+                "⚠  LIVE MODE ACTIVATED — real orders will be placed via Upstox API. "
+                "Press L again to return to Paper.",
+                severity="error",
+                timeout=10,
+            )
+        else:
+            self.notify(
+                "Paper mode — no real orders will be placed.",
+                severity="information",
+                timeout=4,
+            )
 
     async def _prime_smas(self) -> None:
         from uptox.api.feed_client import DEFAULT_INSTRUMENTS

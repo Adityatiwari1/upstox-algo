@@ -268,6 +268,10 @@ def open_trade(
     _save_open()
     from uptox.services.telegram_service import notify_trade_open
     notify_trade_open(_open_trade)
+    # Live order — fire only when mode is live; paper record kept regardless
+    from uptox.services import trading_mode, order_service
+    if trading_mode.is_live() and option_key:
+        order_service.schedule_order(option_key, "BUY", _open_trade["qty"], price=entry_price)
 
 
 def close_trade(exit_price: float, reason: str) -> dict | None:
@@ -340,6 +344,13 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
         "Paper CLOSE: %s  P&L=%.1fpts  ₹%.0f  reason=%s",
         outcome, pnl_pts, pnl_rs, reason,
     )
+    # Live exit order — fire only when mode is live; paper record kept regardless
+    from uptox.services import trading_mode, order_service
+    if trading_mode.is_live():
+        opt_key   = closed.get("option_key", "")
+        qty       = closed.get("qty", 0)
+        if opt_key and qty:
+            order_service.schedule_order(opt_key, "SELL", qty, price=exit_price)
     return closed
 
 

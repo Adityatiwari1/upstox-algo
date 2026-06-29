@@ -145,6 +145,7 @@ class OverallAnalysisPanel(Static):
     _last_sma_score: int    = 0
     _last_ce_iv: float      = 0.0
     _last_pe_iv: float      = 0.0
+    _last_atm:   int        = 0
 
 
     def on_mount(self) -> None:
@@ -199,21 +200,34 @@ class OverallAnalysisPanel(Static):
             _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
             raw_delta = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
             cum    = feed_store.cum_delta(_ck) if _ck else 0.0
-            oi_dir = _psn.get("change_oi", 0.0) - _csn.get("change_oi", 0.0)
-            ce_iv  = _csn.get("iv", 0.0)
-            pe_iv  = _psn.get("iv", 0.0)
-            # OI rising + IV rising = fresh buying (directional confirm)
-            # OI rising + IV falling/flat = writing (contrarian, not a confirm)
+            _pe_chg = _psn.get("change_oi", 0.0)
+            _ce_chg = _csn.get("change_oi", 0.0)
+            # Live tick IV preferred (per-tick, real value); REST snapshot as fallback
+            ce_iv = (_tce.iv if _tce and _tce.iv else 0.0) or _csn.get("iv", 0.0)
+            pe_iv = (_tpe.iv if _tpe and _tpe.iv else 0.0) or _psn.get("iv", 0.0)
+            # Reset IV history when ATM changes — old strike's IV is not comparable
+            if atm != self._last_atm:
+                self._last_ce_iv = 0.0
+                self._last_pe_iv = 0.0
+                self._last_atm   = atm
+            # OI rising + IV rising = fresh buying; OI rising + IV flat/falling = writing
             ce_iv_rising = bool(ce_iv and self._last_ce_iv and ce_iv > self._last_ce_iv)
             pe_iv_rising = bool(pe_iv and self._last_pe_iv and pe_iv > self._last_pe_iv)
             if ce_iv: self._last_ce_iv = ce_iv
             if pe_iv: self._last_pe_iv = pe_iv
         else:
-            raw_delta = cum = oi_dir = 0.0
+            raw_delta = cum = 0.0
+            _pe_chg = _ce_chg = 0.0
             ce_iv_rising = pe_iv_rising = False
         delta_sc = 1 if raw_delta > 0 else -1 if raw_delta < 0 else 0
         cum_sc   = 1 if cum > 0 else -1 if cum < 0 else 0
-        oi_sc    = 1 if oi_dir > 0 else -1 if oi_dir < 0 else 0
+        # IV-adjusted: OI↑+IV↑ = buying (directional); OI↑+IV↓ = writing (contrarian)
+        if _pe_chg > _ce_chg:
+            oi_sc = -1 if pe_iv_rising else 1   # PE buying=bear; PE writing=bull floor
+        elif _ce_chg > _pe_chg:
+            oi_sc = 1 if ce_iv_rising else -1   # CE buying=bull; CE writing=ceiling=bear
+        else:
+            oi_sc = 0
         flow_score = delta_sc + cum_sc + oi_sc
 
         total = sma_score + flow_score  # range: -5 … +5
@@ -691,8 +705,11 @@ class SMAPanel(Static):
 
 
 class OrderFlowPanel(Static):
-    _cum_delta_local: float = 0.0   # session running total — CE+PE combined (feed_store tracks per-key only)
-    _prev_imbalance: float | None = None   # last refresh's (buy-sell) snapshot, for delta tracking
+    _cum_delta_local: float = 0.0
+    _prev_imbalance: float | None = None
+    _last_ce_iv: float = 0.0
+    _last_pe_iv: float = 0.0
+    _last_atm:   int   = 0
 
     def on_mount(self) -> None:
         self.border_title = "Order Flow"
@@ -750,21 +767,47 @@ class OrderFlowPanel(Static):
             total_vtt  = ce_vtt + pe_vtt
             net_oi_chg = ce_oi_chg + pe_oi_chg
 
-            # CE vs PE OI bias (absolute position)
-            oi_bias       = "CE Heavy (Bear)" if ce_oi > pe_oi else "PE Heavy (Bull)"
-            oi_bias_color = "red" if ce_oi > pe_oi else "green"
+            # OI Bias: full-chain PCR (more reliable than single ATM strike)
+            _full_pcr = option_chain_service.get_pcr() or 0.0
+            if _full_pcr <= 0:
+                oi_bias, oi_bias_color = "—", "dim white"
+            elif _full_pcr < 0.8:
+                oi_bias, oi_bias_color = f"CE Heavy ({_full_pcr:.2f})", "red"
+            elif _full_pcr < 1.1:
+                oi_bias, oi_bias_color = f"Balanced ({_full_pcr:.2f})", "yellow"
+            else:
+                oi_bias, oi_bias_color = f"PE Heavy ({_full_pcr:.2f})", "green"
 
-            # OI direction from change: PE writers growing more → bullish; CE growing more → bearish
-            # pe_oi_chg - ce_oi_chg > 0 = more puts written (floor being added) = bullish
+            # Live tick IV preferred; REST snapshot fallback. Reset on ATM change.
+            _ce_sn_iv = (t_ce.iv if t_ce and t_ce.iv else 0.0) or ce_sn_atm.get("iv", 0.0)
+            _pe_sn_iv = (t_pe.iv if t_pe and t_pe.iv else 0.0) or pe_sn_atm.get("iv", 0.0)
+            if atm != self._last_atm:
+                self._last_ce_iv = 0.0
+                self._last_pe_iv = 0.0
+                self._last_atm   = atm
+            _ce_iv_rising = bool(_ce_sn_iv and self._last_ce_iv and _ce_sn_iv > self._last_ce_iv)
+            _pe_iv_rising = bool(_pe_sn_iv and self._last_pe_iv and _pe_sn_iv > self._last_pe_iv)
+            if _ce_sn_iv: self._last_ce_iv = _ce_sn_iv
+            if _pe_sn_iv: self._last_pe_iv = _pe_sn_iv
+
+            # OI direction: IV-adjusted (OI↑+IV↑=buying, OI↑+IV↓=writing)
             oi_direction = pe_oi_chg - ce_oi_chg
             if ce_oi_chg > pe_oi_chg:
-                oi_dir_str   = f"CE↑{ce_oi_chg/1e5:.1f}L > PE↑{pe_oi_chg/1e5:.1f}L → Bear"
-                oi_dir_color = "red"
+                _lbl = "Buying" if _ce_iv_rising else "Writing"
+                oi_dir_str   = f"CE↑{ce_oi_chg/1e5:.1f}L ({_lbl}) → {'Bear' if _ce_iv_rising else 'Ceiling'}"
+                oi_dir_color = "red" if _ce_iv_rising else "yellow"
             elif pe_oi_chg > ce_oi_chg:
-                oi_dir_str   = f"PE↑{pe_oi_chg/1e5:.1f}L > CE↑{ce_oi_chg/1e5:.1f}L → Bull"
-                oi_dir_color = "green"
+                _lbl = "Buying" if _pe_iv_rising else "Writing"
+                oi_dir_str   = f"PE↑{pe_oi_chg/1e5:.1f}L ({_lbl}) → {'Bear' if _pe_iv_rising else 'Floor'}"
+                oi_dir_color = "red" if _pe_iv_rising else "green"
             else:
                 oi_dir_str, oi_dir_color = "Balanced", "yellow"
+
+            # Call wall / put wall from full chain
+            _cw = option_chain_service.get_call_wall()
+            _pw = option_chain_service.get_put_wall()
+            cw_str = f"{_cw[0]} ({_cw[0]-ltp:+.0f}pts)" if _cw and ltp else "—"
+            pw_str = f"{_pw[0]} ({_pw[0]-ltp:+.0f}pts)" if _pw and ltp else "—"
 
             # Flow signal: delta + cum_delta (intraday) + OI direction (positional bias)
             sig, sig_color = _signal(raw_delta, cum, oi_direction)
@@ -777,7 +820,8 @@ class OrderFlowPanel(Static):
             ce_oi_chg = pe_oi_chg = 0.0
             sig, sig_color = "◐ NEUTRAL", "yellow"
             delta_color = cum_color = oi_chg_color = oi_bias_color = oi_dir_color = "dim white"
-            oi_bias = oi_dir_str = "—"
+            oi_bias = oi_dir_str = cw_str = pw_str = "—"
+            _ce_sn_iv = _pe_sn_iv = 0.0
             ltp = 0.0
 
         lines = [
@@ -794,7 +838,13 @@ class OrderFlowPanel(Static):
             f"[dim]{'OI Direction':<12}[/] [{oi_dir_color}]{oi_dir_str}[/]",
             f"[dim]{'OI Change':<12}[/] [{oi_chg_color}]{_fmt(net_oi_chg, 0)}[/]",
             f"[dim]{'OI Signal':<12}[/] [cyan]{option_chain_service.get_oi_signal(ltp)}[/]",
+            f"[dim]{'Call Wall':<12}[/] [red]{cw_str}[/]",
+            f"[dim]{'Put Wall':<12}[/] [green]{pw_str}[/]",
             f"[dim]{'Volume':<12}[/] [white]{_fmt(total_vtt, 0)}[/]",
+            "[dim]── IV (ATM, live) ──────────────[/]",
+            f"[dim]{'CE IV':<12}[/] [white]{_ce_sn_iv:.2f}[/]",
+            f"[dim]{'PE IV':<12}[/] [white]{_pe_sn_iv:.2f}[/]",
+            f"[dim]{'IV Skew':<12}[/] [{'red' if _pe_sn_iv > _ce_sn_iv else 'green' if _ce_sn_iv > _pe_sn_iv else 'dim white'}]{'PE>' if _pe_sn_iv > _ce_sn_iv else 'CE>' if _ce_sn_iv > _pe_sn_iv else '='}{abs(_pe_sn_iv - _ce_sn_iv):.2f}[/]",
             "[dim]── Signal ──────────────────────[/]",
             f"[bold]{'Action':<12}[/] [bold {sig_color}]{sig}[/]",
         ]
@@ -988,6 +1038,63 @@ class GreeksTable(Static):
             rows.append(row)
 
         self.update("\n".join(rows))
+
+
+class TradeModeBar(Static):
+    """Prominent banner showing PAPER / LIVE mode + last live order status."""
+
+    def on_mount(self) -> None:
+        self._refresh()
+        self.set_interval(1.0, self._refresh)
+
+    def _refresh(self) -> None:
+        from uptox.services import trading_mode, portfolio_feed_service
+
+        if trading_mode.is_live():
+            # Show last order status alongside mode
+            last = portfolio_feed_service.get_last_order()
+            pf_status = portfolio_feed_service.get_status()
+            feed_icon = "●" if pf_status == "connected" else "○"
+
+            if last:
+                st   = (last.get("status") or "").lower()
+                sym  = last.get("trading_symbol") or last.get("instrument_token", "?")
+                txn  = last.get("transaction_type", "?")
+                filled = last.get("filled_quantity", 0)
+                qty    = last.get("quantity", 0)
+                avg    = last.get("average_price", 0.0)
+                oid    = (last.get("order_id") or "")[-8:]
+
+                if st in ("complete", "filled"):
+                    st_str = f"[bold green]FILLED {txn} {sym} {filled}/{qty} @ ₹{avg:.1f}[/]"
+                elif st in ("rejected", "error"):
+                    err = last.get("status_message", "")[:30]
+                    st_str = f"[bold red]REJECTED {txn} {sym} — {err}[/]"
+                elif st == "open":
+                    st_str = f"[yellow]OPEN {txn} {sym} {filled}/{qty}[/]"
+                elif st == "cancelled":
+                    st_str = f"[dim]CANCELLED {txn} {sym}[/]"
+                else:
+                    st_str = f"[dim]{st.upper()} {txn} {sym}[/]"
+
+                order_part = f"  │  Last order ({oid}): {st_str}"
+            else:
+                order_part = f"  │  {feed_icon} Portfolio feed: {pf_status}"
+
+            self.update(
+                f"[bold white on red]  ▶ LIVE TRADING — REAL ORDERS ACTIVE"
+                f"{order_part}"
+                f"  │  press L to switch to Paper  [/]"
+            )
+            self.add_class("live")
+            self.remove_class("paper")
+        else:
+            self.update(
+                "[bold black on green]  ● PAPER TRADING — no real orders  "
+                "  (press L to switch to Live)  [/]"
+            )
+            self.add_class("paper")
+            self.remove_class("live")
 
 
 class LivePricePanel(Static):
@@ -1366,6 +1473,14 @@ class DashboardScreen(ScrollableContainer):
         background: $background;
     }
 
+    /* ── mode banner ── */
+    TradeModeBar {
+        height: 1;
+        width: 100%;
+        content-align: center middle;
+        text-align: center;
+    }
+
     /* ── top bar ── */
     LivePricePanel {
         border: round green;
@@ -1426,6 +1541,7 @@ class DashboardScreen(ScrollableContainer):
     """
 
     def compose(self) -> ComposeResult:
+        yield TradeModeBar()
         yield LivePricePanel()
         yield PreMarketPanel()
         with Horizontal(id="col-row"):

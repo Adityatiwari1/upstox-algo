@@ -84,7 +84,7 @@ def record_bar() -> None:
 
         pcr = round(pe_oi / ce_oi, 3) if ce_oi else 0.0
 
-        cum_delta = feed_store.cum_delta(_NIFTY)
+        cum_delta = feed_store.cum_delta(ce_key) if ce_key else 0.0
 
         smas  = sma_service.get_smas(_NIFTY, TimeFrame.M5)
         s20   = smas.get(20) or 0.0
