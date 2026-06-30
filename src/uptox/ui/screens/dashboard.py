@@ -1203,7 +1203,7 @@ class CapitalPanel(Widget):
         )
 
     def on_mount(self) -> None:
-        self.border_title = "Capital & Risk  (]/[ = ±5K  c=set  r=RR  Z=reset-block)"
+        self.border_title = "Capital & Risk  (]/\\[ = ±5K  c=set  r=RR  Z=reset-block)"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
