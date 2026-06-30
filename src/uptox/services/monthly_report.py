@@ -79,7 +79,7 @@ def _setup_matplotlib() -> None:
     if _FONT_REGULAR:
         import matplotlib.font_manager as fm
         fm.fontManager.addfont(_FONT_REGULAR)
-        plt.rcParams["font.family"] = "Arial"
+        plt.rcParams["font.family"] = fm.FontProperties(fname=_FONT_REGULAR).get_name()
     plt.rcParams["axes.edgecolor"] = "#cccccc"
     plt.rcParams["axes.grid"] = True
     plt.rcParams["grid.color"] = "#eeeeee"
