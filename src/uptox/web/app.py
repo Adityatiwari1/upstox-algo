@@ -118,11 +118,21 @@ def api_open_trade():
 
 @app.get("/api/trades", summary="Closed trade history", tags=["trades"],
           responses=_doc(List[Trade], [_EX_CLOSED_TRADE]))
-def api_trades(date: str | None = None):
-    """All closed trades, newest first. Filter to one day with `?date=YYYY-MM-DD`."""
+def api_trades(
+    frm: str | None = None,
+    to:  str | None = None,
+):
+    """
+    All closed trades, newest first.
+    - `?frm=YYYY-MM-DD`        — from date (inclusive)
+    - `?to=YYYY-MM-DD`         — to date (inclusive)
+    - `?frm=YYYY-MM-DD&to=...` — date range
+    """
     trades = data.get_all_trades()
-    if date:
-        trades = [t for t in trades if t.get("date") == date]
+    if frm:
+        trades = [t for t in trades if t.get("date", "") >= frm]
+    if to:
+        trades = [t for t in trades if t.get("date", "") <= to]
     return list(reversed(trades))
 
 
