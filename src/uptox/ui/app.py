@@ -29,6 +29,7 @@ class UptoxApp(App):
         ("x",     "exit_trade",                "Exit Trade"),
         ("R",     "reload_config",             "Reload .env"),
         ("L",     "toggle_trade_mode",         "Toggle Live/Paper"),
+        ("Z",     "reset_daily_block",         "Reset Daily Block"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -102,6 +103,11 @@ class UptoxApp(App):
             self.query_one(CapitalPanel).open_input()
         except Exception:
             pass
+
+    def action_reset_daily_block(self) -> None:
+        from uptox.services import trade_book
+        trade_book.reset_daily_block()
+        self.notify("Daily block reset — trading re-enabled for session", severity="warning")
 
     def action_set_entry(self) -> None:
         from uptox.services import feed_store, option_chain_service, trailing_sl_service

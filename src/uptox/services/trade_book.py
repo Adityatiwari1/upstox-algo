@@ -30,6 +30,7 @@ _TRADES_XLSX     = Path("logs/trades.xlsx")
 _OPEN_TRADE_FILE = Path("logs/open_trade.json")   # persists open trade across restarts
 _trades: list[dict] = []
 _open_trade: dict | None = None
+_daily_block_override: bool = False   # set True by reset button to bypass daily loss block
 
 _XLSX_COLS = [
     ("Date",         "date"),
@@ -433,10 +434,13 @@ def update_spot(nifty_ltp: float) -> None:
             _open_trade["spot_peak"] = round(nifty_ltp, 1)
 
 
+_PER_TRADE_LOSS_TRIGGERED = "per_trade_loss_limit"
+
 def update_open_pnl(current_price: float) -> bool:
     """
-    Update unrealized P&L. Returns True the tick target is first crossed —
+    Update unrealized P&L. Returns True when target first crossed —
     caller should then call get_target_action() to decide close vs trail.
+    Per-trade loss limit breach auto-closes via tick_handler checking get_per_trade_breach().
     """
     if not _open_trade or not current_price:
         return False
@@ -448,8 +452,17 @@ def update_open_pnl(current_price: float) -> bool:
     )
     if current_price >= _open_trade["target"] and not _open_trade.get("target_crossed"):
         _open_trade["target_crossed"] = True
-        return True  # signal to caller: target just crossed this tick
+        return True
     return False
+
+
+def get_per_trade_breach() -> bool:
+    """True if open trade loss exceeds per-trade loss limit in ₹."""
+    if not _open_trade:
+        return False
+    from uptox.services import capital_service
+    limit = capital_service.get_per_trade_loss_rs()
+    return _open_trade.get("pnl_rs", 0.0) < -limit
 
 
 _HIGH_VELOCITY = 15.0   # pts/min — faster than this = spike, take profits
@@ -642,7 +655,9 @@ def get_daily_stats() -> dict:
     max_trades     = capital_service.get_max_trades_per_day()
     max_consec     = capital_service.get_max_consec_losses()
 
-    if pnl_pct <= -loss_limit_pct:
+    if _daily_block_override:
+        blocked_reason = None
+    elif pnl_pct <= -loss_limit_pct:
         blocked_reason = f"Daily loss limit hit ({pnl_pct:.1f}% / -{loss_limit_pct}%)"
     elif trade_count >= max_trades:
         blocked_reason = f"Max trades/day reached ({trade_count}/{max_trades})"
@@ -650,13 +665,21 @@ def get_daily_stats() -> dict:
         blocked_reason = f"{consec_losses} consecutive losses — paused for day"
 
     return {
-        "trades_today":  trade_count,
-        "pnl_rs_today":  round(pnl_rs, 0),
-        "pnl_pct_today": pnl_pct,
-        "consec_losses": consec_losses,
-        "blocked_reason": blocked_reason,
-        "can_trade":     blocked_reason is None,
+        "trades_today":    trade_count,
+        "pnl_rs_today":    round(pnl_rs, 0),
+        "pnl_pct_today":   pnl_pct,
+        "consec_losses":   consec_losses,
+        "blocked_reason":  blocked_reason,
+        "can_trade":       blocked_reason is None,
+        "block_overridden": _daily_block_override,
     }
+
+
+def reset_daily_block() -> None:
+    """Override daily loss/trade/consec-loss block for rest of session."""
+    global _daily_block_override
+    _daily_block_override = True
+    log.warning("Daily block OVERRIDDEN by user — trading re-enabled for session")
 
 
 def can_trade_today() -> tuple[bool, str | None]:

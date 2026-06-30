@@ -147,6 +147,11 @@ class OverallAnalysisPanel(Static):
     _last_pe_iv: float      = 0.0
     _last_atm:   int        = 0
 
+    # ── intraday high/low (reset daily, used for bounce/retreat filter) ────────
+    _session_low:  float = float("inf")
+    _session_high: float = 0.0
+    _session_date: str   = ""
+
 
     def on_mount(self) -> None:
         self.border_title = "Overall Analysis"
@@ -158,6 +163,17 @@ class OverallAnalysisPanel(Static):
         t = feed_store.get(NIFTY)
         live_ltp = t.ltp if t else 0.0
         ltp = live_ltp or option_chain_service.get_spot()
+
+        # Track intraday high/low (reset at midnight IST)
+        from datetime import date as _date
+        _today = _date.today().isoformat()
+        if _today != self._session_date:
+            self._session_date = _today
+            self._session_low  = live_ltp if live_ltp else float("inf")
+            self._session_high = live_ltp if live_ltp else 0.0
+        if live_ltp:
+            if live_ltp < self._session_low:  self._session_low  = live_ltp
+            if live_ltp > self._session_high: self._session_high = live_ltp
 
         # ATM strike (nearest 50)
         atm = round(ltp / 50) * 50 if ltp else 0
@@ -314,6 +330,14 @@ class OverallAnalysisPanel(Static):
                 no_trade_reason = f"Event day ({today_event}) — need score ≥{req_score}, got {total:+d}"
             else:
                 no_trade_reason = "Weak conviction"
+        # Bounce/retreat filter: block entry when price has moved significantly away from extremes.
+        # A PE entry after a 25+pt bounce from session low = entering after move already happened.
+        elif option == "PE" and self._session_low < float("inf") and (live_ltp - self._session_low) > 25:
+            _bounce = live_ltp - self._session_low
+            no_trade_reason = f"Price +{_bounce:.0f}pts from low — wait for retest"
+        elif option == "CE" and self._session_high > 0 and (self._session_high - live_ltp) > 25:
+            _retreat = self._session_high - live_ltp
+            no_trade_reason = f"Price -{_retreat:.0f}pts from high — wait for retest"
         # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
         tradeable = no_trade_reason is None
@@ -834,9 +858,9 @@ class OrderFlowPanel(Static):
             "[dim]── Flow (ATM CE+PE, live) ──────[/]",
             f"[dim]{'Delta':<12}[/] [{delta_color}]{_fmt(raw_delta, 0)}[/]",
             f"[dim]{'Cum. Delta':<12}[/] [{cum_color}]{_fmt(cum, 0)}[/]",
-            f"[dim]{'Buy/Sell':<12}[/] [white]{_fmt(ratio)}  ({'↑ Buyers' if ratio >= 1 else '↓ Sellers'})[/]",
-            f"[dim]{'Buy Qty':<12}[/] [green]{_fmt(total_buy, 0)}[/]",
-            f"[dim]{'Sell Qty':<12}[/] [red]{_fmt(total_sell, 0)}[/]",
+            f"[dim]{'Queue Ratio':<12}[/] [white]{_fmt(ratio)}  ({'Bid Heavy' if ratio >= 1 else 'Ask Heavy'})[/]",
+            f"[dim]{'Bid Qty':<12}[/] [green]{_fmt(total_buy, 0)}[/]",
+            f"[dim]{'Ask Qty':<12}[/] [red]{_fmt(total_sell, 0)}[/]",
             f"[dim]{'CE tbq/tsq':<12}[/] [green]{_fmt(_ce_tbq, 0)}[/][dim]/[/][red]{_fmt(_ce_tsq, 0)}[/]",
             f"[dim]{'PE tbq/tsq':<12}[/] [green]{_fmt(_pe_tbq, 0)}[/][dim]/[/][red]{_fmt(_pe_tsq, 0)}[/]",
             "[dim]── OI Positioning (±3 strikes) ─[/]",
@@ -1179,7 +1203,7 @@ class CapitalPanel(Widget):
         )
 
     def on_mount(self) -> None:
-        self.border_title = "Capital & Risk  (]/] = ±5K  c=set  r=RR)"
+        self.border_title = "Capital & Risk  (]/[ = ±5K  c=set  r=RR  Z=reset-block)"
         self._refresh()
         self.set_interval(1.0, self._refresh)
 
@@ -1201,7 +1225,7 @@ class CapitalPanel(Widget):
             _tpe = feed_store.get(_pk) if _pk else None
             _ce_buy, _ce_sell = feed_store.flow_qty(_tce)
             _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
-            _rd  = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
+            _rd  = (_ce_buy - _ce_sell) - (_pe_buy - _pe_sell)
             _cum = feed_store.cum_delta(_ck) if _ck else 0.0
             fc   = (1 if _rd > 0 else -1 if _rd < 0 else 0) + (1 if _cum > 0 else -1 if _cum < 0 else 0)
             total = sc + fc
@@ -1231,6 +1255,7 @@ class CapitalPanel(Widget):
         ds      = trade_book.get_daily_stats()
         day_col = "green" if ds["pnl_rs_today"] >= 0 else "red"
         dl_pct  = capital_service.get_daily_loss_limit_pct()
+        ptl_rs  = capital_service.get_per_trade_loss_rs()
         blocked = ds["blocked_reason"]
 
         inv_str  = f"₹{sz_risk['invested']:,.0f}" if live else "—"
@@ -1239,6 +1264,32 @@ class CapitalPanel(Widget):
         lots_str = str(sz_risk['lots']) if live else "—"
         cl_col   = "red" if ds["consec_losses"] >= 2 else "dim white"
         cl_str   = f"{ds['consec_losses']}/{capital_service.get_max_consec_losses()}"
+
+        # Greek breakdown for open trade
+        ot = trade_book.get_open_trade()
+        greek_lines = []
+        if ot and ot.get("outcome") == "OPEN":
+            opt_tick = feed_store.get(ot.get("option_key", ""))
+            nifty_t  = feed_store.get(NIFTY)
+            if opt_tick and nifty_t:
+                spot_now   = nifty_t.ltp
+                spot_entry = ot.get("spot_entry", spot_now)
+                delta      = opt_tick.delta or 0.0
+                theta      = opt_tick.theta or 0.0
+                lots       = ot.get("lots", 1)
+                from uptox.services.capital_service import NIFTY_LOT_SIZE
+                spot_move      = spot_now - spot_entry
+                delta_impact   = round(spot_move * delta * lots * NIFTY_LOT_SIZE, 0)
+                theta_per_hr   = round(theta / 6.25 * lots * NIFTY_LOT_SIZE, 0)  # theta/day ÷ 6.25 hrs
+                d_col = "green" if delta_impact >= 0 else "red"
+                t_col = "red"
+                greek_lines = [
+                    "",
+                    "[dim]── Open Trade Greeks ──────────[/]",
+                    f"[dim]{'Δ Impact':<14}[/] [{d_col}]₹{delta_impact:+,.0f}[/]  [dim](spot {spot_move:+.0f}pt)[/]",
+                    f"[dim]{'Θ Decay/hr':<14}[/] [{t_col}]₹{theta_per_hr:,.0f}[/]",
+                    f"[dim]{'Per-trade SL':<14}[/] [red]₹{ptl_rs:,.0f}[/]",
+                ]
 
         lines = [
             f"[dim]{'Capital':<14}[/] [yellow]₹{cap:,.0f}[/]{real_str}",
@@ -1249,15 +1300,18 @@ class CapitalPanel(Widget):
             f"[dim]{'Lots':<14}[/] [white]{lots_str}[/]{cap_str}",
             f"[dim]{'Invested':<14}[/] [white]{inv_str}[/]",
             f"[dim]{'Risk/trade':<14}[/] [red]{risk_str}[/]",
+            f"[dim]{'Per-trade SL':<14}[/] [red]₹{ptl_rs:,.0f}[/]  [dim](L=change)[/]",
             "",
             "[dim]── Today ──────────────────────[/]",
             f"[dim]{'Trades':<14}[/] [white]{ds['trades_today']}/{capital_service.get_max_trades_per_day()}[/]",
             f"[dim]{'Day P&L':<14}[/] [{day_col}]₹{ds['pnl_rs_today']:+,.0f}  ({ds['pnl_pct_today']:+.1f}%)[/]",
             f"[dim]{'Loss Limit':<14}[/] [dim white]-{dl_pct}% = ₹{cap * dl_pct / 100:,.0f}[/]",
             f"[dim]{'Consec Loss':<14}[/] [{cl_col}]{cl_str}[/]",
-        ]
+        ] + greek_lines
         if blocked:
-            lines += ["", f"[bold red]⚠ {blocked}[/]"]
+            lines += ["", f"[bold red]⚠ {blocked}[/]", "[dim](X = override block)[/]"]
+        elif ds.get("block_overridden"):
+            lines += ["", "[yellow]⚠ Block overridden — trading active[/]"]
 
         self.query_one("#cap-display", Static).update("\n".join(lines))
 

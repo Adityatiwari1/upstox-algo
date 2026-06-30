@@ -14,9 +14,10 @@ _capital: float       = 10_000.0
 _risk_reward: float   = 2.0
 
 # ── Daily limits (configurable) ───────────────────────────────────────────────
-_daily_loss_limit_pct: float = 3.0    # % of capital → block new trades
-_max_trades_per_day:   int   = 5      # max trades in a session
-_max_consec_losses:    int   = 3      # consecutive losses before blocking
+_daily_loss_limit_pct: float = 5.0    # % of capital → block new trades
+_max_trades_per_day:   int   = 3      # max trades in a session
+_max_consec_losses:    int   = 2      # consecutive losses before blocking
+# per_trade_loss_rs is DERIVED — not stored: daily_limit_rs / max_trades
 
 
 # ── Capital getters ───────────────────────────────────────────────────────────
@@ -27,6 +28,14 @@ def get_rr() -> float:            return _risk_reward
 def get_daily_loss_limit_pct() -> float: return _daily_loss_limit_pct
 def get_max_trades_per_day() -> int:     return _max_trades_per_day
 def get_max_consec_losses() -> int:      return _max_consec_losses
+
+def get_daily_loss_limit_rs() -> float:
+    """Daily max loss in ₹ = capital × daily_loss_pct%."""
+    return round(_capital * _daily_loss_limit_pct / 100, 2)
+
+def get_per_trade_loss_rs() -> float:
+    """Per-trade loss limit in ₹ = daily_limit_rs / max_trades."""
+    return round(get_daily_loss_limit_rs() / max(_max_trades_per_day, 1), 2)
 
 
 def set_capital(c: float) -> None:
@@ -74,6 +83,8 @@ def set_max_trades_per_day(n: int) -> None:
 def set_max_consec_losses(n: int) -> None:
     global _max_consec_losses
     _max_consec_losses = max(1, int(n))
+
+
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
@@ -169,24 +180,19 @@ def sizing_with_risk(buy_price: float, sl_price: float) -> dict:
     sl_risk_per_lot = round((buy_price - sl_price) * NIFTY_LOT_SIZE, 2) if sl_price and sl_price < buy_price else lot_cost * 0.30
 
     # ── Tier rules ────────────────────────────────────────────────────────
+    # Lot sizing from per-trade loss limit (derived from daily limit / max_trades)
+    max_risk_rs = get_per_trade_loss_rs()
+    risk_lots   = int(max_risk_rs / sl_risk_per_lot) if sl_risk_per_lot > 0 else affordable
+
     if _capital < 25_000:
-        # Small account: deploy fully, 1 lot max
-        lots       = 1
-        capped_by  = "small_account_1lot"
-
+        lots      = min(affordable, max(1, risk_lots), 1)
+        capped_by = "small_account_1lot"
     elif _capital < 1_00_000:
-        # Mid account: max 5% capital at risk
-        max_risk_rs = _capital * 0.05
-        risk_lots   = int(max_risk_rs / sl_risk_per_lot) if sl_risk_per_lot > 0 else affordable
-        lots        = min(affordable, max(1, risk_lots))
-        capped_by   = "5pct_risk" if risk_lots < affordable else "affordability"
-
+        lots      = min(affordable, max(1, risk_lots))
+        capped_by = "per_trade_limit" if risk_lots < affordable else "affordability"
     else:
-        # Large account: max 2% capital at risk, hard cap 10 lots
-        max_risk_rs = _capital * 0.02
-        risk_lots   = int(max_risk_rs / sl_risk_per_lot) if sl_risk_per_lot > 0 else affordable
-        lots        = min(affordable, max(1, risk_lots), 10)
-        capped_by   = "2pct_risk" if risk_lots < affordable else ("10lot_cap" if affordable > 10 else "affordability")
+        lots      = min(affordable, max(1, risk_lots), 10)
+        capped_by = "per_trade_limit" if risk_lots < affordable else ("10lot_cap" if affordable > 10 else "affordability")
 
     invested  = round(lots * lot_cost, 2)
     risk_rs   = round(lots * sl_risk_per_lot, 2)
@@ -257,7 +263,7 @@ def is_expiry_day() -> bool:
 
 # ── SL / Target ───────────────────────────────────────────────────────────────
 
-def levels(buy_price: float, delta: float | None = None, iv: float = 0.0, repeat_count: int = 0) -> dict:  # delta unused; kept for API compat
+def levels(buy_price: float, delta: float | None = None, iv: float = 0.0, repeat_count: int = 0) -> dict:  # noqa: ARG001
     """
     repeat_count: how many consecutive same-direction trades already happened
     today before this one (0 = first/fresh direction). Each repeat at the same

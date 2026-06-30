@@ -42,7 +42,7 @@ def _greeks_lines(ot: dict) -> list[str]:
         f"[dim]{'Theta/min':<16}[/] [dim red]₹{theta_min:+.2f}/min[/]",
         f"[dim]{'Gamma':<16}[/] [dim white]{gamma:.4f}[/]",
         f"[dim]{'Vega':<16}[/] [dim white]{vega:.3f}[/]",
-        f"[dim]{'IV':<16}[/] [cyan]{iv*100:.1f}%[/]",
+        f"[dim]{'IV':<16}[/] [cyan]{iv:.2f}[/]",
     ]
 
 

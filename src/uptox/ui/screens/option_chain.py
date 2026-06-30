@@ -146,7 +146,7 @@ class OptionChainScreen(Static):
             def _ltp(v):    return f"{v:.1f}"       if v else "—"
             def _oi(v):     return f"{v/1000:.1f}K" if v else "—"
             def _oichg(v):  return f"{v:+,.0f}"     if v else "—"
-            def _iv(v):     return f"{v:.1f}%"       if v else "—"
+            def _iv(v):     return f"{v:.2f}"         if v else "—"
 
             strike_label = f"★ {strike} ATM" if strike == atm else str(strike)
 
