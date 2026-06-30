@@ -566,6 +566,7 @@ class OverallAnalysisPanel(Static):
                                   watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots[/]"
                                   entry_type = None
                               else:
+                                _itm = False
                                 _strike_note = "[EXPIRY ATM]" if expiry_pm else ""
                                 if not expiry_pm:
                                     _itm = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
