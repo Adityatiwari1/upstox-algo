@@ -198,10 +198,11 @@ class OverallAnalysisPanel(Static):
             _psn = option_chain_service.get_option(atm, "PE") or {}
             _ce_buy, _ce_sell = feed_store.flow_qty(_tce)
             _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
-            raw_delta = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
+            # CE net buy = bullish; PE net buy = bearish — subtract, don't add
+            raw_delta = (_ce_buy - _ce_sell) - (_pe_buy - _pe_sell)
             cum    = feed_store.cum_delta(_ck) if _ck else 0.0
-            _pe_chg = _psn.get("change_oi", 0.0)
-            _ce_chg = _csn.get("change_oi", 0.0)
+            # OI change from ±3 strikes (same data as OI Signal display — broader than ATM only)
+            _ce_chg, _pe_chg = option_chain_service.get_oi_chg(live_ltp) if live_ltp else (0.0, 0.0)
             # Live tick IV preferred (per-tick, real value); REST snapshot as fallback
             ce_iv = (_tce.iv if _tce and _tce.iv else 0.0) or _csn.get("iv", 0.0)
             pe_iv = (_tpe.iv if _tpe and _tpe.iv else 0.0) or _psn.get("iv", 0.0)
@@ -215,11 +216,16 @@ class OverallAnalysisPanel(Static):
             pe_iv_rising = bool(pe_iv and self._last_pe_iv and pe_iv > self._last_pe_iv)
             if ce_iv: self._last_ce_iv = ce_iv
             if pe_iv: self._last_pe_iv = pe_iv
+            # delta_sc only valid when exchange provides actual trade flow (tbq/tsq)
+            # depth-based raw_delta is always bid-heavy for index options — not directional
+            _has_trade_flow = bool((_tce and (_tce.tbq or _tce.tsq)) or
+                                   (_tpe and (_tpe.tbq or _tpe.tsq)))
         else:
             raw_delta = cum = 0.0
             _pe_chg = _ce_chg = 0.0
             ce_iv_rising = pe_iv_rising = False
-        delta_sc = 1 if raw_delta > 0 else -1 if raw_delta < 0 else 0
+            _has_trade_flow = False
+        delta_sc = (1 if raw_delta > 0 else -1 if raw_delta < 0 else 0) if _has_trade_flow else 0
         cum_sc   = 1 if cum > 0 else -1 if cum < 0 else 0
         # IV-adjusted: OI↑+IV↑ = buying (directional); OI↑+IV↓ = writing (contrarian)
         if _pe_chg > _ce_chg:
@@ -705,8 +711,6 @@ class SMAPanel(Static):
 
 
 class OrderFlowPanel(Static):
-    _cum_delta_local: float = 0.0
-    _prev_imbalance: float | None = None
     _last_ce_iv: float = 0.0
     _last_pe_iv: float = 0.0
     _last_atm:   int   = 0
@@ -733,13 +737,11 @@ class OrderFlowPanel(Static):
             total_buy  = ce_buy + pe_buy
             total_sell = ce_sell + pe_sell
 
-            raw_delta = total_buy - total_sell
+            # CE net buy = bullish; PE net buy = bearish — subtract, don't add
+            raw_delta = (ce_buy - ce_sell) - (pe_buy - pe_sell)
 
-            # Cumulative delta = running sum of tick-over-tick imbalance changes (order-flow style)
-            if self._prev_imbalance is not None:
-                self._cum_delta_local += raw_delta - self._prev_imbalance
-            self._prev_imbalance = raw_delta
-            cum = self._cum_delta_local
+            # Use feed_store cum_delta (tick-rule accumulation, already correct)
+            cum = feed_store.cum_delta(ce_key) if ce_key else 0.0
 
             ratio = (total_buy / total_sell) if total_sell else 0.0
 
@@ -814,6 +816,10 @@ class OrderFlowPanel(Static):
             delta_color = "green" if raw_delta >= 0 else "red"
             cum_color   = "green" if cum >= 0 else "red"
             oi_chg_color = "green" if net_oi_chg >= 0 else "red"
+            _ce_tbq = t_ce.tbq if t_ce else 0.0
+            _ce_tsq = t_ce.tsq if t_ce else 0.0
+            _pe_tbq = t_pe.tbq if t_pe else 0.0
+            _pe_tsq = t_pe.tsq if t_pe else 0.0
         else:
             raw_delta = cum = ratio = total_buy = total_sell = total_vtt = 0.0
             ce_oi = pe_oi = net_oi_chg = oi_direction = 0.0
@@ -822,8 +828,8 @@ class OrderFlowPanel(Static):
             delta_color = cum_color = oi_chg_color = oi_bias_color = oi_dir_color = "dim white"
             oi_bias = oi_dir_str = cw_str = pw_str = "—"
             _ce_sn_iv = _pe_sn_iv = 0.0
+            _ce_tbq = _ce_tsq = _pe_tbq = _pe_tsq = 0.0
             ltp = 0.0
-
         lines = [
             "[dim]── Flow (ATM CE+PE, live) ──────[/]",
             f"[dim]{'Delta':<12}[/] [{delta_color}]{_fmt(raw_delta, 0)}[/]",
@@ -831,6 +837,8 @@ class OrderFlowPanel(Static):
             f"[dim]{'Buy/Sell':<12}[/] [white]{_fmt(ratio)}  ({'↑ Buyers' if ratio >= 1 else '↓ Sellers'})[/]",
             f"[dim]{'Buy Qty':<12}[/] [green]{_fmt(total_buy, 0)}[/]",
             f"[dim]{'Sell Qty':<12}[/] [red]{_fmt(total_sell, 0)}[/]",
+            f"[dim]{'CE tbq/tsq':<12}[/] [green]{_fmt(_ce_tbq, 0)}[/][dim]/[/][red]{_fmt(_ce_tsq, 0)}[/]",
+            f"[dim]{'PE tbq/tsq':<12}[/] [green]{_fmt(_pe_tbq, 0)}[/][dim]/[/][red]{_fmt(_pe_tsq, 0)}[/]",
             "[dim]── OI Positioning (±3 strikes) ─[/]",
             f"[bold]{'OI Bias':<12}[/] [bold {oi_bias_color}]{oi_bias}[/]",
             f"[dim]{'CE OI':<12}[/] [white]{_fmt(ce_oi, 0)}[/]",
@@ -920,7 +928,7 @@ class BestEntryPanel(Static):
             _tpe = feed_store.get(_pk) if _pk else None
             _ce_buy, _ce_sell = feed_store.flow_qty(_tce)
             _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
-            raw_delta = (_ce_buy + _pe_buy) - (_ce_sell + _pe_sell)
+            raw_delta = (_ce_buy - _ce_sell) - (_pe_buy - _pe_sell)
             cum = feed_store.cum_delta(_ck) if _ck else 0.0
         else:
             raw_delta = cum = 0.0

@@ -56,18 +56,21 @@ def flow_qty(tick: TickData | None) -> tuple[float, float]:
 def update(instrument_key: str, tick: TickData) -> None:
     prev = _store.get(instrument_key)
     _store[instrument_key] = tick
-    # cumulative delta: session running total of (buy - sell) change, tick-over-tick
-    buy, sell   = flow_qty(tick)
-    tick_delta  = buy - sell
     if instrument_key not in _cum_delta:
         _cum_delta[instrument_key] = 0.0
-    if prev:
-        pbuy, psell = flow_qty(prev)
-        prev_delta  = pbuy - psell
-        if tick_delta != prev_delta:
-            _cum_delta[instrument_key] += tick_delta - prev_delta
-    else:
-        _cum_delta[instrument_key] = tick_delta
+    if tick.tbq or tick.tsq:
+        # Reliable exchange-provided trade flow — accumulate delta change tick-over-tick
+        tick_delta = tick.tbq - tick.tsq
+        if prev and (prev.tbq or prev.tsq):
+            prev_delta = prev.tbq - prev.tsq
+            if tick_delta != prev_delta:
+                _cum_delta[instrument_key] += tick_delta - prev_delta
+        else:
+            _cum_delta[instrument_key] = tick_delta
+    elif prev and tick.ltq > 0:
+        # No tbq/tsq (index options limitation) — tick rule: ltq × price direction
+        direction = 1 if tick.ltp > prev.ltp else -1 if tick.ltp < prev.ltp else 0
+        _cum_delta[instrument_key] += tick.ltq * direction
 
 
 def get(instrument_key: str) -> TickData | None:

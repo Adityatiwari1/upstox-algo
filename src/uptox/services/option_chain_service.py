@@ -265,21 +265,28 @@ def get_put_wall() -> tuple[int, float] | None:
     return max(items, key=lambda x: x[1]) if items else None
 
 
-def get_oi_signal(ltp: float, n: int = 3) -> str:
-    """Interpret cumulative OI change across ATM ±n strikes."""
+def get_oi_chg(ltp: float, n: int = 3) -> tuple[float, float]:
+    """Raw (ce_chg, pe_chg) summed across ATM ±n strikes. Used for scoring."""
     if not ltp or not _chain:
-        return "—"
+        return 0.0, 0.0
     atm = round(ltp / 50) * 50
     ce_chg = pe_chg = 0.0
     for i in range(-n, n + 1):
         s = atm + i * 50
         for opt_type in ("CE", "PE"):
-            # change_oi not in v3 live feed — always use REST snapshot
             chg = (_chain.get((s, opt_type)) or {}).get("change_oi", 0.0)
             if opt_type == "CE":
                 ce_chg += chg
             else:
                 pe_chg += chg
+    return ce_chg, pe_chg
+
+
+def get_oi_signal(ltp: float, n: int = 3) -> str:
+    """Interpret cumulative OI change across ATM ±n strikes."""
+    if not ltp or not _chain:
+        return "—"
+    ce_chg, pe_chg = get_oi_chg(ltp, n)
     if ce_chg > 0 and pe_chg < 0:  return "BULLISH  (CE↑ PE↓)"
     if ce_chg < 0 and pe_chg > 0:  return "BEARISH  (CE↓ PE↑)"
     if ce_chg > 0 and pe_chg > 0:  return "SIDEWAYS (CE↑ PE↑)"
