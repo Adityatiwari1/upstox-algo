@@ -3,12 +3,14 @@ Monthly PDF performance report. Sent via Telegram on the last trading day
 of each month. Charts via matplotlib, layout via reportlab.
 
 Rupee symbol fix: reportlab's default Helvetica font has no glyph for ₹
-(U+20B9), so it rendered blank/broken. Registers Windows Arial.ttf instead,
-which has full ₹ support, for every text element.
+(U+20B9), so it rendered blank/broken. Registers a TTF font (Arial on Windows,
+DejaVu/Liberation on Linux) with full ₹ support. Falls back to built-in
+Helvetica if no TTF is found (₹ renders as box but PDF still generates).
 """
 from __future__ import annotations
 
 import logging
+import os as _os
 from pathlib import Path
 from datetime import date
 
@@ -16,8 +18,33 @@ logging.getLogger("matplotlib").setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
 _REPORT_DIR = Path("logs/reports")
-_FONT_REGULAR = "C:/Windows/Fonts/arial.ttf"
-_FONT_BOLD    = "C:/Windows/Fonts/arialbd.ttf"
+
+# ── cross-platform font detection ────────────────────────────────────────────
+
+def _find_fonts() -> tuple[str | None, str | None]:
+    candidates = [
+        ("C:/Windows/Fonts/arial.ttf",       "C:/Windows/Fonts/arialbd.ttf"),
+        ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        ("/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+         "/usr/share/fonts/liberation/LiberationSans-Bold.ttf"),
+        ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"),
+        ("/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+         "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"),
+    ]
+    for reg, bold in candidates:
+        if _os.path.exists(reg) and _os.path.exists(bold):
+            return reg, bold
+    return None, None
+
+_FONT_REGULAR, _FONT_BOLD = _find_fonts()
+# Font name tokens used in ParagraphStyle/TableStyle — fallback to built-in
+_FN  = "Arial"      if _FONT_REGULAR else "Helvetica"
+_FNB = "Arial-Bold" if _FONT_REGULAR else "Helvetica-Bold"
+
+if not _FONT_REGULAR:
+    log.warning("monthly_report: no TTF font found — PDF will use Helvetica (₹ may not render)")
 
 _GREEN = "#1a7a3c"
 _RED   = "#b32020"
@@ -26,6 +53,8 @@ _GREY  = "#666666"
 
 
 def _register_fonts() -> None:
+    if not _FONT_REGULAR:
+        return   # use built-in Helvetica; _FN/_FNB already set to "Helvetica"/"Helvetica-Bold"
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     if "Arial" not in pdfmetrics.getRegisteredFontNames():
@@ -36,10 +65,11 @@ def _register_fonts() -> None:
 def _setup_matplotlib() -> None:
     import matplotlib
     matplotlib.use("Agg")
-    import matplotlib.font_manager as fm
-    fm.fontManager.addfont(_FONT_REGULAR)
     import matplotlib.pyplot as plt
-    plt.rcParams["font.family"] = "Arial"
+    if _FONT_REGULAR:
+        import matplotlib.font_manager as fm
+        fm.fontManager.addfont(_FONT_REGULAR)
+        plt.rcParams["font.family"] = "Arial"
     plt.rcParams["axes.edgecolor"] = "#cccccc"
     plt.rcParams["axes.grid"] = True
     plt.rcParams["grid.color"] = "#eeeeee"
@@ -241,25 +271,25 @@ def generate(month: date | None = None) -> Path:
         title=f"Addy's Algo Trading, Monthly Report {month_label}",
     )
 
-    H1 = ParagraphStyle("H1", fontName="Arial-Bold", fontSize=16, leading=20,
+    H1 = ParagraphStyle("H1", fontName=_FNB, fontSize=16, leading=20,
                          textColor=rl_colors.HexColor("#1a5fb4"), spaceAfter=6, spaceBefore=14)
-    TITLE = ParagraphStyle("TITLE", fontName="Arial-Bold", fontSize=24, leading=30,
+    TITLE = ParagraphStyle("TITLE", fontName=_FNB, fontSize=24, leading=30,
                             textColor=rl_colors.HexColor("#1a5fb4"), alignment=TA_CENTER, spaceAfter=4)
-    SUB = ParagraphStyle("SUB", fontName="Arial", fontSize=12, leading=16,
+    SUB = ParagraphStyle("SUB", fontName=_FN, fontSize=12, leading=16,
                           textColor=rl_colors.HexColor("#555555"), alignment=TA_CENTER, spaceAfter=2)
-    BODY = ParagraphStyle("BODY", fontName="Arial", fontSize=9.5, leading=14, spaceAfter=4)
+    BODY = ParagraphStyle("BODY", fontName=_FN, fontSize=9.5, leading=14, spaceAfter=4)
     BULLET = ParagraphStyle("BULLET", parent=BODY, leftIndent=14, bulletIndent=2)
-    NOTE = ParagraphStyle("NOTE", fontName="Arial", fontSize=8.5, leading=11,
+    NOTE = ParagraphStyle("NOTE", fontName=_FN, fontSize=8.5, leading=11,
                            textColor=rl_colors.HexColor("#777777"))
-    BIG = ParagraphStyle("BIG", fontName="Arial-Bold", fontSize=28, leading=34,
+    BIG = ParagraphStyle("BIG", fontName=_FNB, fontSize=28, leading=34,
                           alignment=TA_CENTER, spaceAfter=6)
 
     def table_style(header_bg=_BLUE):
         return TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor(header_bg)),
             ("TEXTCOLOR",  (0, 0), (-1, 0), rl_colors.white),
-            ("FONTNAME",   (0, 0), (-1, 0), "Arial-Bold"),
-            ("FONTNAME",   (0, 1), (-1, -1), "Arial"),
+            ("FONTNAME",   (0, 0), (-1, 0), _FNB),
+            ("FONTNAME",   (0, 1), (-1, -1), _FN),
             ("FONTSIZE",   (0, 0), (-1, -1), 9),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [rl_colors.HexColor("#f7f8fa"), rl_colors.white]),
             ("GRID",       (0, 0), (-1, -1), 0.3, rl_colors.HexColor("#dddddd")),
