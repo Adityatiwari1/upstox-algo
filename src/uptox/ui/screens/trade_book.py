@@ -86,7 +86,7 @@ class OpenTradePanel(Static):
                 f"[dim]{'Peak':<16}[/] [yellow]{ts['peak']:.1f}[/]{progress_str}",
                 f"[dim]{'Trail SL':<16}[/] [{tsl_col}]{ts['trail_sl']:.1f}[/]{sl_detail}{floor_str}",
                 f"[dim]{'Phase':<16}[/] [dim white]{phase_str}  trail={int((ts['trail_pct'] or 0)*100)}%[/]",
-                f"[dim]{'P&L':<16}[/] [{pnl_col}]{ts['pnl_pts']:+.1f}pts[/]",
+                f"[dim]{'P&L':<16}[/] [{pnl_col}]{ts['pnl_pts']:+.1f}pts[/]  [dim](peak {ts['peak_pnl_pts']:+.1f})[/]",
                 f"[dim]{'Status':<16}[/] " + (
                     "[bold red]STOPPED OUT — press x[/]" if ts["stopped_out"]
                     else "[bold green]In Profit ✓[/]" if ts["in_profit"]

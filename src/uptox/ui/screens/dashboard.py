@@ -87,7 +87,8 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
     return atm, None, 0.0
 
 
-def _near_sr(ltp: float, option: str) -> str | None:
+def _near_sr(ltp: float, option: str,
+             session_low: float = 0.0, session_high: float = 0.0) -> str | None:
     """
     Return reason string if ltp is within SR_TOL points of a key level that
     would act as resistance (CE) or support (PE). Returns None if entry is clear.
@@ -107,6 +108,12 @@ def _near_sr(ltp: float, option: str) -> str | None:
     base = round(ltp / 100) * 100
     for off in (-200, -100, 0, 100, 200):
         levels.append((f"Round {int(base + off)}", float(base + off)))
+
+    # Session high/low act as intraday S/R — market has already tested these
+    if session_low > 0:
+        levels.append(("Day Low", session_low))
+    if session_high > 0:
+        levels.append(("Day High", session_high))
 
     for label, lvl in levels:
         dist = ltp - lvl  # positive = ltp above level, negative = level above ltp
@@ -179,13 +186,19 @@ class OverallAnalysisPanel(Static):
         atm = round(ltp / 50) * 50 if ltp else 0
 
         # SMA trend score from 5min (most responsive)
+        # Min 8pt gap required — crosses within 8pts of SMA are noise in a ranging market
+        _SMA_MIN_GAP = 8.0
         smas  = sma_service.get_smas(NIFTY, TimeFrame.M5)
         sma20 = smas.get(20)
         sma50 = smas.get(50)
         sma_ready = sma20 is not None and sma50 is not None
         sma_score = 0
-        if ltp and sma20: sma_score += (1 if ltp > sma20 else -1)
-        if ltp and sma50: sma_score += (1 if ltp > sma50 else -1)
+        if ltp and sma20:
+            if   ltp > sma20 + _SMA_MIN_GAP: sma_score += 1
+            elif ltp < sma20 - _SMA_MIN_GAP: sma_score -= 1
+        if ltp and sma50:
+            if   ltp > sma50 + _SMA_MIN_GAP: sma_score += 1
+            elif ltp < sma50 - _SMA_MIN_GAP: sma_score -= 1
 
         # Track consecutive 5-min bars where |sma_score| == 2 (for sustained-signal entry)
         from datetime import datetime as _dt
@@ -330,14 +343,20 @@ class OverallAnalysisPanel(Static):
                 no_trade_reason = f"Event day ({today_event}) — need score ≥{req_score}, got {total:+d}"
             else:
                 no_trade_reason = "Weak conviction"
-        # Bounce/retreat filter: block entry when price has moved significantly away from extremes.
-        # A PE entry after a 25+pt bounce from session low = entering after move already happened.
-        elif option == "PE" and self._session_low < float("inf") and (live_ltp - self._session_low) > 25:
-            _bounce = live_ltp - self._session_low
-            no_trade_reason = f"Price +{_bounce:.0f}pts from low — wait for retest"
-        elif option == "CE" and self._session_high > 0 and (self._session_high - live_ltp) > 25:
-            _retreat = self._session_high - live_ltp
-            no_trade_reason = f"Price -{_retreat:.0f}pts from high — wait for retest"
+        # Bounce/retreat filter: block PE entry only while the bounce is STILL ACTIVE.
+        # "Active" = last 2 closed 5min bars are both green (price still rising).
+        # If bounce has stalled/reversed (last bar red), allow PE regardless of distance from low.
+        # Minimum 25pt gap still required — below that it's SL noise, not a real bounce.
+        else:
+            _recent = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=2)
+            _bounce_pts  = (live_ltp - self._session_low)  if self._session_low < float("inf") else 0.0
+            _retreat_pts = (self._session_high - live_ltp) if self._session_high > 0 else 0.0
+            _both_green = (len(_recent) == 2 and _recent[-1][3] > _recent[-1][0] and _recent[-2][3] > _recent[-2][0])
+            _both_red   = (len(_recent) == 2 and _recent[-1][3] < _recent[-1][0] and _recent[-2][3] < _recent[-2][0])
+            if option == "PE" and _bounce_pts > 25 and _both_green:
+                no_trade_reason = f"Bounce active +{_bounce_pts:.0f}pts from low — wait for red bar"
+            elif option == "CE" and _retreat_pts > 25 and _both_red:
+                no_trade_reason = f"Retreat active -{_retreat_pts:.0f}pts from high — wait for green bar"
         # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
         tradeable = no_trade_reason is None
@@ -500,7 +519,9 @@ class OverallAnalysisPanel(Static):
 
                     if entry_type:
                         # S/R check — block entry if near a key level
-                        sr_block = _near_sr(ltp, option)
+                        sr_block = _near_sr(ltp, option,
+                                            session_low=self._session_low if self._session_low < float("inf") else 0.0,
+                                            session_high=self._session_high)
                         if sr_block:
                             watch_tag = f"  [bold red]⚠ BLOCKED — {sr_block}[/]"
                             self._why_tag = f"S/R block: {sr_block} — waiting to clear"
@@ -990,7 +1011,7 @@ class BestEntryPanel(Static):
                 ("Peak",     f"{ts['peak']:.1f}",                          pnl_color),
                 ("Trail SL", f"{ts['trail_sl']:.1f}  ({int(ts['trail_pct']*100)}% below peak)",
                              stop_color),
-                ("P&L (pts)", f"{ts['pnl_pts']:+.1f}",                    pnl_color),
+                ("P&L (pts)", f"{ts['pnl_pts']:+.1f}  (peak {ts['peak_pnl_pts']:+.1f})",  pnl_color),
                 ("Status",   "STOPPED OUT — press x" if ts["stopped_out"] else
                              ("In Profit ✓" if ts["in_profit"] else "Tracking..."),
                              "red bold" if ts["stopped_out"] else

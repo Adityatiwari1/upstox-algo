@@ -32,6 +32,7 @@ _side:           str   = ""
 _option_key:     str   = ""
 
 _peak:           float = 0.0
+_current_price:  float = 0.0   # latest option LTP — used for real-time P&L display
 _trail_sl:       float = 0.0
 _sl_floor:       float = 0.0   # SL never drops below this
 
@@ -175,13 +176,14 @@ def update(instrument_key: str, ltp: float) -> bool:
     expiry-afternoon per-tick steps, then checks SL hit against current floor.
     Returns True when SL triggered for first time.
     """
-    global _peak, _trail_sl, _stopped_out, _sl_floor
+    global _peak, _current_price, _trail_sl, _stopped_out, _sl_floor
 
     if not _active or not ltp or not _option_key:
         return False
     if instrument_key != _option_key:
         return False
 
+    _current_price = ltp
     if ltp > _peak:
         _peak = ltp
 
@@ -272,7 +274,8 @@ def get_status() -> dict:
         "trail_pct":        trail_pct,
         "phase":            _phase,
         "progress_pct":     progress,
-        "pnl_pts":          round(_peak - _entry_price, 1) if _active else 0.0,
-        "in_profit":        _active and _peak > _entry_price,
+        "pnl_pts":          round(_current_price - _entry_price, 1) if (_active and _current_price) else 0.0,
+        "peak_pnl_pts":     round(_peak - _entry_price, 1) if _active else 0.0,
+        "in_profit":        _active and _current_price > _entry_price,
         "multiple":         round(_peak / _entry_price, 2) if (_active and _entry_price) else 1.0,
     }

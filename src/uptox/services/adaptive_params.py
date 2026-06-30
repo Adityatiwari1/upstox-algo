@@ -21,7 +21,7 @@ _DEFAULTS: dict[str, float | int] = {
     "trail_atr_baseline":  20.0,   # ATR at which 12% post-target trail applies; scales linearly
     "bk_min_dist":         11.0,   # breakout min departure (pts) before retest
     "bk_timeout":          300,    # seconds to wait for retest
-    "sr_tolerance":        15.0,   # Nifty pts — block if within this of S/R
+    "sr_tolerance":        25.0,   # Nifty pts — block if within this of S/R
     "pcr_bull_block":      0.5,    # PCR below this → advisory warning CE crowded
     "pcr_bear_block":      2.0,    # PCR above this → advisory warning PE crowded
     "iv_rank_block":       70.0,   # IV rank above this → skip entry (bypassed on expiry PM)

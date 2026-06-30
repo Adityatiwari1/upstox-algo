@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import httpx
 from collections import deque
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, time as dt_time
 from enum import Enum
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
@@ -79,14 +79,20 @@ def _floor_to(dt: datetime, interval_min: int) -> datetime:
                       second=0, microsecond=0)
 
 
+_MARKET_OPEN = dt_time(9, 15)  # NSE regular session start
+
+
 def _aggregate(raw_oldest_first: list, interval_min: int) -> list[Candle]:
     """
     Aggregate raw candles [[ts_iso, o, h, l, c, v, oi], ...] (oldest first)
     into interval_min-minute bars. Returns list of (O,H,L,C) tuples, oldest first.
+    Pre-market ticks (before 09:15 IST) are excluded so bars align with NSE open.
     """
     bars: dict[datetime, list[float]] = {}
     for row in raw_oldest_first:
         ts = datetime.fromisoformat(row[0]).astimezone(IST)
+        if ts.time() < _MARKET_OPEN:   # skip pre-open (09:00–09:14)
+            continue
         bar_ts = _floor_to(ts, interval_min)
         if bar_ts not in bars:
             bars[bar_ts] = [float(row[1]), float(row[2]), float(row[3]), float(row[4])]
