@@ -58,17 +58,9 @@ def update(instrument_key: str, tick: TickData) -> None:
     _store[instrument_key] = tick
     if instrument_key not in _cum_delta:
         _cum_delta[instrument_key] = 0.0
-    if tick.tbq or tick.tsq:
-        # Reliable exchange-provided trade flow — accumulate delta change tick-over-tick
-        tick_delta = tick.tbq - tick.tsq
-        if prev and (prev.tbq or prev.tsq):
-            prev_delta = prev.tbq - prev.tsq
-            if tick_delta != prev_delta:
-                _cum_delta[instrument_key] += tick_delta - prev_delta
-        else:
-            _cum_delta[instrument_key] = tick_delta
-    elif prev and tick.ltq > 0:
-        # No tbq/tsq (index options limitation) — tick rule: ltq × price direction
+    # cum_delta = executed flow accumulation via tick rule (ltq × price direction).
+    # tbq/tsq are order queue snapshots — used for delta_sc, not here.
+    if prev and tick.ltq > 0:
         direction = 1 if tick.ltp > prev.ltp else -1 if tick.ltp < prev.ltp else 0
         _cum_delta[instrument_key] += tick.ltq * direction
 
