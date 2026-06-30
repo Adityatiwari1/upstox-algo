@@ -23,9 +23,15 @@ _REPORT_DIR = Path("logs/reports")
 
 def _find_fonts() -> tuple[str | None, str | None]:
     candidates = [
+        # Windows
         ("C:/Windows/Fonts/arial.ttf",       "C:/Windows/Fonts/arialbd.ttf"),
+        # Amazon Linux / RHEL (yum install dejavu-sans-fonts)
+        ("/usr/share/fonts/dejavu/DejaVuSans.ttf",
+         "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"),
+        # Ubuntu / Debian
         ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
          "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        # Amazon Linux / RHEL Liberation
         ("/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
          "/usr/share/fonts/liberation/LiberationSans-Bold.ttf"),
         ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
@@ -35,6 +41,7 @@ def _find_fonts() -> tuple[str | None, str | None]:
     ]
     for reg, bold in candidates:
         if _os.path.exists(reg) and _os.path.exists(bold):
+            log.info("monthly_report: using font %s", reg)
             return reg, bold
     return None, None
 
