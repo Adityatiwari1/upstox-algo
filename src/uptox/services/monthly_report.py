@@ -25,7 +25,10 @@ def _find_fonts() -> tuple[str | None, str | None]:
     candidates = [
         # Windows
         ("C:/Windows/Fonts/arial.ttf",       "C:/Windows/Fonts/arialbd.ttf"),
-        # Amazon Linux / RHEL (yum install dejavu-sans-fonts)
+        # Amazon Linux 2023 (yum install dejavu-sans-fonts)
+        ("/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
+         "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf"),
+        # Amazon Linux 2 (older path)
         ("/usr/share/fonts/dejavu/DejaVuSans.ttf",
          "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"),
         # Ubuntu / Debian
