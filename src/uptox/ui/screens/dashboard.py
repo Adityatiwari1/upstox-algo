@@ -1309,9 +1309,9 @@ class CapitalPanel(Widget):
             f"[dim]{'Consec Loss':<14}[/] [{cl_col}]{cl_str}[/]",
         ] + greek_lines
         if blocked:
-            lines += ["", f"[bold red]⚠ {blocked}[/]", "[dim](X = override block)[/]"]
+            lines += ["", f"[bold red]⚠ {blocked}[/]", "[dim](Z = reset limits)[/]"]
         elif ds.get("block_overridden"):
-            lines += ["", "[yellow]⚠ Block overridden — trading active[/]"]
+            lines += ["", "[yellow]⚠ Limits reset — fresh P&L + trade slots active[/]"]
 
         self.query_one("#cap-display", Static).update("\n".join(lines))
 

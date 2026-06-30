@@ -107,7 +107,7 @@ class UptoxApp(App):
     def action_reset_daily_block(self) -> None:
         from uptox.services import trade_book
         trade_book.reset_daily_block()
-        self.notify("Daily block reset — trading re-enabled for session", severity="warning")
+        self.notify("Daily loss limit reset — trade count / consec-loss limits still active", severity="warning")
 
     def action_set_entry(self) -> None:
         from uptox.services import feed_store, option_chain_service, trailing_sl_service

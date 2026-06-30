@@ -30,7 +30,8 @@ _TRADES_XLSX     = Path("logs/trades.xlsx")
 _OPEN_TRADE_FILE = Path("logs/open_trade.json")   # persists open trade across restarts
 _trades: list[dict] = []
 _open_trade: dict | None = None
-_daily_block_override: bool = False   # set True by reset button to bypass daily loss block
+_daily_pnl_reset_rs:    float = 0.0   # P&L baseline at last Z-reset; subtract to restart loss counter
+_daily_trades_reset_n:  int   = 0     # trade count at last Z-reset; subtract to give fresh trade slots
 
 _XLSX_COLS = [
     ("Date",         "date"),
@@ -636,10 +637,12 @@ def get_daily_stats() -> dict:
     today  = datetime.now(_IST).strftime("%Y-%m-%d")
     today_trades = [t for t in _trades if t.get("date") == today]
 
-    pnl_rs      = sum(t.get("pnl_rs", 0.0) for t in today_trades)
+    pnl_rs_total = sum(t.get("pnl_rs", 0.0) for t in today_trades)
+    # Subtract baselines set at last Z-reset so limits restart from that point
+    pnl_rs      = pnl_rs_total - _daily_pnl_reset_rs
     cap         = capital_service.get_capital()
     pnl_pct     = round(pnl_rs / cap * 100, 2) if cap else 0.0
-    trade_count = len(today_trades)
+    trade_count = max(0, len(today_trades) - _daily_trades_reset_n)
 
     # Consecutive losses (from most recent backward)
     consec_losses = 0
@@ -649,15 +652,13 @@ def get_daily_stats() -> dict:
         else:
             break
 
-    # Check limits
+    # Check limits — Z-reset only clears the loss-limit check; trade count/consec still enforced
     blocked_reason = None
     loss_limit_pct = capital_service.get_daily_loss_limit_pct()
     max_trades     = capital_service.get_max_trades_per_day()
     max_consec     = capital_service.get_max_consec_losses()
 
-    if _daily_block_override:
-        blocked_reason = None
-    elif pnl_pct <= -loss_limit_pct:
+    if pnl_pct <= -loss_limit_pct:
         blocked_reason = f"Daily loss limit hit ({pnl_pct:.1f}% / -{loss_limit_pct}%)"
     elif trade_count >= max_trades:
         blocked_reason = f"Max trades/day reached ({trade_count}/{max_trades})"
@@ -671,15 +672,25 @@ def get_daily_stats() -> dict:
         "consec_losses":   consec_losses,
         "blocked_reason":  blocked_reason,
         "can_trade":       blocked_reason is None,
-        "block_overridden": _daily_block_override,
+        "block_overridden": _daily_pnl_reset_rs != 0.0,
     }
 
 
 def reset_daily_block() -> None:
-    """Override daily loss/trade/consec-loss block for rest of session."""
-    global _daily_block_override
-    _daily_block_override = True
-    log.warning("Daily block OVERRIDDEN by user — trading re-enabled for session")
+    """
+    Reset daily loss-limit AND trade-count counters — gives fresh N trades with fresh P&L budget.
+    Consec-loss limit is NOT reset (psychological safeguard stays active).
+    """
+    global _daily_pnl_reset_rs, _daily_trades_reset_n
+    from datetime import datetime as _dt
+    today        = _dt.now(_IST).strftime("%Y-%m-%d")
+    today_trades = [t for t in _trades if t.get("date") == today]
+    _daily_pnl_reset_rs   = sum(t.get("pnl_rs", 0.0) for t in today_trades)
+    _daily_trades_reset_n = len(today_trades)
+    log.warning(
+        "Daily block reset — P&L baseline ₹%.0f, trade count baseline %d; consec-loss limit unchanged",
+        _daily_pnl_reset_rs, _daily_trades_reset_n,
+    )
 
 
 def can_trade_today() -> tuple[bool, str | None]:
