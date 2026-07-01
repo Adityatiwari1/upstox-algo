@@ -576,6 +576,11 @@ def get_all_trades() -> list[dict]:
     return list(_trades)
 
 
+def get_last_exit() -> dict | None:
+    """Most recent closed trade — used for cooldown checks in dashboard."""
+    return _trades[-1] if _trades else None
+
+
 def get_analysis_trades() -> list[dict]:
     """Last _analysis_window closed trades used for performance/analysis panels."""
     return _trades[-_analysis_window:] if _trades else []

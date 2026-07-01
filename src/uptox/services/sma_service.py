@@ -54,7 +54,7 @@ _BASE_INTERVAL: dict[TimeFrame, str] = {
 
 # Calendar days to fetch; sized to cover SMA 200 bars with buffer
 _FETCH_DAYS: dict[TimeFrame, int] = {
-    TimeFrame.M5:  10,    # ~5 trading days → 375 one-min bars/day → 1875 bars
+    TimeFrame.M5:  15,    # 15 cal days → 7-8 trading days, guarantees 5 even with holidays
     TimeFrame.M15: 25,    # ~15 trading days → plenty for 200 fifteen-min bars
     TimeFrame.H1:  80,    # ~55 trading days
     TimeFrame.H4:  180,   # fetched in 2×90-day chunks (Upstox 30min limit ~93 days)
@@ -164,19 +164,16 @@ async def _fetch_raw(
 # ── public API ────────────────────────────────────────────────────────────────
 
 async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
-    """Fetch candles for all timeframes in parallel and prime SMA history."""
+    """
+    Fetch two base resolutions in parallel, then aggregate each into its TFs.
+      1-min  × 15 cal-days  →  M5  + M15   (same raw data, one API call)
+      30-min × 180 cal-days →  H1  + H4    (same raw data, one API call)
+    """
 
-    async def _prime_tf(tf: TimeFrame) -> None:
-        raw = await _fetch_raw(
-            instrument_key,
-            _BASE_INTERVAL[tf],
-            _FETCH_DAYS[tf],
-            access_token,
-        )
+    def _prime_from(raw: list, tf: TimeFrame) -> None:
         if not raw:
-            import logging; logging.getLogger(__name__).warning(
-                "prime %s %s: got 0 candles — historical data unavailable", instrument_key, tf.value
-            )
+            _log.warning("prime %s %s: got 0 candles — historical data unavailable",
+                         instrument_key, tf.value)
             return
         oldest_first = list(reversed(raw))   # Upstox returns newest-first
         bars = _aggregate(oldest_first, _TF_MINUTES[tf])
@@ -184,12 +181,21 @@ async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
         _candles[k] = deque(bars[-_MAX:], maxlen=_MAX)
         _smas[k]    = _compute(list(_candles[k]))
         sma200 = _smas[k].get(200)
-        sma200_str = f"{sma200:.1f}" if sma200 else "—"
-        import logging; logging.getLogger(__name__).info(
-            "%s %s: %d bars  SMA200=%s", instrument_key, tf.value, len(bars), sma200_str
-        )
+        _log.info("%s %s: %d bars  SMA200=%s", instrument_key, tf.value, len(bars),
+                  f"{sma200:.1f}" if sma200 else "—")
 
-    await asyncio.gather(*(_prime_tf(tf) for tf in ALL_TFS))
+    raw_1min, raw_30min = await asyncio.gather(
+        _fetch_raw(instrument_key, "1minute",  15,  access_token),
+        _fetch_raw(instrument_key, "30minute", 180, access_token),
+    )
+
+    # M5 and M15 share the same 1-min fetch — perfectly in sync, no extra API call
+    _prime_from(raw_1min, TimeFrame.M5)
+    _prime_from(raw_1min, TimeFrame.M15)
+
+    # H1 and H4 share the same 30-min fetch
+    _prime_from(raw_30min, TimeFrame.H1)
+    _prime_from(raw_30min, TimeFrame.H4)
 
 
 def update_realtime(instrument_key: str, ltp: float) -> None:

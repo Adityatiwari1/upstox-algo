@@ -220,6 +220,12 @@ def atm_changed(ltp: float) -> bool:
     return False
 
 
+def reset_atm_tracker() -> None:
+    """Reset so the next Nifty tick forces a re-subscription with the current chain."""
+    global _subscribed_atm
+    _subscribed_atm = 0
+
+
 def get_option(strike: int, opt_type: str) -> dict | None:
     return _chain.get((strike, opt_type))
 

@@ -76,7 +76,8 @@ async def subscribe(instrument_keys: list[str], mode: str = "full") -> None:
     """Queue additional instruments to subscribe on the active WSS connection."""
     global _extra_keys
     _extra_keys = list(instrument_keys)
-    await _send_queue.put(_subscribe_msg(instrument_keys, mode))
+    # Use a separate GUID so this doesn't replace the index subscription
+    await _send_queue.put(_subscribe_msg(instrument_keys, mode, guid="uptox-options"))
 
 
 async def _reauth() -> str:
@@ -116,9 +117,10 @@ def _decode(raw: bytes) -> proto.FeedResponse:
     return feed
 
 
-def _subscribe_msg(instrument_keys: list[str], mode: str = "full") -> bytes:
+def _subscribe_msg(instrument_keys: list[str], mode: str = "full",
+                   guid: str = "uptox-index") -> bytes:
     return json.dumps({
-        "guid": "uptox-feed-001",
+        "guid": guid,
         "method": "sub",
         "data": {"mode": mode, "instrumentKeys": instrument_keys},
     }).encode("utf-8")
@@ -149,9 +151,9 @@ async def run_feed(
                 ping_interval=30,
                 ping_timeout=10,
             ) as ws:
-                await ws.send(_subscribe_msg(keys, mode))
+                await ws.send(_subscribe_msg(keys, mode, guid="uptox-index"))
                 if _extra_keys:
-                    await ws.send(_subscribe_msg(_extra_keys, mode))
+                    await ws.send(_subscribe_msg(_extra_keys, mode, guid="uptox-options"))
                 feed_store.set_status("connected")
                 delay = 1.0   # reset backoff on successful connect
                 _log.info("[feed] Connected — %d instruments in '%s' mode",

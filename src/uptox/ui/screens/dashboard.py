@@ -87,11 +87,10 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
     return atm, None, 0.0
 
 
-def _near_sr(ltp: float, option: str,
-             session_low: float = 0.0, session_high: float = 0.0) -> str | None:
+def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
     """
-    Return reason string if ltp is within SR_TOL points of a key level that
-    would act as resistance (CE) or support (PE). Returns None if entry is clear.
+    Return (reason, level) if ltp is within SR_TOL points of a key level that
+    would act as resistance (CE) or support (PE). Returns (None, 0.0) if clear.
     """
     SR_TOL = adaptive_params.get("sr_tolerance")
     levels: list[tuple[str, float]] = []
@@ -109,11 +108,9 @@ def _near_sr(ltp: float, option: str,
     for off in (-200, -100, 0, 100, 200):
         levels.append((f"Round {int(base + off)}", float(base + off)))
 
-    # Session high/low act as intraday S/R — market has already tested these
-    if session_low > 0:
-        levels.append(("Day Low", session_low))
-    if session_high > 0:
-        levels.append(("Day High", session_high))
+    # Day High/Low intentionally excluded — they update tick-by-tick so would
+    # permanently block CE at new highs / PE at new lows. Handled instead by
+    # the bounce/retreat filter in the main no_trade_reason chain.
 
     for label, lvl in levels:
         dist = ltp - lvl  # positive = ltp above level, negative = level above ltp
@@ -122,10 +119,10 @@ def _near_sr(ltp: float, option: str,
         # CE bullish: block only when level is AT or ABOVE ltp (dist <= 0 = resistance overhead)
         # PE bearish: block only when level is AT or BELOW ltp (dist >= 0 = support underfoot)
         if option == "CE" and dist <= 0:
-            return f"Resistance: {label} ({abs(dist):.0f}pt above)"
+            return f"Resistance: {label} ({abs(dist):.0f}pt above)", lvl
         if option == "PE" and dist >= 0:
-            return f"Support: {label} ({abs(dist):.0f}pt below)"
-    return None
+            return f"Support: {label} ({abs(dist):.0f}pt below)", lvl
+    return None, 0.0
 
 
 class OverallAnalysisPanel(Static):
@@ -159,6 +156,23 @@ class OverallAnalysisPanel(Static):
     _session_high: float = 0.0
     _session_date: str   = ""
 
+    # ── S/R breakout quality + retest tracking ───────────────────────────────
+    _sr_blocked_prev:   bool  = False  # was S/R blocking entry on previous tick
+    _sr_retest_mode:    bool  = False  # fake break → waiting for retest + 2 confirming bars
+    _sr_retest_level:   float = 0.0   # the S/R level that was broken (to watch for retest)
+    _sr_retest_option:  str   = ""    # CE or PE direction of the break
+    _sr_retest_bars:    int   = 0     # consecutive confirming bars counted so far
+    _sr_retest_last_bar: int  = -1   # bar_slot of the last counted bar (avoid double-count)
+
+    # ── Opening Range Breakout (09:15–09:30 window) ───────────────────────────
+    _orb_high:     float = 0.0
+    _orb_low:      float = float("inf")
+    _orb_ready:    bool  = False   # True once 09:30 passes and range is captured
+    _orb_date:     str   = ""      # date when ORB was last set (reset daily)
+    _orb_ce_done:  bool  = False   # CE ORB trade already taken today
+    _orb_pe_done:  bool  = False   # PE ORB trade already taken today
+    _orb_watching: bool  = False   # ORB break detected, waiting for departure confirmation
+
 
     def on_mount(self) -> None:
         self.border_title = "Overall Analysis"
@@ -172,7 +186,9 @@ class OverallAnalysisPanel(Static):
         ltp = live_ltp or option_chain_service.get_spot()
 
         # Track intraday high/low (reset at midnight IST)
-        from datetime import date as _date
+        from datetime import date as _date, datetime as _datetime
+        from zoneinfo import ZoneInfo as _ZoneInfo
+        _now_ist = _datetime.now(_ZoneInfo("Asia/Kolkata"))
         _today = _date.today().isoformat()
         if _today != self._session_date:
             self._session_date = _today
@@ -181,6 +197,25 @@ class OverallAnalysisPanel(Static):
         if live_ltp:
             if live_ltp < self._session_low:  self._session_low  = live_ltp
             if live_ltp > self._session_high: self._session_high = live_ltp
+
+        # ── Opening Range Breakout range tracking (09:15–09:30) ──────────────
+        if _today != self._orb_date:
+            self._orb_date    = _today
+            self._orb_high    = 0.0
+            self._orb_low     = float("inf")
+            self._orb_ready   = False
+            self._orb_ce_done = False
+            self._orb_pe_done = False
+        if live_ltp:
+            _h, _m = _now_ist.hour, _now_ist.minute
+            _in_orb_window = (_h == 9 and 15 <= _m < 30)
+            _after_orb     = (_h > 9 or (_h == 9 and _m >= 30))
+            if _in_orb_window:
+                if live_ltp > self._orb_high: self._orb_high = live_ltp
+                if live_ltp < self._orb_low:  self._orb_low  = live_ltp
+            elif _after_orb and not self._orb_ready and self._orb_high > 0 and self._orb_low < float("inf"):
+                self._orb_ready = True
+                log.info("ORB set: high=%.1f  low=%.1f", self._orb_high, self._orb_low)
 
         # ATM strike (nearest 50)
         atm = round(ltp / 50) * 50 if ltp else 0
@@ -336,6 +371,15 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
         elif _spread > 5:
             no_trade_reason = f"Bid-ask spread {_spread:.1f}pts — liquidity thin"
+        elif (
+            not capital_service.is_expiry_day()
+            and (_now_ist.hour > 14 or (_now_ist.hour == 14 and _now_ist.minute >= 30))
+            and iv_st.get("iv_rank", 100) < 30
+        ):
+            no_trade_reason = (
+                f"Premium decay risk — IV rank {iv_st.get('iv_rank', 0):.0f}% after 14:30"
+                f" (theta kills low-IV options in last hour)"
+            )
         elif sma_score != 0 and flow_score != 0 and (sma_score > 0) != (flow_score > 0):
             no_trade_reason = "SMA vs Flow divergence"
         elif abs(total) < req_score:
@@ -343,20 +387,54 @@ class OverallAnalysisPanel(Static):
                 no_trade_reason = f"Event day ({today_event}) — need score ≥{req_score}, got {total:+d}"
             else:
                 no_trade_reason = "Weak conviction"
-        # Bounce/retreat filter: block PE entry only while the bounce is STILL ACTIVE.
-        # "Active" = last 2 closed 5min bars are both green (price still rising).
-        # If bounce has stalled/reversed (last bar red), allow PE regardless of distance from low.
-        # Minimum 25pt gap still required — below that it's SL noise, not a real bounce.
+        # Post-trade cooldown, bounce/retreat filter, consolidation check
         else:
-            _recent = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=2)
-            _bounce_pts  = (live_ltp - self._session_low)  if self._session_low < float("inf") else 0.0
-            _retreat_pts = (self._session_high - live_ltp) if self._session_high > 0 else 0.0
-            _both_green = (len(_recent) == 2 and _recent[-1][3] > _recent[-1][0] and _recent[-2][3] > _recent[-2][0])
-            _both_red   = (len(_recent) == 2 and _recent[-1][3] < _recent[-1][0] and _recent[-2][3] < _recent[-2][0])
-            if option == "PE" and _bounce_pts > 25 and _both_green:
-                no_trade_reason = f"Bounce active +{_bounce_pts:.0f}pts from low — wait for red bar"
-            elif option == "CE" and _retreat_pts > 25 and _both_red:
-                no_trade_reason = f"Retreat active -{_retreat_pts:.0f}pts from high — wait for green bar"
+            import time as _t
+            _last_exit = trade_book.get_last_exit()
+            if _last_exit:
+                _exit_ts  = _last_exit.get("exit_ts") or 0.0
+                _mins_ago = (_t.time() - _exit_ts) / 60.0
+                _exit_opt = _last_exit.get("option", "")
+                _was_loss = _last_exit.get("outcome", "") in ("SL_HIT", "LOSS")
+                if _was_loss and _exit_opt == option and _mins_ago < 15:
+                    # Allow early re-entry if market resumed strongly past original entry level.
+                    # Price > entry_spot+15 (CE) or < entry_spot-15 (PE) proves the SL
+                    # was a shakeout, not a direction change.
+                    _entry_spot = _last_exit.get("spot_entry", 0.0)
+                    _resumed = (
+                        (option == "CE" and live_ltp > _entry_spot + 15) or
+                        (option == "PE" and live_ltp < _entry_spot - 15)
+                    ) if _entry_spot else False
+                    if not _resumed:
+                        no_trade_reason = f"Cooldown after {option} loss — {15 - _mins_ago:.0f}min left"
+                elif _mins_ago < 5:
+                    no_trade_reason = f"Cooldown — {5 - _mins_ago:.0f}min after last exit"
+
+            if no_trade_reason is None:
+                _recent = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=2)
+                _bounce_pts  = (live_ltp - self._session_low)  if self._session_low < float("inf") else 0.0
+                _retreat_pts = (self._session_high - live_ltp) if self._session_high > 0 else 0.0
+                _both_green = (len(_recent) == 2 and _recent[-1][3] > _recent[-1][0] and _recent[-2][3] > _recent[-2][0])
+                _both_red   = (len(_recent) == 2 and _recent[-1][3] < _recent[-1][0] and _recent[-2][3] < _recent[-2][0])
+                if option == "PE" and _bounce_pts > 25 and _both_green:
+                    no_trade_reason = f"Bounce active +{_bounce_pts:.0f}pts from low — wait for red bar"
+                elif option == "CE" and _retreat_pts > 25 and _both_red:
+                    no_trade_reason = f"Retreat active -{_retreat_pts:.0f}pts from high — wait for green bar"
+                else:
+                    # Consolidation check: if last 6 bars (30min) sit in a range < 1.5×ATR the
+                    # market is choppy/ranging — score can be high but there's no clean trend.
+                    _congest = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=6)
+                    if len(_congest) >= 4:
+                        from uptox.services import atr_service as _atr_svc
+                        _atr_m5   = _atr_svc.get_atr(NIFTY, TimeFrame.M5) or 30.0
+                        _c_hi     = max(b[1] for b in _congest)
+                        _c_lo     = min(b[2] for b in _congest)
+                        _c_range  = _c_hi - _c_lo
+                        if _c_range < _atr_m5 * 1.5:
+                            no_trade_reason = (
+                                f"Consolidating — {_c_range:.0f}pt range in 30min "
+                                f"(need >{_atr_m5 * 1.5:.0f})"
+                            )
         # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
         tradeable = no_trade_reason is None
@@ -418,6 +496,8 @@ class OverallAnalysisPanel(Static):
                     trade_book.close_trade(cur_price, "direction_change")
                 self._watch = "IDLE"
                 self._bk_max_dist = 0.0
+                self._sr_retest_mode = False
+                self._orb_watching   = False
 
             if not trade_book.has_open_trade():
                 watch_dir = f"WATCH_{option}"
@@ -440,21 +520,45 @@ class OverallAnalysisPanel(Static):
                     delta_val = abs(entry_live.delta) if entry_live.delta else 0.3
                     exp_move  = delta_val * (atr_pts * 0.4) / entry_price if entry_price else 0
                     if potential < 0.10:
-                        self._why_tag = (
-                            f"Re-entry skip: target only {potential*100:.0f}% away — premium too high"
-                        )
-                        watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — low potential ({potential*100:.0f}%)[/]"
+                        watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — target only {potential*100:.0f}% away[/]"
                     elif exp_move < 0.08:
-                        self._why_tag = (
-                            f"Re-entry skip: option moving too slowly (exp {exp_move*100:.0f}%/move)"
-                        )
-                        watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — slow premium ({exp_move*100:.0f}%)[/]"
+                        watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — slow premium ({exp_move*100:.0f}%/move)[/]"
                     else:
                         entry_type = "reentry"
                         self._last_sl_time = 0.0  # consume the re-entry window
                         log.info(
                             "Re-entry triggered: %s %s @ %.1f  potential=%.0f%%  vel=%.0f%%",
                             option, entry_key, entry_price, potential * 100, exp_move * 100,
+                        )
+
+                # ── Opening Range Breakout — arm watch on first break ─────────
+                # On break: record ORB level as departure anchor, require bk_min_dist
+                # before entering. Departure alone is enough (no retest/timeout).
+                if (
+                    self._orb_ready
+                    and not self._orb_watching
+                    and entry_key and entry_price
+                ):
+                    _orb_ce_break = (
+                        option == "CE"
+                        and live_ltp > self._orb_high
+                        and not self._orb_ce_done
+                    )
+                    _orb_pe_break = (
+                        option == "PE"
+                        and live_ltp < self._orb_low
+                        and not self._orb_pe_done
+                    )
+                    if _orb_ce_break or _orb_pe_break:
+                        _orb_level = self._orb_high if option == "CE" else self._orb_low
+                        self._orb_watching = True
+                        self._watch        = watch_dir
+                        self._bk_ltp       = _orb_level   # departure measured from ORB edge
+                        self._bk_t         = time.time()
+                        self._bk_max_dist  = 0.0
+                        log.info(
+                            "ORB break detected: %s @ %.1f  level=%.1f  range %.1f–%.1f",
+                            option, live_ltp, _orb_level, self._orb_low, self._orb_high,
                         )
 
                 if self._watch == "IDLE":
@@ -466,87 +570,214 @@ class OverallAnalysisPanel(Static):
                     log.info("Breakout watch started: %s @ Nifty %.1f", option, ltp)
 
                 elif self._watch == watch_dir:
-                    elapsed   = time.time() - self._bk_t
-                    dist_now  = abs(ltp - self._bk_ltp)
-                    self._bk_max_dist = max(self._bk_max_dist, dist_now)
 
-                    # Price must travel ≥MIN_DEPART pts first; prevents instant
-                    # entry on restart when price == breakout price
-                    departed  = self._bk_max_dist >= bk_min_dist
-                    retest    = departed and dist_now <= self._RETEST_PTS
-                    timed_out = departed and elapsed >= bk_timeout
+                    # ── S/R retest confirmation mode ─────────────────────────
+                    # Triggered when price breaks S/R but flow contradicts (fake break).
+                    # Waits for pullback to the broken level + 2 confirming bars.
+                    if self._sr_retest_mode and self._sr_retest_option == option:
+                        _rl   = self._sr_retest_level
+                        _zone = 20.0   # within 20pt of level = "near enough" for retest
+                        _fail = 15.0   # >15pt below (CE) / above (PE) = break failed
 
-                    if retest:
-                        entry_type = "retest"
-                    elif timed_out:
-                        entry_type = "momentum"
-                    else:
-                        remaining = int(bk_timeout - elapsed)
-                        if not departed:
-                            depart_str = f"depart {self._bk_max_dist:.0f}/{bk_min_dist:.0f}pt"
-                            self._why_tag = (
-                                f"Needs {bk_min_dist - self._bk_max_dist:.0f}pt more departure "
-                                f"({self._bk_max_dist:.0f}/{bk_min_dist:.0f}pt so far)"
+                        _near_level = abs(ltp - _rl) <= _zone
+                        _break_failed = (
+                            (option == "CE" and ltp < _rl - _fail) or
+                            (option == "PE" and ltp > _rl + _fail)
+                        )
+
+                        if _break_failed:
+                            # Price fell back through the level — break was fake, reset
+                            self._sr_retest_mode = False
+                            self._sr_retest_bars = 0
+                            watch_tag = f"  [bold red]⚠ BREAK FAILED — price fell back through {_rl:.0f}[/]"
+                            log.info("S/R retest failed: %s fell back through %.1f", option, _rl)
+
+                        elif _near_level:
+                            # Price pulled back to retest zone — count confirming bars
+                            _recent_bars = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=1)
+                            if _recent_bars:
+                                _bo, _bc = _recent_bars[-1][0], _recent_bars[-1][3]
+                                _confirms = (
+                                    (option == "CE" and _bc > _bo) or   # green bar
+                                    (option == "PE" and _bc < _bo)       # red bar
+                                )
+                                if _bar_slot != self._sr_retest_last_bar:
+                                    if _confirms:
+                                        self._sr_retest_bars    += 1
+                                        self._sr_retest_last_bar = _bar_slot
+                                        log.info("S/R retest bar %d/2: %s @ %.1f near %.1f",
+                                                 self._sr_retest_bars, option, ltp, _rl)
+                                    else:
+                                        self._sr_retest_bars = 0  # non-confirming bar resets count
+
+                            if self._sr_retest_bars >= 2:
+                                entry_type = "sr_retest"
+                                self._sr_retest_mode = False
+                                log.info("S/R retest confirmed — entering %s @ %.1f after 2 bars near %.1f",
+                                         option, ltp, _rl)
+                            else:
+                                _need = 2 - self._sr_retest_bars
+                                watch_tag = (
+                                    f"  [bold yellow]⟳ RETEST {option}[/]"
+                                    f" [dim]{self._sr_retest_bars}/2 bars at {_rl:.0f}"
+                                    f" ({abs(ltp-_rl):.0f}pt away)[/]"
+                                )
+                                self._why_tag = (
+                                    f"Retest of {_rl:.0f} — {self._sr_retest_bars}/2 confirming bars"
+                                    f" ({_need} more needed)"
+                                )
+                        else:
+                            # Not yet pulled back to level (price still running away from it)
+                            _dist = abs(ltp - _rl)
+                            watch_tag = (
+                                f"  [bold yellow]⟳ WAIT PULLBACK {option}[/]"
+                                f" [dim]need return to {_rl:.0f} ({_dist:.0f}pt away)[/]"
+                            )
+                            self._why_tag = f"Waiting for pullback to {_rl:.0f} — {_dist:.0f}pt away"
+
+                    elif self._orb_watching:
+                        # ── ORB departure confirmation ────────────────────────
+                        # Entry fires as soon as price travels ≥ 15pt from the ORB edge.
+                        # Tighter than normal watch (30pt) — ORB breaks tend to move fast.
+                        _ORB_DEPART = 15.0
+                        dist_now = abs(ltp - self._bk_ltp)
+                        self._bk_max_dist = max(self._bk_max_dist, dist_now)
+                        departed = self._bk_max_dist >= _ORB_DEPART
+
+                        if departed:
+                            entry_type = "orb"
+                            self._orb_watching = False
+                            if option == "CE":
+                                self._orb_ce_done = True
+                            else:
+                                self._orb_pe_done = True
+                            log.info(
+                                "ORB departure confirmed: %s  depart=%.0f/%.0fpt",
+                                option, self._bk_max_dist, _ORB_DEPART,
                             )
                         else:
-                            depart_str = f"retest <{self._RETEST_PTS}pt ({dist_now:.0f}pt away)"
-                            self._why_tag = (
-                                f"Departed ✓ — waiting for retest "
-                                f"({dist_now:.0f}pt from level, need <{self._RETEST_PTS}pt)"
+                            _need = _ORB_DEPART - self._bk_max_dist
+                            watch_tag = (
+                                f"  [bold yellow]⟳ ORB WATCH {option}[/]"
+                                f" [dim]depart {self._bk_max_dist:.0f}/{_ORB_DEPART:.0f}pt"
+                                f"  (need {_need:.0f}pt more)[/]"
                             )
-                        watch_tag = (
-                            f"  [bold yellow]⟳ WATCH {option}[/]"
-                            f" [dim]{depart_str}  {remaining}s[/]"
-                        )
+                            self._why_tag = (
+                                f"ORB break at {self._bk_ltp:.0f} — "
+                                f"need {_need:.0f}pt more departure ({self._bk_max_dist:.0f}/{_ORB_DEPART:.0f}pt)"
+                            )
 
-                    # Sustained-signal entry: ≥4 bars same sma_score + OI not contradicting.
-                    # OI gate replaces the retest quality-check that this entry type skips.
-                    # OI rising on the opposite side only contradicts if it's fresh writing
-                    # (IV flat/falling) — rising OI + rising IV is buying, which CONFIRMS
-                    # the bearish/bullish move rather than fighting it.
-                    _oi_ok = (
-                        (sma_score < 0 and (oi_sc <= 0 or pe_iv_rising))
-                        or (sma_score > 0 and (oi_sc >= 0 or ce_iv_rising))
-                    )
-                    if not entry_type and self._consec_sma_bars >= 4 and abs(sma_score) == 2 and _oi_ok:
-                        entry_type = "sustained"
-                        log.info(
-                            "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d "
-                            "(ce_iv_rising=%s pe_iv_rising=%s) — entering without retest",
-                            option, sma_score, self._consec_sma_bars, oi_sc,
-                            ce_iv_rising, pe_iv_rising,
+                    else:
+                        # ── Normal departure / retest / momentum watch ────────
+                        elapsed   = time.time() - self._bk_t
+                        dist_now  = abs(ltp - self._bk_ltp)
+                        self._bk_max_dist = max(self._bk_max_dist, dist_now)
+
+                        # Price must travel ≥MIN_DEPART pts first; prevents instant
+                        # entry on restart when price == breakout price
+                        departed  = self._bk_max_dist >= bk_min_dist
+                        retest    = departed and dist_now <= self._RETEST_PTS
+                        timed_out = departed and elapsed >= bk_timeout
+
+                        if retest:
+                            entry_type = "retest"
+                        elif timed_out:
+                            entry_type = "momentum"
+                        else:
+                            remaining = int(bk_timeout - elapsed)
+                            if not departed:
+                                depart_str = f"depart {self._bk_max_dist:.0f}/{bk_min_dist:.0f}pt"
+                                self._why_tag = (
+                                    f"Needs {bk_min_dist - self._bk_max_dist:.0f}pt more departure "
+                                    f"({self._bk_max_dist:.0f}/{bk_min_dist:.0f}pt so far)"
+                                )
+                            else:
+                                depart_str = f"retest <{self._RETEST_PTS}pt ({dist_now:.0f}pt away)"
+                                self._why_tag = (
+                                    f"Departed ✓ — waiting for retest "
+                                    f"({dist_now:.0f}pt from level, need <{self._RETEST_PTS}pt)"
+                                )
+                            watch_tag = (
+                                f"  [bold yellow]⟳ WATCH {option}[/]"
+                                f" [dim]{depart_str}  {remaining}s[/]"
+                            )
+
+                        # Sustained-signal entry: ≥4 bars same sma_score + OI not contradicting.
+                        # OI gate replaces the retest quality-check that this entry type skips.
+                        # OI rising on the opposite side only contradicts if it's fresh writing
+                        # (IV flat/falling) — rising OI + rising IV is buying, which CONFIRMS
+                        # the bearish/bullish move rather than fighting it.
+                        _oi_ok = (
+                            (sma_score < 0 and (oi_sc <= 0 or pe_iv_rising))
+                            or (sma_score > 0 and (oi_sc >= 0 or ce_iv_rising))
                         )
+                        if not entry_type and self._consec_sma_bars >= 4 and abs(sma_score) == 2 and _oi_ok:
+                            entry_type = "sustained"
+                            log.info(
+                                "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d "
+                                "(ce_iv_rising=%s pe_iv_rising=%s) — entering without retest",
+                                option, sma_score, self._consec_sma_bars, oi_sc,
+                                ce_iv_rising, pe_iv_rising,
+                            )
 
                     if entry_type:
-                        # S/R check — block entry if near a key level
-                        sr_block = _near_sr(ltp, option,
-                                            session_low=self._session_low if self._session_low < float("inf") else 0.0,
-                                            session_high=self._session_high)
+                        # sr_retest entries already validated at the broken level — skip normal S/R check
+                        if entry_type == "sr_retest":
+                            sr_block, _broken_level = None, 0.0
+                        else:
+                            sr_block, _broken_level = _near_sr(ltp, option)
                         if sr_block:
                             watch_tag = f"  [bold red]⚠ BLOCKED — {sr_block}[/]"
-                            self._why_tag = f"S/R block: {sr_block} — waiting to clear"
                             log.info("Entry blocked by S/R: %s @ %.1f  (%s)", option, ltp, sr_block)
-                            entry_type = None  # stay in WATCH, retry next tick
-                        elif not entry_key or not entry_price:
+                            entry_type = None
+                            self._sr_blocked_prev = True
+                        else:
+                            fresh_break = self._sr_blocked_prev
+                            self._sr_blocked_prev = False
+                            if fresh_break:
+                                # Just cleared S/R — classify: flow confirms → fire; flow contradicts → retest watch
+                                _flow_bad = (
+                                    (option == "CE" and flow_score < 0) or
+                                    (option == "PE" and flow_score > 0)
+                                )
+                                if _flow_bad:
+                                    _fd = "bearish" if option == "CE" else "bullish"
+                                    watch_tag = (
+                                        f"  [bold yellow]⟳ FAKE BREAK? — flow {_fd},"
+                                        f" watching retest of {_broken_level:.0f}[/]"
+                                    )
+                                    log.info(
+                                        "Fake break → retest watch: %s @ %.1f  level=%.1f  flow=%+d",
+                                        option, ltp, _broken_level, flow_score,
+                                    )
+                                    entry_type = None
+                                    self._sr_retest_mode    = True
+                                    self._sr_retest_level   = _broken_level
+                                    self._sr_retest_option  = option
+                                    self._sr_retest_bars    = 0
+                                    self._sr_retest_last_bar = -1
+                                else:
+                                    _confirm = "flow confirmed" if flow_score != 0 else "flow neutral"
+                                    log.info("S/R break %s: %s @ %.1f  flow=%+d",
+                                             _confirm, option, ltp, flow_score)
+
+                        if entry_type is not None and (not entry_key or not entry_price):
                             # No suitable strike — ATM unaffordable or all strikes < ₹50 even after ITM search
                             atm_p = cur_price or 0.0
                             if 0 < atm_p < 50:
-                                self._why_tag = f"ATM ₹{atm_p:.1f} too cheap, ITM also < ₹50 — skipping"
-                                watch_tag = f"  [bold red]⚠ SKIP — market too cheap ₹{atm_p:.1f}[/]"
+                                watch_tag = f"  [bold red]⚠ SKIP — market too cheap ₹{atm_p:.1f} (ITM also < ₹50)[/]"
                                 log.info("Entry skipped: ATM %.1f < 50, no ITM strike viable", atm_p)
                             else:
-                                self._why_tag = (
-                                    f"ATM ₹{atm_p:.1f} too expensive "
-                                    f"(cap ₹{capital_service.get_capital():.0f}) — waiting for cheaper price"
+                                watch_tag = (
+                                    f"  [bold red]⚠ NO CAPITAL — ATM ₹{atm_p:.1f} "
+                                    f"(cap ₹{capital_service.get_capital():.0f})[/]"
                                 )
-                                watch_tag = f"  [bold red]⚠ NO CAPITAL — ATM ₹{atm_p:.1f}[/]"
                                 log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
                             entry_type = None
-                        else:
+                        elif entry_type is not None:
                             # Daily limit check before opening
                             can_trade, block_reason = trade_book.can_trade_today()
                             if not can_trade:
-                                self._why_tag = f"Daily limit: {block_reason}"
                                 watch_tag = f"  [bold red]⚠ BLOCKED — {block_reason}[/]"
                                 entry_type = None
                             else:
@@ -562,8 +793,7 @@ class OverallAnalysisPanel(Static):
                                   else capital_service.sizing_with_risk(entry_price, lvl["sl"])
                               )
                               if sz["lots"] == 0:
-                                  self._why_tag = "Risk sizing: 0 lots — price or SL too wide for capital"
-                                  watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots[/]"
+                                  watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots (SL too wide for capital)[/]"
                                   entry_type = None
                               else:
                                 _itm = False
@@ -607,6 +837,8 @@ class OverallAnalysisPanel(Static):
                 log.info("Breakout watch cancelled — signal dropped")
                 self._watch = "IDLE"
                 self._bk_max_dist = 0.0
+                self._sr_retest_mode = False
+                self._orb_watching   = False
             if trade_book.has_open_trade() and self._last_tradeable:
                 ot_exit = trade_book.get_open_trade()
                 exit_key  = ot_exit.get("option_key", "") if ot_exit else ""
@@ -701,6 +933,17 @@ class OverallAnalysisPanel(Static):
                 lines.append(f"[dim]{'PCR':<12}[/] [yellow]⚠ PCR {_pcr_filter:.2f} crowded — advisory[/]")
             if today_event:
                 lines.append(f"[dim]{'Event':<12}[/] [bold yellow]⚡ {today_event} — min score {req_score}[/]")
+            if self._orb_ready:
+                _orb_lo = f"{self._orb_low:.0f}" if self._orb_low < float("inf") else "—"
+                _orb_ce_tag = " [dim](done)[/]" if self._orb_ce_done else ""
+                _orb_pe_tag = " [dim](done)[/]" if self._orb_pe_done else ""
+                lines.append(
+                    f"[dim]{'ORB':<12}[/] [cyan]{_orb_lo}–{self._orb_high:.0f}[/]"
+                    f"  [green]CE>{self._orb_high:.0f}{_orb_ce_tag}[/]"
+                    f"  [red]PE<{_orb_lo}{_orb_pe_tag}[/]"
+                )
+            elif self._orb_high > 0:
+                lines.append(f"[dim]{'ORB':<12}[/] [dim]building ({self._orb_low:.0f}–{self._orb_high:.0f})[/]")
 
         self.update("\n".join(lines))
 

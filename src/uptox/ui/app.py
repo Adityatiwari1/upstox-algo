@@ -197,11 +197,17 @@ class UptoxApp(App):
         ))
 
     async def _prime_option_chain(self) -> None:
-        from uptox.services.option_chain_service import fetch_and_prime, get_keys_for_atm
+        from uptox.services.option_chain_service import (
+            fetch_and_prime, get_keys_for_atm, reset_atm_tracker,
+        )
         from uptox.services import feed_store
         from uptox.api.feed_client import subscribe
         await fetch_and_prime(settings.access_token)
-        # Subscribe ATM ±5 immediately using current LTP (if feed already running)
+        # Reset ATM tracker so the next Nifty tick always triggers option subscription
+        # with the freshly loaded chain — guards against the race where on_tick fires
+        # before the chain REST call finishes (chain empty → keys=[] → no subscription).
+        reset_atm_tracker()
+        # Also subscribe immediately if feed already has a live LTP
         t = feed_store.get("NSE_INDEX|Nifty 50")
         if t and t.ltp:
             keys = get_keys_for_atm(t.ltp, n=5)

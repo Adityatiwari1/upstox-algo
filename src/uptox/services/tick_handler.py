@@ -1,5 +1,6 @@
 """Converts raw proto Feed → TickData and writes to feed_store."""
 import asyncio
+import time as _time
 from datetime import datetime, time as dt_time
 from zoneinfo import ZoneInfo
 
@@ -19,6 +20,13 @@ _report_sent_today: str = ""
 _last_bar_slot:     int = -1   # minute // 5, used to detect 5-min bar close
 _bar_closes_seen:   int = 0    # counts bar closes — every 3rd = 15 min trade update
 _limit_warned_today: str = ""  # date string — approaching-limit alert sent once/day
+
+# ── option feed health tracking ───────────────────────────────────────────────
+_first_nifty_ts:      float = 0.0   # epoch of first Nifty tick this session
+_last_valid_option_ts: float = 0.0  # epoch when tbq/tsq last seen > 0
+_option_resub_ts:      float = 0.0  # epoch of last re-subscription attempt
+_OPTION_STALE_SECS  = 90    # re-sub if no valid option tick for this long
+_OPTION_RESUB_COOLDOWN = 300  # minimum gap between re-sub attempts
 
 
 async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
@@ -52,6 +60,9 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
             tick.tsq   = mff.tsq
             tick.vtt   = mff.vtt
             tick.atp   = mff.atp
+            if tick.tbq or tick.tsq:
+                global _last_valid_option_ts
+                _last_valid_option_ts = _time.monotonic()
 
     elif feed.HasField("ltpc"):
         tick.ltp   = feed.ltpc.ltp
@@ -128,11 +139,36 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         iv_rank_service.update(instrument_key, tick.iv)
 
     # ── ATM subscription refresh on Nifty move ────────────────────────────────
-    if instrument_key == _NIFTY and option_chain_service.atm_changed(tick.ltp):
-        keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
-        if keys:
-            from uptox.api.feed_client import subscribe
-            asyncio.create_task(subscribe(keys))
+    if instrument_key == _NIFTY:
+        global _first_nifty_ts, _option_resub_ts
+        now_mono = _time.monotonic()
+        if not _first_nifty_ts:
+            _first_nifty_ts = now_mono
+
+        # Option feed health check — re-subscribe if tbq/tsq silent for too long.
+        # Runs only during trading hours; 5-min cooldown between attempts.
+        from uptox.services.market_calendar import is_trade_window
+        if is_trade_window():
+            _since_first  = now_mono - _first_nifty_ts
+            _since_valid  = now_mono - _last_valid_option_ts if _last_valid_option_ts else _since_first
+            _since_resub  = now_mono - _option_resub_ts
+            if _since_valid > _OPTION_STALE_SECS and _since_resub > _OPTION_RESUB_COOLDOWN:
+                _option_resub_ts = now_mono
+                import logging as _lg
+                _lg.getLogger(__name__).warning(
+                    "[feed-health] Option tbq/tsq stale %.0fs — re-subscribing", _since_valid
+                )
+                option_chain_service.reset_atm_tracker()
+                keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
+                if keys:
+                    from uptox.api.feed_client import subscribe
+                    asyncio.create_task(subscribe(keys))
+
+        if option_chain_service.atm_changed(tick.ltp):
+            keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
+            if keys:
+                from uptox.api.feed_client import subscribe
+                asyncio.create_task(subscribe(keys))
 
     # ── Open trade tick processing ────────────────────────────────────────────
     ot = trade_book.get_open_trade()
