@@ -12,10 +12,8 @@ def setup() -> None:
     )
     fh.setFormatter(fmt)
 
-    ch = logging.StreamHandler()
-    ch.setFormatter(logging.Formatter("%(name)-24s %(levelname)-8s %(message)s"))
-
     root = logging.getLogger()
     root.setLevel(logging.INFO)
     root.addHandler(fh)
-    root.addHandler(ch)
+    # No StreamHandler — Textual renders stderr/stdout directly in the TUI,
+    # making log lines bleed into the UI. File-only logging keeps the UI clean.

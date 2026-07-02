@@ -63,8 +63,17 @@ _XLSX_COLS = [
 
 # ── persistence ───────────────────────────────────────────────────────────────
 
-def _save_open() -> None:
-    """Persist open trade to disk so restarts can recover it."""
+_last_open_save: float = 0.0
+_OPEN_SAVE_INTERVAL = 5.0   # seconds — throttle live-update writes to disk
+
+def _save_open(force: bool = False) -> None:
+    """Persist open trade to disk so restarts can recover it.
+    Throttled to once per 5s for live tick updates; pass force=True on open/close."""
+    global _last_open_save
+    now = time.monotonic()
+    if not force and (now - _last_open_save) < _OPEN_SAVE_INTERVAL:
+        return
+    _last_open_save = now
     try:
         _OPEN_TRADE_FILE.parent.mkdir(exist_ok=True)
         if _open_trade:
@@ -267,7 +276,7 @@ def open_trade(
         "Paper OPEN%s: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",
         " [EXPIRY]" if ea else "", option, strike, entry_price, sl, target, lots,
     )
-    _save_open()
+    _save_open(force=True)
     from uptox.services.telegram_service import notify_trade_open
     notify_trade_open(_open_trade)
     # Live order — fire only when mode is live; paper record kept regardless
@@ -336,7 +345,7 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
     _trades.append(closed)
     _open_trade = None
     _save()
-    _save_open()   # clears open_trade.json — trade is closed
+    _save_open(force=True)   # clears open_trade.json — trade is closed
     # Adjust running capital with realised P&L
     from uptox.services import capital_service, trailing_sl_service
     capital_service.adjust_for_pnl(pnl_rs)
@@ -402,7 +411,7 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
     _open_trade["target"]         = round(exit_price + (exit_price - _open_trade["entry_price"]) * 0.5, 1)
 
     _save()
-    _save_open()
+    _save_open(force=True)
 
     from uptox.services import capital_service
     capital_service.adjust_for_pnl(pnl_rs)
@@ -433,6 +442,7 @@ def update_spot(nifty_ltp: float) -> None:
     else:
         if nifty_ltp < peak:
             _open_trade["spot_peak"] = round(nifty_ltp, 1)
+    _save_open()
 
 
 _PER_TRADE_LOSS_TRIGGERED = "per_trade_loss_limit"
@@ -451,6 +461,7 @@ def update_open_pnl(current_price: float) -> bool:
     _open_trade["pnl_rs"]  = round(
         _open_trade["pnl_pts"] * _open_trade["lots"] * NIFTY_LOT_SIZE, 0
     )
+    _save_open()
     if current_price >= _open_trade["target"] and not _open_trade.get("target_crossed"):
         _open_trade["target_crossed"] = True
         return True

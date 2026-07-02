@@ -208,5 +208,10 @@ def api_set_notification_sub(key: str, body: NotificationSubBody):
 
 
 def run() -> None:
-    import uvicorn
-    uvicorn.run("uptox.web.app:app", host="0.0.0.0", port=8080)
+    import os, uvicorn
+    uvicorn.run(
+        "uptox.web.app:app",
+        host="127.0.0.1",
+        port=8080,
+        reload=os.getenv("UPTOX_DEV") == "1",
+    )

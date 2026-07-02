@@ -117,7 +117,7 @@ def load() -> None:
         for k, v in data.items():
             if k in _DEFAULTS and isinstance(v, dict):
                 _settings[k].update(v)
-        log.info("Notification settings loaded: %s", _settings)
+        log.debug("Notification settings loaded: %s", _settings)
     except Exception as e:
         log.error("notification_settings load: %s", e)
 
