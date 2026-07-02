@@ -108,6 +108,19 @@ def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
     for off in (-200, -100, 0, 100, 200):
         levels.append((f"Round {int(base + off)}", float(base + off)))
 
+    # Previous-day levels — static all session (unlike today's high/low),
+    # and the most-watched intraday S/R by institutions and algos.
+    from uptox.services import prev_day_service
+    _pd = prev_day_service.get_ohlc()
+    if _pd:
+        levels.append(("PDH", _pd["high"]))
+        levels.append(("PDL", _pd["low"]))
+        _piv = prev_day_service.get_pivots()
+        if _piv:
+            levels.append(("Pivot PP", _piv["pp"]))
+            levels.append(("Pivot R1", _piv["r1"]))
+            levels.append(("Pivot S1", _piv["s1"]))
+
     # Day High/Low intentionally excluded — they update tick-by-tick so would
     # permanently block CE at new highs / PE at new lows. Handled instead by
     # the bounce/retreat filter in the main no_trade_reason chain.
@@ -123,6 +136,43 @@ def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
         if option == "PE" and dist >= 0:
             return f"Support: {label} ({abs(dist):.0f}pt below)", lvl
     return None, 0.0
+
+
+_blocked_log_ts: dict[str, float] = {}
+
+def _log_blocked_entry(reason: str, option: str, ltp: float, score: int,
+                       entry_type: str | None = None) -> None:
+    """
+    Append a blocked-entry snapshot to logs/blocked_entries.jsonl.
+    Deduped to once per 5 min per (option, reason-prefix). Join later with
+    logs/market_data/*.jsonl to measure each filter's false-negative rate —
+    i.e. which filters block trades that would have won.
+    """
+    import json as _json
+    import time as _time
+    key = f"{option}|{reason.split('—')[0].strip()[:40]}"
+    now = _time.time()
+    if now - _blocked_log_ts.get(key, 0.0) < 300:
+        return
+    _blocked_log_ts[key] = now
+    try:
+        from pathlib import Path as _Path
+        from datetime import datetime as _dt
+        from zoneinfo import ZoneInfo as _zi
+        p = _Path("logs/blocked_entries.jsonl")
+        p.parent.mkdir(exist_ok=True)
+        rec = {
+            "ts":         _dt.now(_zi("Asia/Kolkata")).isoformat(timespec="seconds"),
+            "option":     option,
+            "ltp":        round(ltp, 1),
+            "score":      score,
+            "entry_type": entry_type,
+            "reason":     reason,
+        }
+        with p.open("a", encoding="utf-8") as f:
+            f.write(_json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # logging must never break the trading loop
 
 
 class OverallAnalysisPanel(Static):
@@ -155,6 +205,7 @@ class OverallAnalysisPanel(Static):
     _session_low:  float = float("inf")
     _session_high: float = 0.0
     _session_date: str   = ""
+    _session_open: float = 0.0   # first live tick of the day (approx. open; restart mid-day = restart price)
 
     # ── S/R breakout quality + retest tracking ───────────────────────────────
     _sr_blocked_prev:   bool  = False  # was S/R blocking entry on previous tick
@@ -172,6 +223,12 @@ class OverallAnalysisPanel(Static):
     _orb_ce_done:  bool  = False   # CE ORB trade already taken today
     _orb_pe_done:  bool  = False   # PE ORB trade already taken today
     _orb_watching: bool  = False   # ORB break detected, waiting for departure confirmation
+
+    # ── Prev-Day High/Low breakout (same mechanics as ORB, all-day window) ────
+    _pdx_watching: bool = False    # PDH/PDL break detected, waiting for departure
+    _pdx_ce_done:  bool = False    # PDH-break CE trade already taken today
+    _pdx_pe_done:  bool = False    # PDL-break PE trade already taken today
+    _pdx_date:     str  = ""       # daily reset marker
 
 
     def on_mount(self) -> None:
@@ -194,7 +251,10 @@ class OverallAnalysisPanel(Static):
             self._session_date = _today
             self._session_low  = live_ltp if live_ltp else float("inf")
             self._session_high = live_ltp if live_ltp else 0.0
+            self._session_open = 0.0
         if live_ltp:
+            if not self._session_open:
+                self._session_open = live_ltp
             if live_ltp < self._session_low:  self._session_low  = live_ltp
             if live_ltp > self._session_high: self._session_high = live_ltp
 
@@ -206,6 +266,11 @@ class OverallAnalysisPanel(Static):
             self._orb_ready   = False
             self._orb_ce_done = False
             self._orb_pe_done = False
+        if _today != self._pdx_date:
+            self._pdx_date     = _today
+            self._pdx_watching = False
+            self._pdx_ce_done  = False
+            self._pdx_pe_done  = False
         if live_ltp:
             _h, _m = _now_ist.hour, _now_ist.minute
             _in_orb_window = (_h == 9 and 15 <= _m < 30)
@@ -356,6 +421,30 @@ class OverallAnalysisPanel(Static):
         today_event   = get_event_today()
         req_score     = max(int(adaptive_params.get("min_score")), event_min_score())
 
+        # Gap-day context: big overnight gap (>50pt) makes the first hour treacherous —
+        # gap fills/fades trap breakout entries, so demand one extra score point till 10:30.
+        _prev_close = t.close if t and t.close else 0.0
+        _gap_pts    = (self._session_open - _prev_close) if (self._session_open and _prev_close) else 0.0
+        _before_1030 = _now_ist.hour < 10 or (_now_ist.hour == 10 and _now_ist.minute < 30)
+        gap_day = abs(_gap_pts) > 50 and _before_1030
+        if gap_day:
+            req_score += 1
+
+        # Day-type bias from prev-day range: opening outside yesterday's range
+        # signals a breakaway day — counter-direction entries need one extra point
+        # all day (fading a breakaway open is the lower-probability side).
+        from uptox.services import prev_day_service
+        _pdo = prev_day_service.get_ohlc()
+        day_bias = ""
+        if _pdo and self._session_open:
+            if self._session_open > _pdo["high"]:
+                day_bias = "CE"   # opened above PDH — bullish breakaway
+            elif self._session_open < _pdo["low"]:
+                day_bias = "PE"   # opened below PDL — bearish breakdown
+        counter_bias = day_bias and option not in ("—", day_bias)
+        if counter_bias:
+            req_score += 1
+
         no_trade_reason = None
         if not live_ltp:
             no_trade_reason = "No live data"
@@ -385,13 +474,28 @@ class OverallAnalysisPanel(Static):
         elif abs(total) < req_score:
             if today_event:
                 no_trade_reason = f"Event day ({today_event}) — need score ≥{req_score}, got {total:+d}"
+            elif counter_bias:
+                no_trade_reason = (
+                    f"Counter-bias — opened {'above PDH' if day_bias == 'CE' else 'below PDL'},"
+                    f" {option} needs score ≥{req_score}, got {total:+d}"
+                )
+            elif gap_day:
+                no_trade_reason = (
+                    f"Gap day ({_gap_pts:+.0f}pt open) — need score ≥{req_score} till 10:30, got {total:+d}"
+                )
             else:
                 no_trade_reason = "Weak conviction"
         # Post-trade cooldown, bounce/retreat filter, consolidation check
         else:
             import time as _t
+            _dir_locked, _lock_left = trade_book.direction_locked(option)
+            if _dir_locked:
+                no_trade_reason = (
+                    f"{option} side locked — 2 consecutive {option} losses"
+                    f" ({_lock_left:.0f}min left)"
+                )
             _last_exit = trade_book.get_last_exit()
-            if _last_exit:
+            if no_trade_reason is None and _last_exit:
                 _exit_ts  = _last_exit.get("exit_ts") or 0.0
                 _mins_ago = (_t.time() - _exit_ts) / 60.0
                 _exit_opt = _last_exit.get("option", "")
@@ -438,6 +542,11 @@ class OverallAnalysisPanel(Static):
         # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
         tradeable = no_trade_reason is None
+
+        # Track filter false-negatives: score was strong enough to trade but a
+        # filter said no. Analyzed offline against market_data to tune filters.
+        if not tradeable and option != "—" and abs(total) >= req_score:
+            _log_blocked_entry(no_trade_reason, option, ltp, total)
 
         # ── alert on signal change ────────────────────────────────────────
         if self._last_tradeable is not None and self._last_tradeable != tradeable:
@@ -498,6 +607,7 @@ class OverallAnalysisPanel(Static):
                 self._bk_max_dist = 0.0
                 self._sr_retest_mode = False
                 self._orb_watching   = False
+                self._pdx_watching   = False
 
             if not trade_book.has_open_trade():
                 watch_dir = f"WATCH_{option}"
@@ -539,14 +649,18 @@ class OverallAnalysisPanel(Static):
                     and not self._orb_watching
                     and entry_key and entry_price
                 ):
+                    # Flow must strongly confirm (±2) — ORB breaks with weak flow
+                    # are the most common failed breakouts of the day.
                     _orb_ce_break = (
                         option == "CE"
                         and live_ltp > self._orb_high
+                        and flow_score >= 2
                         and not self._orb_ce_done
                     )
                     _orb_pe_break = (
                         option == "PE"
                         and live_ltp < self._orb_low
+                        and flow_score <= -2
                         and not self._orb_pe_done
                     )
                     if _orb_ce_break or _orb_pe_break:
@@ -560,6 +674,42 @@ class OverallAnalysisPanel(Static):
                             "ORB break detected: %s @ %.1f  level=%.1f  range %.1f–%.1f",
                             option, live_ltp, _orb_level, self._orb_low, self._orb_high,
                         )
+
+                # ── Prev-Day High/Low breakout — arm watch on first break ─────
+                # Same mechanics as ORB (flow ±2 + 15pt departure) but the
+                # trigger levels are yesterday's high/low, active all session.
+                if (
+                    not self._orb_watching
+                    and not self._pdx_watching
+                    and entry_key and entry_price
+                ):
+                    from uptox.services import prev_day_service as _pds
+                    _pdd = _pds.get_ohlc()
+                    if _pdd:
+                        _pdh_break = (
+                            option == "CE"
+                            and live_ltp > _pdd["high"]
+                            and flow_score >= 2
+                            and not self._pdx_ce_done
+                        )
+                        _pdl_break = (
+                            option == "PE"
+                            and live_ltp < _pdd["low"]
+                            and flow_score <= -2
+                            and not self._pdx_pe_done
+                        )
+                        if _pdh_break or _pdl_break:
+                            _pdx_level = _pdd["high"] if option == "CE" else _pdd["low"]
+                            self._pdx_watching = True
+                            self._watch        = watch_dir
+                            self._bk_ltp       = _pdx_level   # departure measured from PDH/PDL
+                            self._bk_t         = time.time()
+                            self._bk_max_dist  = 0.0
+                            log.info(
+                                "PD %s break detected: %s @ %.1f  level=%.1f",
+                                "high" if option == "CE" else "low",
+                                option, live_ltp, _pdx_level,
+                            )
 
                 if self._watch == "IDLE":
                     # Breakout just confirmed — start watching for retest
@@ -635,35 +785,44 @@ class OverallAnalysisPanel(Static):
                             )
                             self._why_tag = f"Waiting for pullback to {_rl:.0f} — {_dist:.0f}pt away"
 
-                    elif self._orb_watching:
-                        # ── ORB departure confirmation ────────────────────────
-                        # Entry fires as soon as price travels ≥ 15pt from the ORB edge.
-                        # Tighter than normal watch (30pt) — ORB breaks tend to move fast.
+                    elif self._orb_watching or self._pdx_watching:
+                        # ── ORB / PDH-PDL departure confirmation ──────────────
+                        # Entry fires as soon as price travels ≥ 15pt from the broken
+                        # edge. Tighter than normal watch (30pt) — level breaks move fast.
                         _ORB_DEPART = 15.0
+                        _wl = "ORB" if self._orb_watching else ("PDH" if option == "CE" else "PDL")
                         dist_now = abs(ltp - self._bk_ltp)
                         self._bk_max_dist = max(self._bk_max_dist, dist_now)
                         departed = self._bk_max_dist >= _ORB_DEPART
 
                         if departed:
-                            entry_type = "orb"
-                            self._orb_watching = False
-                            if option == "CE":
-                                self._orb_ce_done = True
+                            if self._orb_watching:
+                                entry_type = "orb"
+                                self._orb_watching = False
+                                if option == "CE":
+                                    self._orb_ce_done = True
+                                else:
+                                    self._orb_pe_done = True
                             else:
-                                self._orb_pe_done = True
+                                entry_type = "pdh_break" if option == "CE" else "pdl_break"
+                                self._pdx_watching = False
+                                if option == "CE":
+                                    self._pdx_ce_done = True
+                                else:
+                                    self._pdx_pe_done = True
                             log.info(
-                                "ORB departure confirmed: %s  depart=%.0f/%.0fpt",
-                                option, self._bk_max_dist, _ORB_DEPART,
+                                "%s departure confirmed: %s  depart=%.0f/%.0fpt",
+                                _wl, option, self._bk_max_dist, _ORB_DEPART,
                             )
                         else:
                             _need = _ORB_DEPART - self._bk_max_dist
                             watch_tag = (
-                                f"  [bold yellow]⟳ ORB WATCH {option}[/]"
+                                f"  [bold yellow]⟳ {_wl} WATCH {option}[/]"
                                 f" [dim]depart {self._bk_max_dist:.0f}/{_ORB_DEPART:.0f}pt"
                                 f"  (need {_need:.0f}pt more)[/]"
                             )
                             self._why_tag = (
-                                f"ORB break at {self._bk_ltp:.0f} — "
+                                f"{_wl} break at {self._bk_ltp:.0f} — "
                                 f"need {_need:.0f}pt more departure ({self._bk_max_dist:.0f}/{_ORB_DEPART:.0f}pt)"
                             )
 
@@ -711,7 +870,15 @@ class OverallAnalysisPanel(Static):
                             (sma_score < 0 and (oi_sc <= 0 or pe_iv_rising))
                             or (sma_score > 0 and (oi_sc >= 0 or ce_iv_rising))
                         )
-                        if not entry_type and self._consec_sma_bars >= 4 and abs(sma_score) == 2 and _oi_ok:
+                        # Flow must strongly confirm (±2), same as ORB — sustained
+                        # skips the retest quality-check, so a lukewarm Flow+1 lets
+                        # it churn the same idea into a stalling market all day.
+                        _flow_ok = (
+                            (option == "CE" and flow_score >= 2)
+                            or (option == "PE" and flow_score <= -2)
+                        )
+                        if (not entry_type and self._consec_sma_bars >= 4
+                                and abs(sma_score) == 2 and _oi_ok and _flow_ok):
                             entry_type = "sustained"
                             log.info(
                                 "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d "
@@ -729,6 +896,7 @@ class OverallAnalysisPanel(Static):
                         if sr_block:
                             watch_tag = f"  [bold red]⚠ BLOCKED — {sr_block}[/]"
                             log.info("Entry blocked by S/R: %s @ %.1f  (%s)", option, ltp, sr_block)
+                            _log_blocked_entry(sr_block, option, ltp, total, entry_type)
                             entry_type = None
                             self._sr_blocked_prev = True
                         else:
@@ -773,12 +941,14 @@ class OverallAnalysisPanel(Static):
                                     f"(cap ₹{capital_service.get_capital():.0f})[/]"
                                 )
                                 log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
+                            _log_blocked_entry(f"No viable strike — ATM ₹{atm_p:.1f}", option, ltp, total, entry_type)
                             entry_type = None
                         elif entry_type is not None:
                             # Daily limit check before opening
                             can_trade, block_reason = trade_book.can_trade_today()
                             if not can_trade:
                                 watch_tag = f"  [bold red]⚠ BLOCKED — {block_reason}[/]"
+                                _log_blocked_entry(block_reason or "daily limit", option, ltp, total, entry_type)
                                 entry_type = None
                             else:
                               delta  = entry_live.delta if entry_live else None
@@ -794,6 +964,7 @@ class OverallAnalysisPanel(Static):
                               )
                               if sz["lots"] == 0:
                                   watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots (SL too wide for capital)[/]"
+                                  _log_blocked_entry("Risk block — 0 lots (SL too wide)", option, ltp, total, entry_type)
                                   entry_type = None
                               else:
                                 _itm = False
@@ -839,6 +1010,7 @@ class OverallAnalysisPanel(Static):
                 self._bk_max_dist = 0.0
                 self._sr_retest_mode = False
                 self._orb_watching   = False
+                self._pdx_watching   = False
             if trade_book.has_open_trade() and self._last_tradeable:
                 ot_exit = trade_book.get_open_trade()
                 exit_key  = ot_exit.get("option_key", "") if ot_exit else ""
@@ -1639,6 +1811,18 @@ class SRPanel(Static):
             if abs(lvl - ltp) <= SR_TOL and round(lvl) not in seen:
                 seen.add(round(lvl))
                 candidates.append((lvl, f"Round {int(lvl)}"))
+
+        from uptox.services import prev_day_service
+        _pd = prev_day_service.get_ohlc()
+        if _pd:
+            _pd_levels = [(_pd["high"], "PDH"), (_pd["low"], "PDL")]
+            _piv = prev_day_service.get_pivots()
+            if _piv:
+                _pd_levels += [(_piv["pp"], "Pivot PP"), (_piv["r1"], "Pivot R1"), (_piv["s1"], "Pivot S1")]
+            for lvl, lbl in _pd_levels:
+                if abs(lvl - ltp) <= SR_TOL and round(lvl) not in seen:
+                    seen.add(round(lvl))
+                    candidates.append((lvl, lbl))
 
         candidates.sort(key=lambda x: x[0])
 

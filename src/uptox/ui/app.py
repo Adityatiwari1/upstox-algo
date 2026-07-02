@@ -57,12 +57,17 @@ class UptoxApp(App):
                 self.run_worker(self._prime_smas(), name="sma-prime")
                 self.run_worker(self._start_portfolio_feed(), name="portfolio-feed")
             self.run_worker(self._prime_option_chain(), name="oc-prime")
+            self.run_worker(self._prime_prev_day(), name="prev-day-prime")
         # Independent of feed/trading day — needs the app process alive, not the market.
         self.run_worker(self._weekly_report_loop(), name="weekly-report-scheduler")
 
     async def _weekly_report_loop(self) -> None:
         from uptox.services.weekly_report_scheduler import run_forever
         await run_forever()
+
+    async def _prime_prev_day(self) -> None:
+        from uptox.services.prev_day_service import fetch_and_prime
+        await fetch_and_prime(settings.access_token)
 
     async def _start_feed(self) -> None:
         from uptox.api.feed_client import run_feed

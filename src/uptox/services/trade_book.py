@@ -468,6 +468,29 @@ def update_open_pnl(current_price: float) -> bool:
     return False
 
 
+def check_time_exit() -> str | None:
+    """
+    Time-based exits for option buyers (theta protection):
+    - mae_exit_10min:   ≥10pt against entry within first 10 min — the direction
+      read was wrong; exiting here saves ~5pt vs waiting for the full SL.
+    - stale_exit_25min: >25 min in trade with pnl < +5pt — thesis failed, most
+      losing option trades die slowly to theta rather than hitting SL fast.
+    Returns exit reason string or None. Caller closes the trade.
+    """
+    if not _open_trade:
+        return None
+    entry_ts = _open_trade.get("entry_ts", 0.0)
+    if not entry_ts:
+        return None
+    elapsed_min = (time.time() - entry_ts) / 60.0
+    pnl = _open_trade.get("pnl_pts", 0.0)
+    if elapsed_min <= 10.0 and pnl <= -10.0:
+        return "mae_exit_10min"
+    if elapsed_min >= 25.0 and pnl < 5.0:
+        return "stale_exit_25min"
+    return None
+
+
 def get_per_trade_breach() -> bool:
     """True if open trade loss exceeds per-trade loss limit in ₹."""
     if not _open_trade:
@@ -668,6 +691,12 @@ def get_daily_stats() -> dict:
         else:
             break
 
+    # Wins since last Z-reset — after 2 wins the day's edge is usually extracted;
+    # trade 3+ tends to give profits back. Z-reset clears this along with count.
+    wins_today = sum(
+        1 for t in today_trades[_daily_trades_reset_n:] if t.get("pnl_pts", 0) > 0
+    )
+
     # Check limits — Z-reset only clears the loss-limit check; trade count/consec still enforced
     blocked_reason = None
     loss_limit_pct = capital_service.get_daily_loss_limit_pct()
@@ -680,12 +709,15 @@ def get_daily_stats() -> dict:
         blocked_reason = f"Max trades/day reached ({trade_count}/{max_trades})"
     elif consec_losses >= max_consec:
         blocked_reason = f"{consec_losses} consecutive losses — paused for day"
+    elif wins_today >= 2 and pnl_rs > 0:
+        blocked_reason = f"Win target hit ({wins_today} wins, ₹{pnl_rs:+.0f}) — protecting profits"
 
     return {
         "trades_today":    trade_count,
         "pnl_rs_today":    round(pnl_rs, 0),
         "pnl_pct_today":   pnl_pct,
         "consec_losses":   consec_losses,
+        "wins_today":      wins_today,
         "blocked_reason":  blocked_reason,
         "can_trade":       blocked_reason is None,
         "block_overridden": _daily_pnl_reset_rs != 0.0,
@@ -713,6 +745,30 @@ def can_trade_today() -> tuple[bool, str | None]:
     """Returns (True, None) if allowed, (False, reason) if any daily limit hit."""
     ds = get_daily_stats()
     return ds["can_trade"], ds["blocked_reason"]
+
+
+def direction_locked(option: str) -> tuple[bool, float]:
+    """
+    True if the last 2 closed trades today in this direction were both losses —
+    that side isn't paying today; lock it for 60 min from the last exit.
+    The 15-min cooldown alone just delays the same mistake (seen 2026-07-02:
+    three consecutive CE losses, each entered right after cooldown expired).
+    Returns (locked, minutes_remaining).
+    """
+    today = datetime.now(_IST).strftime("%Y-%m-%d")
+    same_dir = [t for t in _trades if t.get("date") == today and t.get("option") == option]
+    if len(same_dir) < 2:
+        return False, 0.0
+    last2 = same_dir[-2:]
+    if not all(t.get("pnl_pts", 0) < 0 for t in last2):
+        return False, 0.0
+    exit_ts = last2[-1].get("exit_ts") or 0.0
+    if not exit_ts:
+        return False, 0.0
+    mins_ago = (time.time() - exit_ts) / 60.0
+    if mins_ago < 60.0:
+        return True, 60.0 - mins_ago
+    return False, 0.0
 
 
 # Load existing trades at import time

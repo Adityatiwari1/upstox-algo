@@ -190,6 +190,13 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
                 _partial_exit_and_notify(tick.ltp)
                 closed = True   # open trade mutated, skip trail check this tick
 
+        # Time-based exits — MAE (fast direction failure) and stale (theta bleed)
+        if not closed:
+            time_exit = trade_book.check_time_exit()
+            if time_exit:
+                _close_and_notify(tick.ltp, time_exit)
+                closed = True
+
         if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
             _close_and_notify(tick.ltp, "trail_sl")
 

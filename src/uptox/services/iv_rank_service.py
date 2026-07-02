@@ -17,6 +17,14 @@ _iv_history: dict[str, deque[float]] = {}
 def update(instrument_key: str, iv: float) -> None:
     if not iv:
         return
+    # Upstox sends IV in mixed units — WebSocket marketFF.iv as a fraction
+    # (0.12 = 12%) but chain REST option_greeks.iv as a percent (12.13).
+    # A history mixing both units pins the rank near 0 for every fraction
+    # value (0.12 vs a 12.13 max), which made the Premium Decay Guard fire
+    # on noise. Normalize everything to fraction; index ATM IV never
+    # legitimately exceeds 100%, so >1.0 reliably means percent.
+    if iv > 1.0:
+        iv /= 100.0
     if instrument_key not in _iv_history:
         _iv_history[instrument_key] = deque(maxlen=_MAXLEN)
     _iv_history[instrument_key].append(iv)
