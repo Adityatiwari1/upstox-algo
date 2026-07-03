@@ -747,6 +747,24 @@ def can_trade_today() -> tuple[bool, str | None]:
     return ds["can_trade"], ds["blocked_reason"]
 
 
+def entries_taken_today() -> set[tuple[str, str]]:
+    """
+    Set of (entry_type, option) already traded today, parsed from entry_reason.
+    Lets once-per-day setups (orb, pdh_break, pdl_break) survive app restarts —
+    the in-memory done-flags reset on restart, which allowed duplicate ORB/PDH
+    trades after a mid-session deploy.
+    """
+    today = datetime.now(_IST).strftime("%Y-%m-%d")
+    out: set[tuple[str, str]] = set()
+    for t in _trades:
+        if t.get("date") != today:
+            continue
+        et = (t.get("entry_reason") or "").split("|")[0].strip()
+        if et:
+            out.add((et, t.get("option", "")))
+    return out
+
+
 def direction_locked(option: str) -> tuple[bool, float]:
     """
     True if the last 2 closed trades today in this direction were both losses —

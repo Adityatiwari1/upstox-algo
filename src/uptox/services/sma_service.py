@@ -25,6 +25,9 @@ _HIST_URL = (
     "https://api.upstox.com/v2/historical-candle"
     "/{key}/{interval}/{to}/{frm}"
 )
+# Historical API excludes the current trading day — intraday endpoint fills it.
+# V3: /{unit}/{interval} e.g. minutes/1, minutes/30
+_INTRA_URL = "https://api.upstox.com/v3/historical-candle/intraday/{key}/{unit}/{interval}"
 
 
 class TimeFrame(str, Enum):
@@ -82,11 +85,15 @@ def _floor_to(dt: datetime, interval_min: int) -> datetime:
 _MARKET_OPEN = dt_time(9, 15)  # NSE regular session start
 
 
-def _aggregate(raw_oldest_first: list, interval_min: int) -> list[Candle]:
+def _aggregate(
+    raw_oldest_first: list, interval_min: int, exclude_from: datetime | None = None
+) -> list[Candle]:
     """
     Aggregate raw candles [[ts_iso, o, h, l, c, v, oi], ...] (oldest first)
     into interval_min-minute bars. Returns list of (O,H,L,C) tuples, oldest first.
     Pre-market ticks (before 09:15 IST) are excluded so bars align with NSE open.
+    exclude_from drops bars at/after that boundary — used to leave the currently
+    forming bar out of primed history (live ticks rebuild it, avoiding a duplicate).
     """
     bars: dict[datetime, list[float]] = {}
     for row in raw_oldest_first:
@@ -94,6 +101,8 @@ def _aggregate(raw_oldest_first: list, interval_min: int) -> list[Candle]:
         if ts.time() < _MARKET_OPEN:   # skip pre-open (09:00–09:14)
             continue
         bar_ts = _floor_to(ts, interval_min)
+        if exclude_from is not None and bar_ts >= exclude_from:
+            continue
         if bar_ts not in bars:
             bars[bar_ts] = [float(row[1]), float(row[2]), float(row[3]), float(row[4])]
         else:
@@ -141,6 +150,27 @@ async def _fetch_range(
         return []
 
 
+async def _fetch_intraday(
+    instrument_key: str, unit: str, interval: str, access_token: str
+) -> list:
+    """Today's candles (V3 API) — the plain historical endpoint stops at yesterday's close."""
+    url = _INTRA_URL.format(key=quote(instrument_key, safe=""), unit=unit, interval=interval)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                url,
+                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+            )
+        if resp.status_code != 200:
+            _log.warning("intraday %s/%s %s for %s: %s",
+                         unit, interval, resp.status_code, instrument_key, resp.text[:200])
+            return []
+        return resp.json().get("data", {}).get("candles", [])
+    except Exception as e:
+        _log.error("intraday fetch %s %s/%s: %s", instrument_key, unit, interval, e)
+        return []
+
+
 async def _fetch_raw(
     instrument_key: str, interval: str, days_back: int, access_token: str
 ) -> list:
@@ -176,7 +206,9 @@ async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
                          instrument_key, tf.value)
             return
         oldest_first = list(reversed(raw))   # Upstox returns newest-first
-        bars = _aggregate(oldest_first, _TF_MINUTES[tf])
+        # Leave the currently forming bar out — live ticks rebuild it after prime
+        cutoff = _floor_to(datetime.now(IST), _TF_MINUTES[tf])
+        bars = _aggregate(oldest_first, _TF_MINUTES[tf], exclude_from=cutoff)
         k = (instrument_key, tf)
         _candles[k] = deque(bars[-_MAX:], maxlen=_MAX)
         _smas[k]    = _compute(list(_candles[k]))
@@ -184,10 +216,16 @@ async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
         _log.info("%s %s: %d bars  SMA200=%s", instrument_key, tf.value, len(bars),
                   f"{sma200:.1f}" if sma200 else "—")
 
-    raw_1min, raw_30min = await asyncio.gather(
+    raw_1min, raw_30min, intra_1min, intra_30min = await asyncio.gather(
         _fetch_raw(instrument_key, "1minute",  15,  access_token),
         _fetch_raw(instrument_key, "30minute", 180, access_token),
+        _fetch_intraday(instrument_key, "minutes", "1",  access_token),
+        _fetch_intraday(instrument_key, "minutes", "30", access_token),
     )
+    # Merge today's intraday candles with multi-day history. Both lists are
+    # newest-first; _aggregate keys bars by timestamp so order/overlap is safe.
+    raw_1min  = intra_1min  + raw_1min
+    raw_30min = intra_30min + raw_30min
 
     # M5 and M15 share the same 1-min fetch — perfectly in sync, no extra API call
     _prime_from(raw_1min, TimeFrame.M5)

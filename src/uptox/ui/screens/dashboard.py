@@ -264,13 +264,18 @@ class OverallAnalysisPanel(Static):
             self._orb_high    = 0.0
             self._orb_low     = float("inf")
             self._orb_ready   = False
-            self._orb_ce_done = False
-            self._orb_pe_done = False
+            # Restore once-per-day flags from today's trade log — in-memory
+            # flags reset on restart, which allowed duplicate ORB/PDH trades
+            # after a mid-session deploy.
+            _taken = trade_book.entries_taken_today()
+            self._orb_ce_done = ("orb", "CE") in _taken
+            self._orb_pe_done = ("orb", "PE") in _taken
         if _today != self._pdx_date:
             self._pdx_date     = _today
             self._pdx_watching = False
-            self._pdx_ce_done  = False
-            self._pdx_pe_done  = False
+            _taken = trade_book.entries_taken_today()
+            self._pdx_ce_done  = ("pdh_break", "CE") in _taken
+            self._pdx_pe_done  = ("pdl_break", "PE") in _taken
         if live_ltp:
             _h, _m = _now_ist.hour, _now_ist.minute
             _in_orb_window = (_h == 9 and 15 <= _m < 30)
@@ -686,14 +691,22 @@ class OverallAnalysisPanel(Static):
                     from uptox.services import prev_day_service as _pds
                     _pdd = _pds.get_ohlc()
                     if _pdd:
+                        # A "break" requires the session to have OPENED on the other
+                        # side of the level — a gap-open beyond PDH/PDL is not a
+                        # breakout, the move was already priced overnight (seen
+                        # 2026-07-03: 140pt gap-up, price above PDH from tick one).
+                        _opened_below_pdh = bool(self._session_open) and self._session_open <= _pdd["high"]
+                        _opened_above_pdl = bool(self._session_open) and self._session_open >= _pdd["low"]
                         _pdh_break = (
                             option == "CE"
+                            and _opened_below_pdh
                             and live_ltp > _pdd["high"]
                             and flow_score >= 2
                             and not self._pdx_ce_done
                         )
                         _pdl_break = (
                             option == "PE"
+                            and _opened_above_pdl
                             and live_ltp < _pdd["low"]
                             and flow_score <= -2
                             and not self._pdx_pe_done
