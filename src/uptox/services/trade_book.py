@@ -693,7 +693,10 @@ def get_daily_stats() -> dict:
     pnl_rs      = pnl_rs_total - _daily_pnl_reset_rs
     cap         = capital_service.get_capital()
     pnl_pct     = round(pnl_rs / cap * 100, 2) if cap else 0.0
-    trade_count = max(0, len(today_trades) - _daily_trades_reset_n)
+    # Partial exits write two records with the same id (half banked + remainder)
+    # — count unique trades, or one partial winner burns two trade slots.
+    _uniq_ids   = list(dict.fromkeys(t.get("id", i) for i, t in enumerate(today_trades)))
+    trade_count = max(0, len(_uniq_ids) - _daily_trades_reset_n)
 
     # Consecutive losses (from most recent backward)
     consec_losses = 0
@@ -705,9 +708,14 @@ def get_daily_stats() -> dict:
 
     # Wins since last Z-reset — after 2 wins the day's edge is usually extracted;
     # trade 3+ tends to give profits back. Z-reset clears this along with count.
-    wins_today = sum(
-        1 for t in today_trades[_daily_trades_reset_n:] if t.get("pnl_pts", 0) > 0
-    )
+    # Group records by trade id first: a partial exit writes two records for one
+    # trade, which otherwise counts as "2 wins" and falsely locks the day.
+    _by_id: dict = {}
+    for i, t in enumerate(today_trades):
+        _by_id.setdefault(t.get("id", i), 0.0)
+        _by_id[t.get("id", i)] += t.get("pnl_rs", 0.0)
+    _net_by_trade = list(_by_id.values())[_daily_trades_reset_n:]
+    wins_today = sum(1 for p in _net_by_trade if p > 0)
 
     # Check limits — Z-reset only clears the loss-limit check; trade count/consec still enforced
     blocked_reason = None
