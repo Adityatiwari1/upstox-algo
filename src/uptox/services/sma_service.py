@@ -197,20 +197,51 @@ async def fetch_and_prime(instrument_key: str, access_token: str) -> None:
     _prime_from(raw_30min, TimeFrame.H1)
     _prime_from(raw_30min, TimeFrame.H4)
 
+    # Drop any live bar formed before this prime — appending it onto the
+    # freshly loaded history would duplicate/corrupt the last bar.
+    for tf in ALL_TFS:
+        _live_bar.pop((instrument_key, tf), None)
+
+
+# (instrument_key, tf) → [bar_start_dt, open, high, low, close] for the
+# currently-forming bar. When a tick lands in a new bar period the previous
+# live bar is appended to _candles as a closed bar.
+_live_bar: dict[tuple[str, TimeFrame], list] = {}
+
 
 def update_realtime(instrument_key: str, ltp: float) -> None:
     """
-    Recompute SMAs for every timeframe using stored history + LTP as the
-    live (not-yet-closed) bar's close. Called on every incoming tick.
+    Build live bars from ticks and recompute SMAs on every tick.
+
+    Each timeframe keeps a forming bar (O/H/L/C accumulated from ticks).
+    When the clock crosses into a new bar period, the finished bar is
+    appended to _candles — without this, history stays frozen at whatever
+    fetch_and_prime loaded at startup and every SMA/candle-based signal
+    (SMA score, consolidation, bounce, retest bars) drifts off market
+    within the hour.
     """
     if not ltp:
         return
-    live: Candle = (ltp, ltp, ltp, ltp)
+    now = datetime.now(IST)
+    if now.time() < _MARKET_OPEN:   # keep bar alignment: prime skips pre-open too
+        return
     for tf in ALL_TFS:
         k = (instrument_key, tf)
         if k not in _candles:
             continue
-        _smas[k] = _compute(list(_candles[k]) + [live])
+        bar_start = _floor_to(now, _TF_MINUTES[tf])
+        lb = _live_bar.get(k)
+        if lb is None or lb[0] != bar_start:
+            if lb is not None:
+                # previous bar closed — commit it to history
+                _candles[k].append((lb[1], lb[2], lb[3], lb[4]))
+            lb = [bar_start, ltp, ltp, ltp, ltp]
+            _live_bar[k] = lb
+        else:
+            lb[2] = max(lb[2], ltp)
+            lb[3] = min(lb[3], ltp)
+            lb[4] = ltp
+        _smas[k] = _compute(list(_candles[k]) + [(lb[1], lb[2], lb[3], lb[4])])
 
 
 def get_smas(instrument_key: str, tf: TimeFrame) -> dict[int, float | None]:
