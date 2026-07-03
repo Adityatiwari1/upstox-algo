@@ -37,6 +37,12 @@ def get_iv_rank(instrument_key: str) -> float | None:
     lo, hi = min(h), max(h)
     if hi <= lo:
         return 50.0
+    # Session-only history often spans a tiny IV band (e.g. 0.09–0.10). Ranking
+    # within a <10% relative range turns noise into 0–100 swings — observed
+    # blocking score+5 entries with "IV rank 100%" on a 0.005 IV wiggle.
+    # A range that narrow carries no information: report neutral instead.
+    if (hi - lo) / lo < 0.10:
+        return 50.0
     return round((h[-1] - lo) / (hi - lo) * 100, 1)
 
 

@@ -149,8 +149,14 @@ def _log_blocked_entry(reason: str, option: str, ltp: float, score: int,
     i.e. which filters block trades that would have won.
     """
     import json as _json
+    import re as _re
     import time as _time
-    key = f"{option}|{reason.split('—')[0].strip()[:40]}"
+    # Window/pre-market blocks are schedule facts, not filter decisions — skip
+    if "trading window" in reason or "Pre-market" in reason:
+        return
+    # Strip digits from the dedupe key — reasons embed live numbers ("74%",
+    # "12pt") which defeated the 5-min dedupe and spammed hundreds of rows
+    key = f"{option}|{_re.sub(r'[0-9.]+', 'N', reason.split('—')[0].strip())[:40]}"
     now = _time.time()
     if now - _blocked_log_ts.get(key, 0.0) < 300:
         return
@@ -247,12 +253,27 @@ class OverallAnalysisPanel(Static):
         from zoneinfo import ZoneInfo as _ZoneInfo
         _now_ist = _datetime.now(_ZoneInfo("Asia/Kolkata"))
         _today = _date.today().isoformat()
+        _mkt_open_now = (_now_ist.hour, _now_ist.minute) >= (9, 15)
         if _today != self._session_date:
             self._session_date = _today
-            self._session_low  = live_ltp if live_ltp else float("inf")
-            self._session_high = live_ltp if live_ltp else 0.0
+            self._session_low  = float("inf")
+            self._session_high = 0.0
             self._session_open = 0.0
-        if live_ltp:
+            # Restart-proof: rebuild today's open/high/low from M5 history —
+            # primed via the intraday candle API, so it covers bars from before
+            # this restart. Only trust it when the bar count matches the clock
+            # (otherwise older bars would leak in and fake the session open).
+            if _mkt_open_now:
+                _n = max(0, ((_now_ist.hour * 60 + _now_ist.minute) - (9 * 60 + 15)) // 5)
+                if _n:
+                    _tb = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=_n)
+                    if len(_tb) == _n:
+                        self._session_open = _tb[0][0]
+                        self._session_high = max(b[1] for b in _tb)
+                        self._session_low  = min(b[2] for b in _tb)
+        # Pre-9:15 ticks excluded — pre-open freak prints (24,614 print seen
+        # 2026-07-03 09:00, 240pt off) poisoned session high and the gap calc.
+        if live_ltp and _mkt_open_now:
             if not self._session_open:
                 self._session_open = live_ltp
             if live_ltp < self._session_low:  self._session_low  = live_ltp

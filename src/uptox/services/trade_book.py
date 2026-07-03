@@ -500,8 +500,9 @@ def get_per_trade_breach() -> bool:
     return _open_trade.get("pnl_rs", 0.0) < -limit
 
 
-_HIGH_VELOCITY = 15.0   # pts/min — faster than this = spike, take profits
-_HIGH_IV       = 20.0   # IV above this = volatile market, take profits
+_VELOCITY_ATR_FRAC = 0.30   # spike when velocity ≥ this fraction of ATR per min
+_VELOCITY_FLOOR    = 3.0    # pts/min — lower bound so tiny-ATR noise can't trigger
+_HIGH_IV           = 20.0   # IV% above this = panic-priced options, take profits
 
 
 def get_target_action(current_price: float) -> str:
@@ -515,6 +516,11 @@ def get_target_action(current_price: float) -> str:
 
     Fast spike or high IV → close and bank profits.
     Slow trend and calm IV → trail SL past target, let it run.
+
+    "Fast" is relative to the day's ATR — a 4.4pt/min move on an ATR-14
+    afternoon is a spike, on an ATR-40 morning it's a drift. A fixed
+    threshold (old: 15pt/min) never fired on quiet days and gave back
+    spike profits to the snapback (2026-07-03 PE: peaked +19.9, kept +8.1).
     """
     if not _open_trade:
         return "close"
@@ -525,8 +531,14 @@ def get_target_action(current_price: float) -> str:
     from uptox.services import feed_store
     opt_tick = feed_store.get(_open_trade.get("option_key", ""))
     iv = opt_tick.iv if opt_tick else 0.0
+    # Feed sends IV as a fraction (0.1 = 10%) but chain REST uses percent —
+    # normalize to percent, else the iv >= 20 check can never fire.
+    if 0 < iv < 1:
+        iv *= 100.0
 
-    volatile = velocity >= _HIGH_VELOCITY or (iv > 0 and iv >= _HIGH_IV)
+    atr = _open_trade.get("atr_at_entry", 0.0) or 30.0
+    vel_thr  = max(_VELOCITY_FLOOR, atr * _VELOCITY_ATR_FRAC)
+    volatile = velocity >= vel_thr or (iv > 0 and iv >= _HIGH_IV)
 
     # Store for UI display
     _open_trade["market_mode"]   = "VOLATILE" if volatile else "TRENDING"
