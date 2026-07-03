@@ -1,0 +1,758 @@
+{"ts": "2026-07-02T11:24:21+05:30", "option": "CE", "ltp": 24097.5, "score": 2, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (47min left)"}
+{"ts": "2026-07-02T11:24:34+05:30", "option": "CE", "ltp": 24098.2, "score": 3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T11:25:09+05:30", "option": "CE", "ltp": 24100.5, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T11:26:37+05:30", "option": "CE", "ltp": 24098.3, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T11:27:12+05:30", "option": "CE", "ltp": 24091.0, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T11:27:15+05:30", "option": "CE", "ltp": 24090.9, "score": 3, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T11:27:24+05:30", "option": "CE", "ltp": 24092.4, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T11:56:59+05:30", "option": "CE", "ltp": 24102.0, "score": 2, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (14min left)"}
+{"ts": "2026-07-02T11:58:07+05:30", "option": "CE", "ltp": 24098.8, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T11:58:13+05:30", "option": "CE", "ltp": 24097.5, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T11:58:20+05:30", "option": "CE", "ltp": 24096.8, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T11:59:09+05:30", "option": "CE", "ltp": 24094.7, "score": 3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T12:01:24+05:30", "option": "CE", "ltp": 24101.2, "score": 2, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-02T12:01:27+05:30", "option": "CE", "ltp": 24102.5, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T12:01:36+05:30", "option": "CE", "ltp": 24099.0, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-02T12:01:50+05:30", "option": "CE", "ltp": 24099.1, "score": 3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-02T12:01:52+05:30", "option": "CE", "ltp": 24099.2, "score": 3, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-02T12:02:03+05:30", "option": "CE", "ltp": 24101.0, "score": 3, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-02T12:02:06+05:30", "option": "CE", "ltp": 24101.5, "score": 3, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-02T12:02:12+05:30", "option": "CE", "ltp": 24102.2, "score": 3, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-02T12:02:16+05:30", "option": "CE", "ltp": 24101.5, "score": 3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-02T12:02:29+05:30", "option": "CE", "ltp": 24102.2, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-02T12:02:41+05:30", "option": "CE", "ltp": 24102.3, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T12:02:50+05:30", "option": "CE", "ltp": 24102.9, "score": 3, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-02T12:02:54+05:30", "option": "CE", "ltp": 24104.2, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T12:02:59+05:30", "option": "CE", "ltp": 24104.8, "score": 3, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (8min left)"}
+{"ts": "2026-07-02T12:03:37+05:30", "option": "CE", "ltp": 24107.3, "score": 3, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-02T12:03:42+05:30", "option": "CE", "ltp": 24109.5, "score": 3, "entry_type": null, "reason": "IV rank high (99%) — options expensive"}
+{"ts": "2026-07-02T12:03:47+05:30", "option": "CE", "ltp": 24109.5, "score": 3, "entry_type": null, "reason": "IV rank high (96%) — options expensive"}
+{"ts": "2026-07-02T12:04:13+05:30", "option": "CE", "ltp": 24109.3, "score": 3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-02T12:04:21+05:30", "option": "CE", "ltp": 24109.2, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T12:04:42+05:30", "option": "CE", "ltp": 24102.2, "score": 3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T12:04:55+05:30", "option": "CE", "ltp": 24103.5, "score": 3, "entry_type": null, "reason": "IV rank high (93%) — options expensive"}
+{"ts": "2026-07-02T12:05:03+05:30", "option": "CE", "ltp": 24102.7, "score": 3, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-02T12:07:59+05:30", "option": "CE", "ltp": 24108.0, "score": 3, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (3min left)"}
+{"ts": "2026-07-02T12:09:19+05:30", "option": "CE", "ltp": 24107.3, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T12:09:23+05:30", "option": "CE", "ltp": 24108.2, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-02T12:09:27+05:30", "option": "CE", "ltp": 24106.7, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-02T12:17:57+05:30", "option": "CE", "ltp": 24118.8, "score": 5, "entry_type": "pdh_break", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T12:18:38+05:30", "option": "CE", "ltp": 24121.0, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T12:18:42+05:30", "option": "CE", "ltp": 24122.5, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T12:19:26+05:30", "option": "CE", "ltp": 24122.7, "score": 5, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-02T12:19:30+05:30", "option": "CE", "ltp": 24122.2, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T12:19:34+05:30", "option": "CE", "ltp": 24123.6, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T12:19:56+05:30", "option": "CE", "ltp": 24124.0, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T12:22:45+05:30", "option": "CE", "ltp": 24121.5, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-02T12:22:49+05:30", "option": "CE", "ltp": 24122.8, "score": 5, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-02T12:23:03+05:30", "option": "CE", "ltp": 24122.7, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T12:23:15+05:30", "option": "CE", "ltp": 24122.0, "score": 5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T12:23:24+05:30", "option": "CE", "ltp": 24123.6, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-02T12:23:46+05:30", "option": "CE", "ltp": 24124.1, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T12:23:50+05:30", "option": "CE", "ltp": 24123.5, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T12:25:18+05:30", "option": "CE", "ltp": 24120.1, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T12:25:21+05:30", "option": "CE", "ltp": 24120.4, "score": 5, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T12:25:25+05:30", "option": "CE", "ltp": 24121.6, "score": 5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-02T12:25:34+05:30", "option": "CE", "ltp": 24122.1, "score": 5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T12:25:43+05:30", "option": "CE", "ltp": 24121.7, "score": 5, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-02T12:26:28+05:30", "option": "CE", "ltp": 24124.7, "score": 5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-02T12:27:32+05:30", "option": "CE", "ltp": 24125.7, "score": 5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T12:27:40+05:30", "option": "CE", "ltp": 24125.8, "score": 5, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-02T12:27:45+05:30", "option": "CE", "ltp": 24124.7, "score": 5, "entry_type": null, "reason": "IV rank high (99%) — options expensive"}
+{"ts": "2026-07-02T12:27:48+05:30", "option": "CE", "ltp": 24125.5, "score": 3, "entry_type": null, "reason": "IV rank high (95%) — options expensive"}
+{"ts": "2026-07-02T12:27:49+05:30", "option": "CE", "ltp": 24125.2, "score": 3, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-02T12:27:53+05:30", "option": "CE", "ltp": 24126.1, "score": 5, "entry_type": null, "reason": "IV rank high (98%) — options expensive"}
+{"ts": "2026-07-02T12:27:55+05:30", "option": "CE", "ltp": 24124.3, "score": 5, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T12:28:02+05:30", "option": "CE", "ltp": 24126.2, "score": 3, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-02T12:28:15+05:30", "option": "CE", "ltp": 24125.7, "score": 3, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-02T12:28:20+05:30", "option": "CE", "ltp": 24129.0, "score": 3, "entry_type": null, "reason": "IV rank high (93%) — options expensive"}
+{"ts": "2026-07-02T12:28:33+05:30", "option": "CE", "ltp": 24131.7, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T12:28:50+05:30", "option": "CE", "ltp": 24131.2, "score": 5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T12:28:59+05:30", "option": "CE", "ltp": 24131.9, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-02T12:29:12+05:30", "option": "CE", "ltp": 24129.9, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T12:29:25+05:30", "option": "CE", "ltp": 24130.8, "score": 3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-02T12:29:51+05:30", "option": "CE", "ltp": 24131.6, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T12:30:00+05:30", "option": "CE", "ltp": 24132.8, "score": 5, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-02T12:31:05+05:30", "option": "CE", "ltp": 24126.5, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T12:31:57+05:30", "option": "CE", "ltp": 24125.7, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T12:33:34+05:30", "option": "CE", "ltp": 24120.7, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T12:34:25+05:30", "option": "CE", "ltp": 24121.3, "score": 5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T12:34:33+05:30", "option": "CE", "ltp": 24120.6, "score": 5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T12:34:54+05:30", "option": "CE", "ltp": 24122.2, "score": 5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T12:35:16+05:30", "option": "CE", "ltp": 24124.8, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T12:35:24+05:30", "option": "CE", "ltp": 24125.7, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T12:36:51+05:30", "option": "CE", "ltp": 24127.1, "score": 5, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T12:36:58+05:30", "option": "CE", "ltp": 24127.2, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T12:37:36+05:30", "option": "CE", "ltp": 24125.4, "score": 5, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-02T12:37:43+05:30", "option": "CE", "ltp": 24126.3, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-02T12:37:48+05:30", "option": "CE", "ltp": 24126.4, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-02T12:37:52+05:30", "option": "CE", "ltp": 24126.5, "score": 3, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T12:38:34+05:30", "option": "CE", "ltp": 24121.8, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T12:39:02+05:30", "option": "CE", "ltp": 24133.0, "score": 5, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T12:39:06+05:30", "option": "CE", "ltp": 24135.0, "score": 3, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-02T12:39:28+05:30", "option": "CE", "ltp": 24135.3, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-02T12:39:33+05:30", "option": "CE", "ltp": 24135.0, "score": 5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-02T12:39:46+05:30", "option": "CE", "ltp": 24136.0, "score": 5, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-02T12:39:54+05:30", "option": "CE", "ltp": 24134.8, "score": 5, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-02T12:39:59+05:30", "option": "CE", "ltp": 24132.5, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T12:40:08+05:30", "option": "CE", "ltp": 24134.3, "score": 5, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-02T12:40:12+05:30", "option": "CE", "ltp": 24134.6, "score": 5, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-02T12:40:16+05:30", "option": "CE", "ltp": 24135.0, "score": 3, "entry_type": null, "reason": "IV rank high (93%) — options expensive"}
+{"ts": "2026-07-02T12:40:29+05:30", "option": "CE", "ltp": 24134.8, "score": 5, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-02T12:40:50+05:30", "option": "CE", "ltp": 24131.2, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T12:40:55+05:30", "option": "CE", "ltp": 24133.9, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T12:41:16+05:30", "option": "CE", "ltp": 24131.5, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-02T12:43:34+05:30", "option": "CE", "ltp": 24124.5, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T12:51:21+05:30", "option": "CE", "ltp": 24124.5, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:05:52+05:30", "option": "CE", "ltp": 24135.2, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:10:52+05:30", "option": "CE", "ltp": 24140.7, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:15:54+05:30", "option": "CE", "ltp": 24149.8, "score": 3, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:20:55+05:30", "option": "CE", "ltp": 24144.8, "score": 3, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:25:55+05:30", "option": "CE", "ltp": 24144.3, "score": 5, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:31:00+05:30", "option": "CE", "ltp": 24140.4, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:36:02+05:30", "option": "CE", "ltp": 24149.9, "score": 3, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:41:04+05:30", "option": "CE", "ltp": 24138.0, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:46:09+05:30", "option": "CE", "ltp": 24135.7, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:51:17+05:30", "option": "CE", "ltp": 24137.0, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T13:56:26+05:30", "option": "CE", "ltp": 24135.2, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:01:34+05:30", "option": "CE", "ltp": 24138.8, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:05:28+05:30", "option": "CE", "ltp": 24140.5, "score": 5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T14:05:33+05:30", "option": "CE", "ltp": 24140.1, "score": 5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T14:06:34+05:30", "option": "CE", "ltp": 24132.8, "score": 5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-02T14:06:38+05:30", "option": "CE", "ltp": 24132.0, "score": 5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T14:06:43+05:30", "option": "CE", "ltp": 24132.2, "score": 5, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T14:06:47+05:30", "option": "CE", "ltp": 24133.5, "score": 5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-02T14:06:51+05:30", "option": "CE", "ltp": 24132.8, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T14:07:47+05:30", "option": "CE", "ltp": 24133.5, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:13:14+05:30", "option": "CE", "ltp": 24134.8, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:18:27+05:30", "option": "CE", "ltp": 24133.2, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:19:15+05:30", "option": "CE", "ltp": 24129.3, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T14:19:41+05:30", "option": "CE", "ltp": 24132.8, "score": 5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-02T14:19:45+05:30", "option": "CE", "ltp": 24132.8, "score": 5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T14:19:50+05:30", "option": "CE", "ltp": 24135.3, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T14:19:54+05:30", "option": "CE", "ltp": 24134.5, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T14:23:31+05:30", "option": "CE", "ltp": 24151.2, "score": 5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-02T14:23:36+05:30", "option": "CE", "ltp": 24152.3, "score": 5, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-02T14:23:40+05:30", "option": "CE", "ltp": 24152.7, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T14:23:49+05:30", "option": "CE", "ltp": 24155.0, "score": 5, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T14:23:53+05:30", "option": "CE", "ltp": 24153.2, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T14:23:57+05:30", "option": "CE", "ltp": 24152.5, "score": 5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-02T14:24:06+05:30", "option": "CE", "ltp": 24151.8, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T14:24:11+05:30", "option": "CE", "ltp": 24151.6, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-02T14:24:19+05:30", "option": "CE", "ltp": 24153.2, "score": 5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-02T14:24:32+05:30", "option": "CE", "ltp": 24150.9, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-02T14:24:41+05:30", "option": "CE", "ltp": 24147.8, "score": 5, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-02T14:24:50+05:30", "option": "CE", "ltp": 24147.7, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T14:24:58+05:30", "option": "CE", "ltp": 24146.8, "score": 5, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-02T14:25:02+05:30", "option": "CE", "ltp": 24145.4, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T14:25:07+05:30", "option": "CE", "ltp": 24143.7, "score": 5, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T14:25:11+05:30", "option": "CE", "ltp": 24141.9, "score": 5, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-02T14:25:16+05:30", "option": "CE", "ltp": 24142.4, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T14:25:42+05:30", "option": "CE", "ltp": 24140.6, "score": 5, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-02T14:25:50+05:30", "option": "CE", "ltp": 24142.0, "score": 3, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T14:26:34+05:30", "option": "CE", "ltp": 24140.5, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:28:18+05:30", "option": "CE", "ltp": 24140.0, "score": 5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-02T14:31:34+05:30", "option": "CE", "ltp": 24149.0, "score": 5, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:34:28+05:30", "option": "CE", "ltp": 24153.8, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 27% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-02T14:37:00+05:30", "option": "CE", "ltp": 24157.2, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:39:06+05:30", "option": "CE", "ltp": 24167.8, "score": 5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T14:39:11+05:30", "option": "CE", "ltp": 24168.7, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T14:39:14+05:30", "option": "CE", "ltp": 24169.0, "score": 5, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-02T14:39:19+05:30", "option": "CE", "ltp": 24170.8, "score": 5, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-02T14:39:24+05:30", "option": "CE", "ltp": 24171.3, "score": 3, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-02T14:39:28+05:30", "option": "CE", "ltp": 24171.5, "score": 5, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-02T14:39:32+05:30", "option": "CE", "ltp": 24173.9, "score": 5, "entry_type": null, "reason": "IV rank high (97%) — options expensive"}
+{"ts": "2026-07-02T14:39:34+05:30", "option": "CE", "ltp": 24175.5, "score": 3, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-02T14:39:36+05:30", "option": "CE", "ltp": 24173.9, "score": 3, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-02T14:39:41+05:30", "option": "CE", "ltp": 24175.8, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-02T14:39:43+05:30", "option": "CE", "ltp": 24173.8, "score": 3, "entry_type": null, "reason": "IV rank high (93%) — options expensive"}
+{"ts": "2026-07-02T14:39:45+05:30", "option": "CE", "ltp": 24175.6, "score": 3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-02T14:39:46+05:30", "option": "CE", "ltp": 24174.4, "score": 3, "entry_type": null, "reason": "IV rank high (96%) — options expensive"}
+{"ts": "2026-07-02T14:39:52+05:30", "option": "CE", "ltp": 24175.0, "score": 3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-02T14:39:54+05:30", "option": "CE", "ltp": 24173.9, "score": 5, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-02T14:40:24+05:30", "option": "CE", "ltp": 24175.2, "score": 3, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-02T14:40:28+05:30", "option": "CE", "ltp": 24176.6, "score": 3, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-02T14:40:32+05:30", "option": "CE", "ltp": 24174.8, "score": 3, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-02T14:40:35+05:30", "option": "CE", "ltp": 24175.2, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T14:40:37+05:30", "option": "CE", "ltp": 24176.0, "score": 5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T14:40:50+05:30", "option": "CE", "ltp": 24176.7, "score": 5, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-02T14:41:12+05:30", "option": "CE", "ltp": 24179.2, "score": 3, "entry_type": null, "reason": "IV rank high (95%) — options expensive"}
+{"ts": "2026-07-02T14:41:25+05:30", "option": "CE", "ltp": 24176.8, "score": 3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-02T14:42:04+05:30", "option": "CE", "ltp": 24180.0, "score": 3, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T14:42:39+05:30", "option": "CE", "ltp": 24177.6, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:43:14+05:30", "option": "CE", "ltp": 24176.7, "score": 5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T14:43:22+05:30", "option": "CE", "ltp": 24176.2, "score": 5, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T14:47:03+05:30", "option": "CE", "ltp": 24186.7, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (13pt above)"}
+{"ts": "2026-07-02T14:47:11+05:30", "option": "CE", "ltp": 24188.6, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (11pt above)"}
+{"ts": "2026-07-02T14:47:12+05:30", "option": "CE", "ltp": 24187.9, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (12pt above)"}
+{"ts": "2026-07-02T14:47:16+05:30", "option": "CE", "ltp": 24186.2, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (14pt above)"}
+{"ts": "2026-07-02T14:47:31+05:30", "option": "CE", "ltp": 24190.0, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (10pt above)"}
+{"ts": "2026-07-02T14:47:54+05:30", "option": "CE", "ltp": 24191.8, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (8pt above)"}
+{"ts": "2026-07-02T14:47:55+05:30", "option": "CE", "ltp": 24190.8, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (9pt above)"}
+{"ts": "2026-07-02T14:48:02+05:30", "option": "CE", "ltp": 24193.0, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (7pt above)"}
+{"ts": "2026-07-02T14:48:08+05:30", "option": "CE", "ltp": 24194.0, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (6pt above)"}
+{"ts": "2026-07-02T14:48:35+05:30", "option": "CE", "ltp": 24185.0, "score": 5, "entry_type": "retest", "reason": "Resistance: Round 24200 (15pt above)"}
+{"ts": "2026-07-02T14:48:36+05:30", "option": "CE", "ltp": 24183.8, "score": 3, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:49:10+05:30", "option": "CE", "ltp": 24181.6, "score": 5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-02T14:49:15+05:30", "option": "CE", "ltp": 24181.4, "score": 5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-02T14:49:19+05:30", "option": "CE", "ltp": 24182.2, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-02T14:49:32+05:30", "option": "CE", "ltp": 24183.5, "score": 5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-02T14:49:58+05:30", "option": "CE", "ltp": 24182.5, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T14:52:21+05:30", "option": "CE", "ltp": 24187.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (13pt above)"}
+{"ts": "2026-07-02T14:52:30+05:30", "option": "CE", "ltp": 24186.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (14pt above)"}
+{"ts": "2026-07-02T14:52:39+05:30", "option": "CE", "ltp": 24187.6, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (12pt above)"}
+{"ts": "2026-07-02T14:53:36+05:30", "option": "CE", "ltp": 24189.3, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (11pt above)"}
+{"ts": "2026-07-02T14:53:54+05:30", "option": "CE", "ltp": 24184.3, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T14:54:50+05:30", "option": "CE", "ltp": 24183.8, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-02T14:54:54+05:30", "option": "CE", "ltp": 24183.5, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-02T14:59:02+05:30", "option": "CE", "ltp": 24186.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (14pt above)"}
+{"ts": "2026-07-02T14:59:15+05:30", "option": "CE", "ltp": 24185.5, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (15pt above)"}
+{"ts": "2026-07-02T14:59:28+05:30", "option": "CE", "ltp": 24187.3, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (13pt above)"}
+{"ts": "2026-07-02T14:59:32+05:30", "option": "CE", "ltp": 24188.0, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-02T14:59:37+05:30", "option": "CE", "ltp": 24191.9, "score": 5, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-02T14:59:54+05:30", "option": "CE", "ltp": 24190.1, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (10pt above)"}
+{"ts": "2026-07-02T15:00:07+05:30", "option": "CE", "ltp": 24180.0, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 20% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-02T15:00:24+05:30", "option": "CE", "ltp": 24176.1, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T15:05:25+05:30", "option": "CE", "ltp": 24174.0, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T15:08:30+05:30", "option": "CE", "ltp": 24185.8, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (14pt above)"}
+{"ts": "2026-07-02T15:08:31+05:30", "option": "CE", "ltp": 24185.2, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (15pt above)"}
+{"ts": "2026-07-02T15:09:14+05:30", "option": "CE", "ltp": 24187.3, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (13pt above)"}
+{"ts": "2026-07-02T15:09:15+05:30", "option": "CE", "ltp": 24188.2, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (12pt above)"}
+{"ts": "2026-07-02T15:09:17+05:30", "option": "CE", "ltp": 24189.3, "score": 3, "entry_type": "retest", "reason": "Resistance: Round 24200 (11pt above)"}
+{"ts": "2026-07-02T15:09:23+05:30", "option": "CE", "ltp": 24187.3, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 26% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-02T15:10:33+05:30", "option": "CE", "ltp": 24169.7, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T15:14:23+05:30", "option": "CE", "ltp": 24177.5, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 19% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-02T15:19:28+05:30", "option": "CE", "ltp": 24163.3, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 8% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-02T15:23:14+05:30", "option": "CE", "ltp": 24160.8, "score": 5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-02T15:25:00+05:30", "option": "CE", "ltp": 24168.3, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T15:30:00+05:30", "option": "CE", "ltp": 24166.9, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T15:35:01+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T15:40:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T15:45:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T15:50:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T15:55:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:00:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:05:03+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:10:04+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:15:04+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:20:04+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:25:05+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:30:06+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:35:06+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:40:06+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:45:07+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:50:07+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T16:55:08+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:00:09+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:05:09+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:10:10+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:15:10+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:20:10+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:25:11+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:30:12+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:35:12+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:40:12+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:45:13+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:50:14+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T17:55:14+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:00:14+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:05:15+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:10:16+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:15:16+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:20:16+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:25:17+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:30:18+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:35:19+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:40:19+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:45:20+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:50:21+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T18:55:22+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:00:22+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:05:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:10:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:15:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:20:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:25:24+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:30:25+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:35:25+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:40:25+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:45:25+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:50:26+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T19:55:27+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:00:28+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:05:28+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:10:29+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:15:29+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:20:30+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:25:30+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:30:31+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:35:31+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:40:32+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:45:33+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:50:33+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T20:55:34+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:00:35+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:05:35+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:10:36+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:15:37+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:20:37+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:25:38+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:30:39+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:35:40+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:40:40+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:45:41+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:50:42+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T21:55:43+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:00:43+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:05:44+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:10:45+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:15:45+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:20:45+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:25:46+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:30:46+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:35:46+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:40:47+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:45:48+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:50:49+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T22:55:50+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:00:51+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:05:52+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:10:53+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:15:54+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:20:54+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:25:54+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:30:55+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:35:56+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:40:56+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:45:57+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:50:58+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-02T23:55:58+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:00:58+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:05:58+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:10:59+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:15:59+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:21:00+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:26:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:31:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:36:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:41:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:46:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:51:02+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T00:56:03+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:01:03+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:06:04+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:11:04+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:16:05+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:21:05+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:26:06+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:31:06+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:36:07+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:41:08+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:46:08+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:51:09+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T01:56:10+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:01:11+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:06:12+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:11:13+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:16:14+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:21:15+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:26:15+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:31:15+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:36:16+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:41:16+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:46:17+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:51:18+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T02:56:18+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:01:18+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:06:19+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:11:20+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:16:20+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:21:20+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:26:21+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:31:22+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:36:22+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:41:22+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:46:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:51:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T03:56:23+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:01:24+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:06:24+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:11:25+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:16:26+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:21:27+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:26:27+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:31:28+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:36:29+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:41:29+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:46:29+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:51:29+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T04:56:30+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:01:31+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:06:31+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:11:32+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:16:32+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:21:33+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:26:34+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:31:35+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:36:35+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:41:35+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:46:35+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:51:36+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T05:56:36+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:01:36+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:06:37+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:11:38+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:16:39+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:21:40+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:26:40+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:31:41+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:36:41+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:41:41+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:46:42+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:51:42+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T06:56:43+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:01:44+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:06:45+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:11:45+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:16:46+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:21:47+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:26:48+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:31:49+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:36:49+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:41:50+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:46:50+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:51:51+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T07:56:51+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:01:52+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:06:53+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:11:54+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:16:54+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:21:55+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:26:56+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:31:56+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:36:56+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:41:57+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:46:57+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:51:58+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T08:56:58+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
+{"ts": "2026-07-03T09:00:01+05:30", "option": "CE", "ltp": 24175.7, "score": 3, "entry_type": null, "reason": "Pre-market — trading starts 09:30"}
+{"ts": "2026-07-03T09:07:51+05:30", "option": "CE", "ltp": 24375.7, "score": 3, "entry_type": null, "reason": "Pre-market — trading starts 09:30"}
+{"ts": "2026-07-03T09:15:04+05:30", "option": "CE", "ltp": 24319.8, "score": 3, "entry_type": null, "reason": "Pre-market — trading starts 09:30"}
+{"ts": "2026-07-03T09:20:05+05:30", "option": "CE", "ltp": 24303.0, "score": 3, "entry_type": null, "reason": "Pre-market — trading starts 09:30"}
+{"ts": "2026-07-03T09:25:07+05:30", "option": "CE", "ltp": 24337.0, "score": 3, "entry_type": null, "reason": "Pre-market — trading starts 09:30"}
+{"ts": "2026-07-03T09:30:04+05:30", "option": "CE", "ltp": 24350.8, "score": 4, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T09:30:08+05:30", "option": "CE", "ltp": 24349.7, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T09:30:12+05:30", "option": "CE", "ltp": 24349.5, "score": 5, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T09:30:21+05:30", "option": "CE", "ltp": 24353.7, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T09:30:29+05:30", "option": "CE", "ltp": 24352.3, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T09:30:43+05:30", "option": "CE", "ltp": 24351.2, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T09:31:13+05:30", "option": "CE", "ltp": 24350.7, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T09:31:18+05:30", "option": "CE", "ltp": 24352.5, "score": 5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T09:31:57+05:30", "option": "CE", "ltp": 24354.2, "score": 5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T09:32:02+05:30", "option": "CE", "ltp": 24354.7, "score": 3, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T09:32:05+05:30", "option": "CE", "ltp": 24355.0, "score": 5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T09:32:10+05:30", "option": "CE", "ltp": 24356.4, "score": 5, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T09:32:19+05:30", "option": "CE", "ltp": 24357.7, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T09:32:28+05:30", "option": "CE", "ltp": 24359.1, "score": 5, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T09:32:50+05:30", "option": "CE", "ltp": 24359.8, "score": 5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T09:33:07+05:30", "option": "CE", "ltp": 24364.3, "score": 5, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-03T09:33:16+05:30", "option": "CE", "ltp": 24365.6, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T09:33:42+05:30", "option": "CE", "ltp": 24359.9, "score": 5, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-03T09:34:00+05:30", "option": "CE", "ltp": 24357.6, "score": 3, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T09:34:52+05:30", "option": "CE", "ltp": 24356.7, "score": 5, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-03T09:35:45+05:30", "option": "CE", "ltp": 24349.5, "score": 5, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-03T09:36:28+05:30", "option": "CE", "ltp": 24351.0, "score": 5, "entry_type": null, "reason": "IV rank high (95%) — options expensive"}
+{"ts": "2026-07-03T09:36:37+05:30", "option": "CE", "ltp": 24354.0, "score": 5, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-03T09:37:12+05:30", "option": "CE", "ltp": 24359.2, "score": 3, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T09:37:38+05:30", "option": "CE", "ltp": 24358.8, "score": 5, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T09:37:47+05:30", "option": "CE", "ltp": 24354.5, "score": 3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T09:37:51+05:30", "option": "CE", "ltp": 24355.0, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T09:38:09+05:30", "option": "CE", "ltp": 24355.5, "score": 3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T09:38:26+05:30", "option": "CE", "ltp": 24354.6, "score": 5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T09:38:57+05:30", "option": "CE", "ltp": 24360.5, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T09:39:02+05:30", "option": "CE", "ltp": 24361.3, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T09:39:14+05:30", "option": "CE", "ltp": 24362.7, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T09:39:22+05:30", "option": "CE", "ltp": 24364.2, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T09:40:37+05:30", "option": "CE", "ltp": 24354.0, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T09:41:38+05:30", "option": "CE", "ltp": 24350.5, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T09:41:47+05:30", "option": "CE", "ltp": 24354.3, "score": 5, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-03T09:41:51+05:30", "option": "CE", "ltp": 24354.0, "score": 3, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-03T09:42:00+05:30", "option": "CE", "ltp": 24352.8, "score": 5, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-03T09:42:30+05:30", "option": "CE", "ltp": 24354.8, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T09:42:39+05:30", "option": "CE", "ltp": 24351.9, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T09:42:51+05:30", "option": "CE", "ltp": 24356.4, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T09:43:49+05:30", "option": "CE", "ltp": 24344.7, "score": 5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T09:43:57+05:30", "option": "CE", "ltp": 24344.5, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T09:44:02+05:30", "option": "CE", "ltp": 24342.5, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T09:44:06+05:30", "option": "CE", "ltp": 24342.2, "score": 5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T09:44:15+05:30", "option": "CE", "ltp": 24343.1, "score": 5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T09:46:13+05:30", "option": "CE", "ltp": 24342.5, "score": 3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T09:47:02+05:30", "option": "CE", "ltp": 24333.3, "score": 3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T09:47:10+05:30", "option": "CE", "ltp": 24334.2, "score": 3, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-03T09:47:23+05:30", "option": "CE", "ltp": 24332.5, "score": 3, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-03T09:49:56+05:30", "option": "CE", "ltp": 24329.6, "score": 3, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-03T09:50:05+05:30", "option": "CE", "ltp": 24331.3, "score": 3, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T09:51:19+05:30", "option": "CE", "ltp": 24337.0, "score": 3, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-03T09:51:41+05:30", "option": "CE", "ltp": 24340.7, "score": 3, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-03T09:51:55+05:30", "option": "CE", "ltp": 24343.4, "score": 3, "entry_type": null, "reason": "IV rank high (93%) — options expensive"}
+{"ts": "2026-07-03T09:51:59+05:30", "option": "CE", "ltp": 24343.4, "score": 3, "entry_type": null, "reason": "IV rank high (95%) — options expensive"}
+{"ts": "2026-07-03T09:52:20+05:30", "option": "CE", "ltp": 24339.9, "score": 3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T09:52:42+05:30", "option": "CE", "ltp": 24337.7, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T09:52:55+05:30", "option": "CE", "ltp": 24339.3, "score": 3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T09:53:13+05:30", "option": "CE", "ltp": 24340.8, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T09:54:14+05:30", "option": "CE", "ltp": 24337.6, "score": 3, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T09:54:24+05:30", "option": "CE", "ltp": 24336.2, "score": 3, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T09:55:07+05:30", "option": "CE", "ltp": 24334.8, "score": 3, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T09:56:05+05:30", "option": "CE", "ltp": 24324.1, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T09:56:09+05:30", "option": "CE", "ltp": 24324.3, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T09:56:49+05:30", "option": "CE", "ltp": 24330.5, "score": 3, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-03T09:56:58+05:30", "option": "CE", "ltp": 24329.5, "score": 3, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-03T09:57:14+05:30", "option": "CE", "ltp": 24333.7, "score": 3, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-03T09:57:32+05:30", "option": "CE", "ltp": 24338.5, "score": 3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T10:00:02+05:30", "option": "CE", "ltp": 24336.2, "score": 3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T10:00:22+05:30", "option": "CE", "ltp": 24336.1, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T10:00:36+05:30", "option": "CE", "ltp": 24336.4, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T10:00:53+05:30", "option": "CE", "ltp": 24340.0, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T10:01:06+05:30", "option": "CE", "ltp": 24338.7, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T10:01:37+05:30", "option": "CE", "ltp": 24338.5, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T10:01:46+05:30", "option": "CE", "ltp": 24337.7, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:03:39+05:30", "option": "CE", "ltp": 24324.1, "score": 3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T10:03:53+05:30", "option": "CE", "ltp": 24328.3, "score": 3, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T10:04:15+05:30", "option": "CE", "ltp": 24329.2, "score": 3, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T10:04:26+05:30", "option": "CE", "ltp": 24325.0, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T10:04:27+05:30", "option": "CE", "ltp": 24323.5, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T10:04:36+05:30", "option": "CE", "ltp": 24322.8, "score": 5, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T10:05:02+05:30", "option": "CE", "ltp": 24314.8, "score": 5, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-03T10:05:11+05:30", "option": "CE", "ltp": 24313.2, "score": 5, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T10:05:24+05:30", "option": "CE", "ltp": 24319.8, "score": 3, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T10:05:33+05:30", "option": "CE", "ltp": 24319.5, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T10:05:41+05:30", "option": "CE", "ltp": 24318.3, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T10:05:50+05:30", "option": "CE", "ltp": 24317.8, "score": 5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T10:06:48+05:30", "option": "CE", "ltp": 24324.7, "score": 3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T10:06:52+05:30", "option": "CE", "ltp": 24323.9, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T10:06:56+05:30", "option": "CE", "ltp": 24324.8, "score": 5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T10:07:36+05:30", "option": "CE", "ltp": 24335.2, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T10:07:40+05:30", "option": "CE", "ltp": 24336.2, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:08:28+05:30", "option": "CE", "ltp": 24338.2, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T10:10:05+05:30", "option": "CE", "ltp": 24339.7, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T10:10:22+05:30", "option": "CE", "ltp": 24339.3, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T10:16:39+05:30", "option": "CE", "ltp": 24325.0, "score": 5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T10:16:57+05:30", "option": "CE", "ltp": 24323.9, "score": 5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T10:17:19+05:30", "option": "CE", "ltp": 24322.0, "score": 5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T10:17:36+05:30", "option": "CE", "ltp": 24318.2, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T10:18:20+05:30", "option": "CE", "ltp": 24322.5, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T10:18:33+05:30", "option": "CE", "ltp": 24323.4, "score": 5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:18:37+05:30", "option": "CE", "ltp": 24322.7, "score": 5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T10:24:19+05:30", "option": "CE", "ltp": 24342.8, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:24:33+05:30", "option": "CE", "ltp": 24342.5, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T10:25:12+05:30", "option": "CE", "ltp": 24342.5, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T10:26:09+05:30", "option": "CE", "ltp": 24345.3, "score": 3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T10:29:35+05:30", "option": "CE", "ltp": 24341.8, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T10:30:37+05:30", "option": "CE", "ltp": 24345.2, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T10:30:41+05:30", "option": "CE", "ltp": 24345.8, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:30:50+05:30", "option": "CE", "ltp": 24348.7, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T10:36:33+05:30", "option": "CE", "ltp": 24348.0, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:41:05+05:30", "option": "CE", "ltp": 24339.7, "score": 4, "entry_type": null, "reason": "Cooldown — 4min after last exit"}
+{"ts": "2026-07-03T10:41:39+05:30", "option": "CE", "ltp": 24337.5, "score": 5, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-03T10:43:06+05:30", "option": "CE", "ltp": 24338.0, "score": 3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T10:44:12+05:30", "option": "CE", "ltp": 24338.6, "score": 4, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T10:44:25+05:30", "option": "CE", "ltp": 24336.5, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T10:48:49+05:30", "option": "CE", "ltp": 24346.8, "score": 5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T10:49:10+05:30", "option": "CE", "ltp": 24346.8, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T10:49:41+05:30", "option": "CE", "ltp": 24347.0, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T10:52:15+05:30", "option": "CE", "ltp": 24346.2, "score": 5, "entry_type": null, "reason": "IV rank high (98%) — options expensive"}
+{"ts": "2026-07-03T10:52:36+05:30", "option": "CE", "ltp": 24345.7, "score": 5, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T10:52:45+05:30", "option": "CE", "ltp": 24346.2, "score": 5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T10:52:54+05:30", "option": "CE", "ltp": 24344.6, "score": 5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T10:56:05+05:30", "option": "CE", "ltp": 24341.9, "score": 5, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-03T10:57:09+05:30", "option": "CE", "ltp": 24344.5, "score": 5, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T10:57:13+05:30", "option": "CE", "ltp": 24345.2, "score": 3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T10:57:26+05:30", "option": "CE", "ltp": 24344.0, "score": 5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T10:57:35+05:30", "option": "CE", "ltp": 24344.6, "score": 5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T10:57:39+05:30", "option": "CE", "ltp": 24344.1, "score": 5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T10:57:54+05:30", "option": "CE", "ltp": 24344.5, "score": 5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T10:57:58+05:30", "option": "CE", "ltp": 24344.0, "score": 5, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-03T10:58:07+05:30", "option": "CE", "ltp": 24343.7, "score": 3, "entry_type": null, "reason": "Cooldown — 3min after last exit"}
+{"ts": "2026-07-03T10:58:24+05:30", "option": "CE", "ltp": 24345.5, "score": 2, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-03T10:58:33+05:30", "option": "CE", "ltp": 24345.3, "score": 2, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T10:58:47+05:30", "option": "CE", "ltp": 24346.0, "score": 2, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-03T11:00:44+05:30", "option": "CE", "ltp": 24342.2, "score": 2, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T11:00:53+05:30", "option": "CE", "ltp": 24342.9, "score": 2, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T11:00:57+05:30", "option": "CE", "ltp": 24343.2, "score": 2, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T11:01:05+05:30", "option": "CE", "ltp": 24344.0, "score": 2, "entry_type": null, "reason": "Consolidating — 16pt range in 30min (need >24)"}
+{"ts": "2026-07-03T11:01:45+05:30", "option": "CE", "ltp": 24343.8, "score": 2, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T11:02:07+05:30", "option": "CE", "ltp": 24343.9, "score": 4, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T11:05:34+05:30", "option": "CE", "ltp": 24349.2, "score": 5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T11:06:06+05:30", "option": "CE", "ltp": 24342.2, "score": 4, "entry_type": null, "reason": "Consolidating — 18pt range in 30min (need >24)"}
+{"ts": "2026-07-03T11:11:15+05:30", "option": "CE", "ltp": 24330.0, "score": 2, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >24)"}
+{"ts": "2026-07-03T11:11:52+05:30", "option": "CE", "ltp": 24330.0, "score": 4, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T11:13:02+05:30", "option": "CE", "ltp": 24325.9, "score": 3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T11:14:13+05:30", "option": "CE", "ltp": 24323.4, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T11:14:35+05:30", "option": "CE", "ltp": 24321.5, "score": 3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T11:15:00+05:30", "option": "CE", "ltp": 24325.0, "score": 3, "entry_type": null, "reason": "Retreat active -28pts from high — wait for green bar"}
+{"ts": "2026-07-03T11:15:02+05:30", "option": "CE", "ltp": 24324.3, "score": 3, "entry_type": null, "reason": "Retreat active -29pts from high — wait for green bar"}
+{"ts": "2026-07-03T11:15:29+05:30", "option": "CE", "ltp": 24326.5, "score": 3, "entry_type": null, "reason": "Retreat active -27pts from high — wait for green bar"}
+{"ts": "2026-07-03T11:15:31+05:30", "option": "CE", "ltp": 24328.8, "score": 4, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T11:16:55+05:30", "option": "PE", "ltp": 24327.3, "score": -3, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T11:17:04+05:30", "option": "PE", "ltp": 24326.5, "score": -3, "entry_type": null, "reason": "IV rank high (96%) — options expensive"}
+{"ts": "2026-07-03T11:17:12+05:30", "option": "PE", "ltp": 24327.4, "score": -3, "entry_type": null, "reason": "IV rank high (89%) — options expensive"}
+{"ts": "2026-07-03T11:17:30+05:30", "option": "PE", "ltp": 24327.8, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-03T11:18:27+05:30", "option": "PE", "ltp": 24327.9, "score": -3, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T11:18:40+05:30", "option": "PE", "ltp": 24327.1, "score": -3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T11:18:58+05:30", "option": "PE", "ltp": 24327.6, "score": -3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T11:19:26+05:30", "option": "CE", "ltp": 24328.0, "score": 2, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-03T11:21:18+05:30", "option": "PE", "ltp": 24326.7, "score": -3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T11:40:00+05:30", "option": "CE", "ltp": 24337.8, "score": 4, "entry_type": null, "reason": "Consolidating — 17pt range in 30min (need >18)"}
+{"ts": "2026-07-03T12:21:14+05:30", "option": "CE", "ltp": 24363.8, "score": 5, "entry_type": null, "reason": "Cooldown after CE loss — 15min left"}
+{"ts": "2026-07-03T12:26:14+05:30", "option": "CE", "ltp": 24362.8, "score": 5, "entry_type": null, "reason": "Cooldown after CE loss — 10min left"}
+{"ts": "2026-07-03T12:31:14+05:30", "option": "CE", "ltp": 24360.5, "score": 5, "entry_type": null, "reason": "Cooldown after CE loss — 5min left"}
+{"ts": "2026-07-03T12:41:09+05:30", "option": "CE", "ltp": 24346.2, "score": 2, "entry_type": null, "reason": "Retreat active -26pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:41:13+05:30", "option": "CE", "ltp": 24346.9, "score": 4, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:41:36+05:30", "option": "CE", "ltp": 24345.0, "score": 4, "entry_type": null, "reason": "Retreat active -27pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:41:40+05:30", "option": "CE", "ltp": 24344.5, "score": 4, "entry_type": null, "reason": "Retreat active -28pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:42:06+05:30", "option": "CE", "ltp": 24343.1, "score": 4, "entry_type": null, "reason": "Retreat active -29pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:42:08+05:30", "option": "CE", "ltp": 24342.0, "score": 4, "entry_type": null, "reason": "Retreat active -30pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:43:49+05:30", "option": "CE", "ltp": 24340.8, "score": 4, "entry_type": null, "reason": "Retreat active -31pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:44:14+05:30", "option": "CE", "ltp": 24340.6, "score": 4, "entry_type": null, "reason": "Retreat active -32pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:46:17+05:30", "option": "CE", "ltp": 24345.9, "score": 4, "entry_type": null, "reason": "Retreat active -26pts from high — wait for green bar"}
+{"ts": "2026-07-03T12:46:22+05:30", "option": "CE", "ltp": 24347.0, "score": 4, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-03T13:01:56+05:30", "option": "CE", "ltp": 24344.5, "score": 4, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (60min left)"}
+{"ts": "2026-07-03T13:06:05+05:30", "option": "CE", "ltp": 24324.7, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-03T13:06:34+05:30", "option": "PE", "ltp": 24322.0, "score": -3, "entry_type": null, "reason": "Cooldown — 0min after last exit"}
+{"ts": "2026-07-03T13:08:25+05:30", "option": "PE", "ltp": 24320.6, "score": -3, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T13:09:18+05:30", "option": "PE", "ltp": 24318.9, "score": -3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T13:09:22+05:30", "option": "PE", "ltp": 24317.3, "score": -3, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T13:09:49+05:30", "option": "PE", "ltp": 24319.3, "score": -3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T13:09:58+05:30", "option": "PE", "ltp": 24317.7, "score": -3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T13:10:02+05:30", "option": "PE", "ltp": 24318.2, "score": -3, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-03T13:12:01+05:30", "option": "PE", "ltp": 24315.3, "score": -3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T13:13:03+05:30", "option": "PE", "ltp": 24313.1, "score": -3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T13:15:20+05:30", "option": "PE", "ltp": 24320.6, "score": -3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T13:15:42+05:30", "option": "PE", "ltp": 24316.4, "score": -3, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-03T13:25:05+05:30", "option": "PE", "ltp": 24311.7, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (12pt below)"}
+{"ts": "2026-07-03T13:25:58+05:30", "option": "PE", "ltp": 24308.0, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (8pt below)"}
+{"ts": "2026-07-03T13:26:02+05:30", "option": "PE", "ltp": 24307.0, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (7pt below)"}
+{"ts": "2026-07-03T13:26:29+05:30", "option": "PE", "ltp": 24306.0, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (6pt below)"}
+{"ts": "2026-07-03T13:28:02+05:30", "option": "PE", "ltp": 24305.3, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (5pt below)"}
+{"ts": "2026-07-03T13:28:24+05:30", "option": "PE", "ltp": 24303.8, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (4pt below)"}
+{"ts": "2026-07-03T13:29:03+05:30", "option": "PE", "ltp": 24303.3, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (3pt below)"}
+{"ts": "2026-07-03T13:31:42+05:30", "option": "PE", "ltp": 24302.4, "score": -5, "entry_type": "sustained", "reason": "Support: Round 24300 (2pt below)"}
+{"ts": "2026-07-03T13:33:42+05:30", "option": "PE", "ltp": 24292.7, "score": -5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T13:33:47+05:30", "option": "PE", "ltp": 24289.3, "score": -5, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-03T13:33:55+05:30", "option": "PE", "ltp": 24290.8, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T13:34:00+05:30", "option": "PE", "ltp": 24291.0, "score": -5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T13:34:04+05:30", "option": "PE", "ltp": 24290.3, "score": -5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T13:34:22+05:30", "option": "PE", "ltp": 24292.7, "score": -5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T13:34:30+05:30", "option": "PE", "ltp": 24293.5, "score": -5, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T13:34:40+05:30", "option": "PE", "ltp": 24292.4, "score": -5, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T13:34:57+05:30", "option": "PE", "ltp": 24292.0, "score": -5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T13:35:06+05:30", "option": "PE", "ltp": 24291.7, "score": -3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T13:35:15+05:30", "option": "PE", "ltp": 24290.8, "score": -5, "entry_type": null, "reason": "IV rank high (93%) — options expensive"}
+{"ts": "2026-07-03T13:35:19+05:30", "option": "PE", "ltp": 24289.5, "score": -3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-03T13:35:37+05:30", "option": "PE", "ltp": 24286.7, "score": -3, "entry_type": null, "reason": "IV rank high (99%) — options expensive"}
+{"ts": "2026-07-03T13:35:41+05:30", "option": "PE", "ltp": 24285.5, "score": -3, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-03T13:35:58+05:30", "option": "PE", "ltp": 24281.2, "score": -5, "entry_type": null, "reason": "IV rank high (87%) — options expensive"}
+{"ts": "2026-07-03T13:36:52+05:30", "option": "PE", "ltp": 24276.0, "score": -3, "entry_type": null, "reason": "IV rank high (96%) — options expensive"}
+{"ts": "2026-07-03T13:36:53+05:30", "option": "PE", "ltp": 24273.8, "score": -3, "entry_type": null, "reason": "IV rank high (97%) — options expensive"}
+{"ts": "2026-07-03T13:37:01+05:30", "option": "PE", "ltp": 24274.6, "score": -3, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T13:37:06+05:30", "option": "PE", "ltp": 24275.6, "score": -3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T13:37:14+05:30", "option": "PE", "ltp": 24275.8, "score": -3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T13:37:59+05:30", "option": "PE", "ltp": 24289.7, "score": -3, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-03T13:38:55+05:30", "option": "PE", "ltp": 24286.5, "score": -3, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T13:39:00+05:30", "option": "PE", "ltp": 24288.5, "score": -3, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T13:40:19+05:30", "option": "PE", "ltp": 24290.0, "score": -5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T13:40:28+05:30", "option": "PE", "ltp": 24290.8, "score": -5, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-03T13:40:33+05:30", "option": "PE", "ltp": 24290.9, "score": -5, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-03T13:40:37+05:30", "option": "PE", "ltp": 24292.5, "score": -3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T13:42:05+05:30", "option": "PE", "ltp": 24293.7, "score": -5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T13:42:23+05:30", "option": "PE", "ltp": 24292.7, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T13:42:27+05:30", "option": "PE", "ltp": 24292.7, "score": -5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T13:42:32+05:30", "option": "PE", "ltp": 24293.0, "score": -5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T13:42:40+05:30", "option": "PE", "ltp": 24291.8, "score": -5, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-03T13:42:45+05:30", "option": "PE", "ltp": 24292.4, "score": -3, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T13:42:49+05:30", "option": "PE", "ltp": 24290.2, "score": -5, "entry_type": null, "reason": "IV rank high (85%) — options expensive"}
+{"ts": "2026-07-03T13:42:58+05:30", "option": "PE", "ltp": 24288.3, "score": -5, "entry_type": null, "reason": "IV rank high (92%) — options expensive"}
+{"ts": "2026-07-03T13:43:16+05:30", "option": "PE", "ltp": 24290.0, "score": -3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T13:44:09+05:30", "option": "PE", "ltp": 24294.7, "score": -5, "entry_type": "sustained", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T13:49:10+05:30", "option": "PE", "ltp": 24282.9, "score": -3, "entry_type": "retest", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T13:54:21+05:30", "option": "PE", "ltp": 24292.5, "score": -5, "entry_type": "sustained", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T13:57:53+05:30", "option": "PE", "ltp": 24285.5, "score": -5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T13:59:25+05:30", "option": "PE", "ltp": 24288.5, "score": -5, "entry_type": "sustained", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T14:01:30+05:30", "option": "PE", "ltp": 24282.3, "score": -5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T14:04:25+05:30", "option": "PE", "ltp": 24283.2, "score": -3, "entry_type": "retest", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T14:04:36+05:30", "option": "PE", "ltp": 24282.3, "score": -5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T14:06:00+05:30", "option": "PE", "ltp": 24293.0, "score": -5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T14:06:09+05:30", "option": "PE", "ltp": 24293.5, "score": -5, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T14:06:44+05:30", "option": "PE", "ltp": 24295.1, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-03T14:06:49+05:30", "option": "PE", "ltp": 24294.6, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-03T14:06:58+05:30", "option": "PE", "ltp": 24292.8, "score": -5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T14:07:02+05:30", "option": "PE", "ltp": 24293.8, "score": -5, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-03T14:07:11+05:30", "option": "PE", "ltp": 24292.1, "score": -5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-03T14:07:15+05:30", "option": "PE", "ltp": 24293.2, "score": -5, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T14:07:20+05:30", "option": "PE", "ltp": 24293.0, "score": -3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T14:07:37+05:30", "option": "PE", "ltp": 24292.0, "score": -5, "entry_type": null, "reason": "IV rank high (84%) — options expensive"}
+{"ts": "2026-07-03T14:07:51+05:30", "option": "PE", "ltp": 24291.0, "score": -3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T14:09:28+05:30", "option": "PE", "ltp": 24290.2, "score": -5, "entry_type": "sustained", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T14:10:00+05:30", "option": "PE", "ltp": 24293.3, "score": -3, "entry_type": null, "reason": "Consolidating — 20pt range in 30min (need >23)"}
+{"ts": "2026-07-03T14:15:01+05:30", "option": "PE", "ltp": 24286.7, "score": -3, "entry_type": null, "reason": "Consolidating — 20pt range in 30min (need >22)"}
+{"ts": "2026-07-03T14:19:38+05:30", "option": "PE", "ltp": 24278.5, "score": -5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-03T14:19:56+05:30", "option": "PE", "ltp": 24277.5, "score": -5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T14:20:01+05:30", "option": "PE", "ltp": 24277.5, "score": -5, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-03T14:20:05+05:30", "option": "PE", "ltp": 24275.9, "score": -3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-03T14:20:15+05:30", "option": "PE", "ltp": 24276.2, "score": -5, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-03T14:20:17+05:30", "option": "PE", "ltp": 24274.0, "score": -3, "entry_type": null, "reason": "IV rank high (81%) — options expensive"}
+{"ts": "2026-07-03T14:20:28+05:30", "option": "PE", "ltp": 24270.2, "score": -5, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-03T14:20:32+05:30", "option": "PE", "ltp": 24268.0, "score": -5, "entry_type": null, "reason": "IV rank high (90%) — options expensive"}
+{"ts": "2026-07-03T14:20:45+05:30", "option": "PE", "ltp": 24268.6, "score": -5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T14:20:59+05:30", "option": "PE", "ltp": 24270.5, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (10pt below)"}
+{"ts": "2026-07-03T14:21:29+05:30", "option": "PE", "ltp": 24271.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (11pt below)"}
+{"ts": "2026-07-03T14:21:56+05:30", "option": "PE", "ltp": 24268.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (8pt below)"}
+{"ts": "2026-07-03T14:22:14+05:30", "option": "PE", "ltp": 24269.5, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (9pt below)"}
+{"ts": "2026-07-03T14:24:35+05:30", "option": "PE", "ltp": 24274.7, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (14pt below)"}
+{"ts": "2026-07-03T14:24:58+05:30", "option": "PE", "ltp": 24274.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (13pt below)"}
+{"ts": "2026-07-03T14:26:17+05:30", "option": "PE", "ltp": 24271.7, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (10pt below)"}
+{"ts": "2026-07-03T14:27:15+05:30", "option": "PE", "ltp": 24271.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (9pt below)"}
+{"ts": "2026-07-03T14:27:19+05:30", "option": "PE", "ltp": 24270.3, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (8pt below)"}
+{"ts": "2026-07-03T14:27:59+05:30", "option": "PE", "ltp": 24273.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (11pt below)"}
+{"ts": "2026-07-03T14:29:28+05:30", "option": "PE", "ltp": 24267.4, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (5pt below)"}
+{"ts": "2026-07-03T14:29:41+05:30", "option": "PE", "ltp": 24269.2, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (7pt below)"}
+{"ts": "2026-07-03T14:30:08+05:30", "option": "PE", "ltp": 24267.3, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (4pt below)"}
+{"ts": "2026-07-03T14:30:30+05:30", "option": "PE", "ltp": 24270.4, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 30% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T14:31:36+05:30", "option": "PE", "ltp": 24273.1, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (10pt below)"}
+{"ts": "2026-07-03T14:32:29+05:30", "option": "PE", "ltp": 24272.3, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (9pt below)"}
+{"ts": "2026-07-03T14:33:09+05:30", "option": "PE", "ltp": 24274.8, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (11pt below)"}
+{"ts": "2026-07-03T14:33:19+05:30", "option": "PE", "ltp": 24275.3, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (12pt below)"}
+{"ts": "2026-07-03T14:35:30+05:30", "option": "PE", "ltp": 24284.8, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T14:35:36+05:30", "option": "PE", "ltp": 24284.1, "score": -5, "entry_type": "sustained", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T14:37:14+05:30", "option": "PE", "ltp": 24279.7, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (15pt below)"}
+{"ts": "2026-07-03T14:37:22+05:30", "option": "PE", "ltp": 24277.8, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (13pt below)"}
+{"ts": "2026-07-03T14:37:54+05:30", "option": "PE", "ltp": 24279.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (14pt below)"}
+{"ts": "2026-07-03T14:39:40+05:30", "option": "PE", "ltp": 24277.2, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (12pt below)"}
+{"ts": "2026-07-03T14:40:11+05:30", "option": "PE", "ltp": 24277.7, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (11pt below)"}
+{"ts": "2026-07-03T14:40:51+05:30", "option": "PE", "ltp": 24278.2, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 24% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T14:41:31+05:30", "option": "PE", "ltp": 24276.7, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (10pt below)"}
+{"ts": "2026-07-03T14:41:35+05:30", "option": "PE", "ltp": 24275.5, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (9pt below)"}
+{"ts": "2026-07-03T14:41:53+05:30", "option": "PE", "ltp": 24273.5, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (7pt below)"}
+{"ts": "2026-07-03T14:42:11+05:30", "option": "PE", "ltp": 24270.3, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (4pt below)"}
+{"ts": "2026-07-03T14:42:32+05:30", "option": "PE", "ltp": 24270.9, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (5pt below)"}
+{"ts": "2026-07-03T14:43:04+05:30", "option": "PE", "ltp": 24272.7, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (6pt below)"}
+{"ts": "2026-07-03T14:43:53+05:30", "option": "PE", "ltp": 24269.8, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (3pt below)"}
+{"ts": "2026-07-03T14:45:57+05:30", "option": "PE", "ltp": 24268.5, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (1pt below)"}
+{"ts": "2026-07-03T14:46:01+05:30", "option": "PE", "ltp": 24269.3, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (2pt below)"}
+{"ts": "2026-07-03T14:46:19+05:30", "option": "PE", "ltp": 24265.7, "score": -5, "entry_type": "sustained", "reason": "Max trades/day reached (5/5)"}
+{"ts": "2026-07-03T14:46:23+05:30", "option": "PE", "ltp": 24263.2, "score": -5, "entry_type": null, "reason": "IV rank high (91%) — options expensive"}
+{"ts": "2026-07-03T14:46:28+05:30", "option": "PE", "ltp": 24263.7, "score": -3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-03T14:46:32+05:30", "option": "PE", "ltp": 24264.1, "score": -5, "entry_type": null, "reason": "IV rank high (75%) — options expensive"}
+{"ts": "2026-07-03T14:48:05+05:30", "option": "PE", "ltp": 24271.5, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (4pt below)"}
+{"ts": "2026-07-03T14:48:32+05:30", "option": "PE", "ltp": 24273.0, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (5pt below)"}
+{"ts": "2026-07-03T14:48:41+05:30", "option": "PE", "ltp": 24273.8, "score": -3, "entry_type": "retest", "reason": "Support: SMA100/5m (6pt below)"}
+{"ts": "2026-07-03T14:48:45+05:30", "option": "PE", "ltp": 24276.0, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 29% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T14:48:59+05:30", "option": "PE", "ltp": 24274.4, "score": -5, "entry_type": "sustained", "reason": "Support: SMA100/5m (7pt below)"}
+{"ts": "2026-07-03T14:53:46+05:30", "option": "PE", "ltp": 24259.7, "score": -5, "entry_type": null, "reason": "Premium decay risk — IV rank 21% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T14:58:46+05:30", "option": "PE", "ltp": 24255.7, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 25% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T15:03:55+05:30", "option": "PE", "ltp": 24278.7, "score": -4, "entry_type": null, "reason": "Premium decay risk — IV rank 20% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T15:08:57+05:30", "option": "PE", "ltp": 24279.3, "score": -4, "entry_type": null, "reason": "Premium decay risk — IV rank 13% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T15:13:59+05:30", "option": "PE", "ltp": 24274.8, "score": -4, "entry_type": null, "reason": "Premium decay risk — IV rank 14% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T15:18:59+05:30", "option": "PE", "ltp": 24268.6, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 4% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T15:23:59+05:30", "option": "PE", "ltp": 24266.0, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 20% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-03T15:25:00+05:30", "option": "PE", "ltp": 24267.0, "score": -3, "entry_type": null, "reason": "Outside trading window (09:30–15:25)"}
