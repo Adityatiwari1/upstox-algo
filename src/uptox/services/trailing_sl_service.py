@@ -239,6 +239,25 @@ def shift_target(new_target: float) -> None:
     )
 
 
+def set_sl(price: float) -> bool:
+    """
+    Manual SL override (e.g. from Telegram /sl command). Only allowed to
+    tighten — raising the floor for CE-style upward trailing. Never lets the
+    SL move backwards, same invariant as the automatic phase system.
+    Returns True if applied, False if rejected (no active trade, or price
+    would loosen the floor).
+    """
+    global _sl_floor, _trail_sl
+    if not _active or not price:
+        return False
+    if price <= _sl_floor:
+        return False
+    _sl_floor = round(price, 1)
+    _trail_sl = _sl_floor
+    log.info("Trail SL manually set → %.1f", _sl_floor)
+    return True
+
+
 def exit_trade() -> None:
     global _active, _stopped_out, _phase, _expiry_afternoon, _expiry_day
     global _post_target_anchor, _post_target_range

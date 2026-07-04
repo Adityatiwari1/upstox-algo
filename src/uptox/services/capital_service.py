@@ -46,13 +46,6 @@ def set_capital(c: float) -> None:
     log.info("Base capital → ₹%s", f"{_base_capital:,.0f}")
 
 
-def set_current_capital(c: float) -> None:
-    """Directly set current capital (e.g. to match your real broker balance)."""
-    global _capital
-    _capital = max(1_000.0, round(float(c), 2))
-    log.info("Current capital → ₹%s", f"{_capital:,.0f}")
-
-
 def adjust_for_pnl(pnl_rs: float) -> None:
     global _capital
     _capital = round(_capital + pnl_rs, 2)

@@ -5,7 +5,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static, Input
 from uptox.services import feed_store, sma_service, option_chain_service, capital_service
-from uptox.services import pattern_service, trailing_sl_service, trade_book, adaptive_params
+from uptox.services import pattern_service, trailing_sl_service, trade_book, adaptive_params, bot_control
 from uptox.services.sma_service import TimeFrame, ALL_TFS
 
 log = logging.getLogger(__name__)
@@ -472,7 +472,9 @@ class OverallAnalysisPanel(Static):
             req_score += 1
 
         no_trade_reason = None
-        if not live_ltp:
+        if bot_control.is_paused():
+            no_trade_reason = "Paused via Telegram (/resume to re-enable)"
+        elif not live_ltp:
             no_trade_reason = "No live data"
         elif not sma_ready:
             no_trade_reason = "SMA loading..."
@@ -1796,7 +1798,14 @@ class CapitalPanel(Widget):
             try:
                 val = float(event.value.replace(",", "").replace("₹", "").strip())
                 if val >= 1000:
-                    capital_service.set_current_capital(val)
+                    # Rebase: current capital = base + realised P&L (recomputed on
+                    # every restart via sync_from_history). Setting current capital
+                    # directly (old behavior) was silently discarded on restart —
+                    # solve for the base that makes it equal val, and persist that.
+                    trades = trade_book.get_all_trades()
+                    realised = sum(float(t.get("pnl_rs", 0.0)) for t in trades if t.get("outcome") != "OPEN")
+                    capital_service.set_capital(val - realised)
+                    capital_service.sync_from_history(trades)
             except ValueError:
                 pass
             self._close_input()

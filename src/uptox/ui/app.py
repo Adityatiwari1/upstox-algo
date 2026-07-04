@@ -21,8 +21,8 @@ class UptoxApp(App):
     BINDINGS = [
         ("q",     "quit",                      "Quit"),
         ("t",     "cycle_tf",                  "Cycle TF"),
-        ("]",     "capital_up",                "Capital +5K"),
-        ("[",     "capital_down",              "Capital -5K"),
+        ("]",     "capital_up",                "Base Capital +5K"),
+        ("[",     "capital_down",              "Base Capital -5K"),
         ("c",     "capital_input",             "Set Capital"),
         ("r",     "cycle_rr",                  "Cycle RR"),
         ("e",     "set_entry",                 "Set Entry"),
@@ -60,9 +60,14 @@ class UptoxApp(App):
             self.run_worker(self._prime_prev_day(), name="prev-day-prime")
         # Independent of feed/trading day — needs the app process alive, not the market.
         self.run_worker(self._weekly_report_loop(), name="weekly-report-scheduler")
+        self.run_worker(self._telegram_command_loop(), name="telegram-commands")
 
     async def _weekly_report_loop(self) -> None:
         from uptox.services.weekly_report_scheduler import run_forever
+        await run_forever()
+
+    async def _telegram_command_loop(self) -> None:
+        from uptox.services.telegram_commands import run_forever
         await run_forever()
 
     async def _prime_prev_day(self) -> None:
@@ -86,10 +91,18 @@ class UptoxApp(App):
             pass
 
     def action_capital_up(self) -> None:
-        capital_service.set_current_capital(capital_service.get_capital() + 5000)
+        # Adjust BASE capital (persists to logs/capital.json). Current capital
+        # is always re-derived as base + realised P&L via sync_from_history(),
+        # so adjusting current capital directly (old behavior) got silently
+        # discarded on the next restart and desynced from the trade history.
+        from uptox.services import trade_book
+        capital_service.set_capital(capital_service.get_base_capital() + 5000)
+        capital_service.sync_from_history(trade_book.get_all_trades())
 
     def action_capital_down(self) -> None:
-        capital_service.set_current_capital(max(5000, capital_service.get_capital() - 5000))
+        from uptox.services import trade_book
+        capital_service.set_capital(max(1000, capital_service.get_base_capital() - 5000))
+        capital_service.sync_from_history(trade_book.get_all_trades())
 
     def action_cycle_rr(self) -> None:
         capital_service.cycle_rr()
