@@ -164,15 +164,8 @@ def notify_partial_close(trade: dict, closed_lots: int, exit_price: float, pnl_r
     )
 
 
-def notify_daily_report() -> None:
-    global _sent_daily_report_date
-    today = date.today()
-    if _sent_daily_report_date == today:
-        return
-    _sent_daily_report_date = today
-    if not _enabled("daily_report"):
-        return
-
+def build_daily_report(today: date | None = None) -> str:
+    today = today or date.today()
     from uptox.services import trade_book, capital_service
     ds  = trade_book.get_daily_stats()
     cap = capital_service.get_capital()
@@ -185,7 +178,7 @@ def notify_daily_report() -> None:
     nifty_pts = sum(t.get("spot_directional_pts", 0) for t in today_trades)
 
     sign = "+" if ds["pnl_rs_today"] >= 0 else ""
-    send(
+    return (
         f"📊 <b>Daily Report, {today_str}</b>\n"
         f"Trades   : {ds['trades_today']}  ({wins}W / {losses}L)\n"
         f"Day P&amp;L  : {sign}₹{ds['pnl_rs_today']:,.0f}  ({ds['pnl_pct_today']:+.1f}%)\n"
@@ -194,6 +187,17 @@ def notify_daily_report() -> None:
         f"Consec L : {ds['consec_losses']}"
         + (f"\n⚠️ {ds['blocked_reason']}" if ds.get("blocked_reason") else "")
     )
+
+
+def notify_daily_report() -> None:
+    global _sent_daily_report_date
+    today = date.today()
+    if _sent_daily_report_date == today:
+        return
+    _sent_daily_report_date = today
+    if not _enabled("daily_report"):
+        return
+    send(build_daily_report(today))
 
 
 def _period_summary(trades: list[dict]) -> dict:
@@ -220,11 +224,9 @@ def _max_drawdown_rs(trades: list[dict], start_capital: float) -> float:
     return dd
 
 
-def notify_weekly_report() -> None:
-    if not _enabled("weekly_report"):
-        return
+def build_weekly_report(today: date | None = None) -> str:
     from uptox.services import trade_book, capital_service
-    today = date.today()
+    today = today or date.today()
     iso_year, iso_week, _ = today.isocalendar()
     all_t = trade_book.get_all_trades()
     week_trades = [
@@ -289,14 +291,18 @@ def notify_weekly_report() -> None:
         lines.append(f"Best Trade   : {s['best']['option']} {s['best']['strike']} +{s['best']['pnl_pts']:.1f}pts")
     if s["worst"] and s["worst"]["pnl_pts"] < 0:
         lines.append(f"Worst Trade  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
-    send("\n".join(lines))
+    return "\n".join(lines)
 
 
-def notify_monthly_report() -> None:
-    if not _enabled("monthly_report"):
+def notify_weekly_report() -> None:
+    if not _enabled("weekly_report"):
         return
+    send(build_weekly_report())
+
+
+def build_monthly_report(today: date | None = None) -> str:
     from uptox.services import trade_book, capital_service
-    today = date.today()
+    today = today or date.today()
     all_t = trade_book.get_all_trades()
     month_trades = [
         t for t in all_t
@@ -314,7 +320,14 @@ def notify_monthly_report() -> None:
         lines.append(f"Best   : {s['best']['option']} {s['best']['strike']} +{s['best']['pnl_pts']:.1f}pts")
     if s["worst"] and s["worst"]["pnl_pts"] < 0:
         lines.append(f"Worst  : {s['worst']['option']} {s['worst']['strike']} {s['worst']['pnl_pts']:.1f}pts")
-    send("\n".join(lines))
+    return "\n".join(lines)
+
+
+def notify_monthly_report() -> None:
+    if not _enabled("monthly_report"):
+        return
+    today = date.today()
+    send(build_monthly_report(today))
 
     if _enabled("monthly_pdf"):
         try:

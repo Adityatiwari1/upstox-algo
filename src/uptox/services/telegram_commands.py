@@ -39,7 +39,7 @@ async def _reply(chat_id: str, text: str) -> None:
         async with httpx.AsyncClient(timeout=10) as c:
             await c.post(
                 _API.format(token=token, method="sendMessage"),
-                json={"chat_id": chat_id, "text": text},
+                json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
             )
     except Exception as e:
         log.warning("telegram reply failed: %s", e)
@@ -60,6 +60,48 @@ def _fmt_status() -> str:
     )
 
 
+def _fmt_health() -> str:
+    from uptox.services import feed_store, tick_handler, trade_book, bot_control, capital_service
+    from uptox.services.market_calendar import is_trade_window
+
+    feed_ok = feed_store.get_status()
+    opt_age = tick_handler.get_option_feed_age_secs()
+    opt_str = "no ticks yet" if opt_age is None else (
+        f"{opt_age:.0f}s ago" + ("  ⚠️ STALE" if opt_age > tick_handler._OPTION_STALE_SECS else "")
+    )
+
+    ds = trade_book.get_daily_stats()
+    can_trade, block_reason = trade_book.can_trade_today()
+    ot = trade_book.get_open_trade()
+
+    # Count today's blocked-entry log rows (best-effort — file may not exist yet)
+    blocked_today = 0
+    try:
+        from pathlib import Path
+        from datetime import date
+        import json as _json
+        p = Path("logs/blocked_entries.jsonl")
+        if p.exists():
+            today_str = date.today().isoformat()
+            for line in p.read_text(encoding="utf-8").splitlines():
+                if line.startswith('{"ts": "' + today_str):
+                    blocked_today += 1
+    except Exception:
+        pass
+
+    lines = [
+        f"Feed        : {feed_ok}",
+        f"Option ticks: {opt_str}",
+        f"Window      : {'open' if is_trade_window() else 'closed'}",
+        f"Auto-entry  : {'PAUSED' if bot_control.is_paused() else 'active'}",
+        f"Open trade  : {'yes — ' + ot['option'] + ' ' + str(ot['strike']) if ot else 'no'}",
+        f"Trades today: {ds['trades_today']}  (blocked attempts: {blocked_today})",
+        f"Can trade   : {'yes' if can_trade else 'no — ' + (block_reason or '')}",
+        f"Capital     : ₹{capital_service.get_capital():,.0f}",
+    ]
+    return "\n".join(lines)
+
+
 async def _handle_command(text: str, chat_id: str) -> None:
     from uptox.services import trade_book, trailing_sl_service, bot_control, feed_store, option_chain_service
 
@@ -68,6 +110,21 @@ async def _handle_command(text: str, chat_id: str) -> None:
 
     if cmd == "status":
         await _reply(chat_id, _fmt_status())
+
+    elif cmd == "health":
+        await _reply(chat_id, _fmt_health())
+
+    elif cmd in ("today", "day"):
+        from uptox.services.telegram_service import build_daily_report
+        await _reply(chat_id, build_daily_report())
+
+    elif cmd == "week":
+        from uptox.services.telegram_service import build_weekly_report
+        await _reply(chat_id, build_weekly_report())
+
+    elif cmd == "month":
+        from uptox.services.telegram_service import build_monthly_report
+        await _reply(chat_id, build_monthly_report())
 
     elif cmd == "exit":
         ot = trade_book.get_open_trade()
@@ -126,18 +183,28 @@ async def _handle_command(text: str, chat_id: str) -> None:
     elif cmd == "help":
         await _reply(
             chat_id,
-            "/status — open trade P&L, SL, target\n"
+            "<b>Trade control</b>\n"
+            "/status — open trade P&amp;L, SL, target\n"
             "/exit — close open trade now\n"
-            "/sl <price> — tighten SL manually\n"
+            "/sl &lt;price&gt; — tighten SL manually\n"
             "/pause — stop new auto-entries\n"
-            "/resume — re-enable auto-entries",
+            "/resume — re-enable auto-entries\n\n"
+            "<b>Reports</b>\n"
+            "/today — today's stats\n"
+            "/week — this ISO week's report\n"
+            "/month — this month's report\n"
+            "/health — feed status, ticks, blocked count, capital",
         )
 
     else:
         await _reply(chat_id, f"Unknown command: {cmd}. Try /help")
 
 
-async def _poll_once(token: str) -> None:
+async def _poll_once(token: str) -> bool:
+    """Returns True on a clean poll (no error), False on an error response —
+    caller backs off before retrying on False so a persistent error (e.g. a
+    webhook conflict that deleteWebhook didn't clear in time) doesn't hammer
+    the API in a tight loop."""
     global _offset
     async with httpx.AsyncClient(timeout=_POLL_TIMEOUT + 10) as c:
         resp = await c.get(
@@ -145,8 +212,15 @@ async def _poll_once(token: str) -> None:
             params={"offset": _offset, "timeout": _POLL_TIMEOUT},
         )
     if resp.status_code != 200:
-        log.warning("getUpdates %s: %s", resp.status_code, resp.text[:200])
-        return
+        # 409 = a webhook is registered on this bot token, which blocks long-polling.
+        # Auto-clear it — this bot is polling-only, no webhook should ever be set.
+        if resp.status_code == 409:
+            log.warning("getUpdates 409 (webhook conflict) — clearing webhook")
+            async with httpx.AsyncClient(timeout=10) as c2:
+                await c2.get(_API.format(token=token, method="deleteWebhook"))
+        else:
+            log.warning("getUpdates %s: %s", resp.status_code, resp.text[:200])
+        return False
     updates = resp.json().get("result", [])
     allowed = _allowed_chat_id()
     for upd in updates:
@@ -164,17 +238,35 @@ async def _poll_once(token: str) -> None:
         except Exception as e:
             log.exception("telegram command handling error: %s", e)
             await _reply(chat_id, f"Error handling command: {e}")
+    return True
 
 
 async def run_forever() -> None:
     """Long-poll loop — call as a background worker at app startup."""
+    _warned_missing = False
+    _started_log_done = False
     while True:
         token = _get_token()
-        if not token or not _allowed_chat_id():
+        chat_id = _allowed_chat_id()
+        if not token or not chat_id:
+            if not _warned_missing:
+                log.warning(
+                    "telegram commands idle — token %s, chat_id %s (set both in .env)",
+                    "set" if token else "MISSING", chat_id or "MISSING",
+                )
+                _warned_missing = True
             await asyncio.sleep(30)
             continue
+        if _warned_missing:
+            log.info("telegram commands active — token and chat_id now set")
+            _warned_missing = False
+        if not _started_log_done:
+            log.info("telegram command poller started (chat_id=%s)", chat_id)
+            _started_log_done = True
         try:
-            await _poll_once(token)
+            ok = await _poll_once(token)
+            if not ok:
+                await asyncio.sleep(5)   # back off on error (e.g. 409) — don't hammer the API
         except Exception as e:
             log.warning("telegram poll error: %s", e)
             await asyncio.sleep(5)

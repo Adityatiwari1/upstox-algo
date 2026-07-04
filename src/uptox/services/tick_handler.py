@@ -29,6 +29,13 @@ _OPTION_STALE_SECS  = 90    # re-sub if no valid option tick for this long
 _OPTION_RESUB_COOLDOWN = 300  # minimum gap between re-sub attempts
 
 
+def get_option_feed_age_secs() -> float | None:
+    """Seconds since the last valid tbq/tsq option tick, or None if never seen this session."""
+    if not _last_valid_option_ts:
+        return None
+    return _time.monotonic() - _last_valid_option_ts
+
+
 async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
     global _report_sent_today, _last_bar_slot
 
