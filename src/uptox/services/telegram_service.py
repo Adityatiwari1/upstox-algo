@@ -375,6 +375,12 @@ def notify_feed_status(status: str, detail: str = "") -> None:
     send(f"{icon} <b>FEED {status.upper()}</b>" + (f"\n{detail}" if detail else ""))
 
 
+def notify_auth_issue(detail: str) -> None:
+    """Always sent regardless of notification_settings — an auth failure means
+    the system can't trade at all, which overrides any per-category mute."""
+    send(f"🔒 <b>AUTH FAILING</b>\n{detail}\nMay need manual /login or restart.")
+
+
 def notify_approaching_limit(pnl_pct: float, limit_pct: float) -> None:
     if not _enabled("approaching_limit"):
         return

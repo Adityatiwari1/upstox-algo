@@ -1,8 +1,41 @@
 """Read/write access token and encrypted credentials to .env."""
+import logging
 import re
 from pathlib import Path
 
+log = logging.getLogger(__name__)
+
 ENV_FILE = Path(".env")
+_PROFILE_URL = "https://api.upstox.com/v2/user/profile"
+
+
+def is_token_valid(token: str) -> bool | None:
+    """
+    Ping profile endpoint. Returns True=valid, False=expired (401/403),
+    None=network error (caller should assume valid rather than force a
+    needless re-login on a transient network blip).
+    """
+    import httpx
+    if not token:
+        return False
+    try:
+        r = httpx.get(
+            _PROFILE_URL,
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+            timeout=8,
+        )
+        if r.status_code == 200:
+            return True
+        if r.status_code in (401, 403):
+            return False
+        log.warning("Token check returned %s — assuming valid", r.status_code)
+        return None
+    except httpx.TimeoutException:
+        log.warning("Token validation timed out — assuming token still valid")
+        return None
+    except Exception as e:
+        log.warning("Token validation error: %s — assuming valid", e)
+        return None
 
 
 def _set_env_var(key: str, value: str) -> None:

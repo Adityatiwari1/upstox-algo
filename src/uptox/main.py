@@ -2,45 +2,17 @@ from uptox.config.logging_config import setup as _setup_logging
 _setup_logging()
 
 import logging
-import httpx
 from uptox.config.settings import settings
 from uptox.api.auth import fetch_access_token
-from uptox.services.token_service import save_access_token
+from uptox.services.token_service import save_access_token, is_token_valid
 from uptox.ui.app import UptoxApp
 
 log = logging.getLogger(__name__)
 
-_PROFILE_URL = "https://api.upstox.com/v2/user/profile"
-
-
-def _token_valid(token: str) -> bool | None:
-    """
-    Ping profile endpoint.
-    Returns True=valid, False=expired (401/403), None=network error (assume valid).
-    """
-    try:
-        r = httpx.get(
-            _PROFILE_URL,
-            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-            timeout=8,
-        )
-        if r.status_code == 200:
-            return True
-        if r.status_code in (401, 403):
-            return False
-        log.warning("Token check returned %s — assuming valid", r.status_code)
-        return None
-    except httpx.TimeoutException:
-        log.warning("Token validation timed out — assuming token still valid")
-        return None
-    except Exception as e:
-        log.warning("Token validation error: %s — assuming valid", e)
-        return None
-
 
 def _ensure_auth() -> None:
     if settings.access_token:
-        result = _token_valid(settings.access_token)
+        result = is_token_valid(settings.access_token)
         if result is True:
             log.info("Existing token valid")
             return

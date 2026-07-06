@@ -61,6 +61,11 @@ class UptoxApp(App):
         # Independent of feed/trading day — needs the app process alive, not the market.
         self.run_worker(self._weekly_report_loop(), name="weekly-report-scheduler")
         self.run_worker(self._telegram_command_loop(), name="telegram-commands")
+        self.run_worker(self._auth_guardian_loop(), name="auth-guardian")
+
+    async def _auth_guardian_loop(self) -> None:
+        from uptox.services.auth_guardian import run_forever
+        await run_forever()
 
     async def _weekly_report_loop(self) -> None:
         from uptox.services.weekly_report_scheduler import run_forever

@@ -187,6 +187,11 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         target_just_crossed = trade_book.update_open_pnl(tick.ltp)
         closed = False
 
+        from uptox.services import option_trade_log
+        option_trade_log.record_tick(
+            ot.get("id", ""), tick.ltp, tick.iv, ot.get("pnl_pts", 0.0)
+        )
+
         if target_just_crossed:
             action = trade_book.get_target_action(tick.ltp)
             if action == "close":
