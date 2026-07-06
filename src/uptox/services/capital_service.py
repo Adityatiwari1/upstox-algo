@@ -150,14 +150,21 @@ def sizing(buy_price: float) -> dict:
     return {"lots": lots, "lot_cost": lot_cost, "invested": round(lots * lot_cost, 2)}
 
 
+_GROWTH_TIER_CAPITAL = 75_000   # above this, size from 2%-of-capital risk
+_GROWTH_TIER_RISK    = 0.02     # per-trade risk fraction in the growth tier
+
+
 def sizing_with_risk(buy_price: float, sl_price: float) -> dict:
     """
     Risk-adjusted lot sizing based on capital tier.
 
-    Tiers:
-      < ₹25K  : max 1 lot, use up to 100% capital (small account)
-      ₹25K–₹1L: max risk 5% of capital per trade
-      > ₹1L   : max risk 2% of capital per trade, hard cap 10 lots
+    Tiers (actual behavior):
+      < ₹25K : hard 1-lot cap (small account — floor overrides risk budget)
+      ₹25K–₹75K: risk budget = daily_limit / max_trades (≈0.6% of capital at
+                 defaults), floored at 1 lot
+      ≥ ₹75K : risk budget = 2% of capital per trade — the conservative
+               formula above kept accounts at 1 lot until ~₹2.6L, far below
+               the standard 1-2% per-trade risk norm; hard cap 10 lots.
 
     Returns: lots, lot_cost, invested, risk_rs, risk_pct, capped_by
     """
@@ -173,16 +180,16 @@ def sizing_with_risk(buy_price: float, sl_price: float) -> dict:
     sl_risk_per_lot = round((buy_price - sl_price) * NIFTY_LOT_SIZE, 2) if sl_price and sl_price < buy_price else lot_cost * 0.30
 
     # ── Tier rules ────────────────────────────────────────────────────────
-    # Lot sizing from per-trade loss limit (derived from daily limit / max_trades)
-    max_risk_rs = get_per_trade_loss_rs()
-    risk_lots   = int(max_risk_rs / sl_risk_per_lot) if sl_risk_per_lot > 0 else affordable
+    if _capital >= _GROWTH_TIER_CAPITAL:
+        max_risk_rs = _capital * _GROWTH_TIER_RISK
+    else:
+        # Per-trade loss limit (derived from daily limit / max_trades)
+        max_risk_rs = get_per_trade_loss_rs()
+    risk_lots = int(max_risk_rs / sl_risk_per_lot) if sl_risk_per_lot > 0 else affordable
 
     if _capital < 25_000:
         lots      = min(affordable, max(1, risk_lots), 1)
         capped_by = "small_account_1lot"
-    elif _capital < 1_00_000:
-        lots      = min(affordable, max(1, risk_lots))
-        capped_by = "per_trade_limit" if risk_lots < affordable else "affordability"
     else:
         lots      = min(affordable, max(1, risk_lots), 10)
         capped_by = "per_trade_limit" if risk_lots < affordable else ("10lot_cap" if affordable > 10 else "affordability")
