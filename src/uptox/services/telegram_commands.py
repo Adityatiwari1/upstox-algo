@@ -180,6 +180,16 @@ async def _handle_command(text: str, chat_id: str) -> None:
         bot_control.resume()
         await _reply(chat_id, "Resumed — auto-entry active.")
 
+    elif cmd == "reset":
+        # Same action as the TUI's Z hotkey — clears the daily loss-limit and
+        # trade-count block. Consec-loss limit is NOT reset (psychological
+        # safeguard stays active), matching action_reset_daily_block in app.py.
+        trade_book.reset_daily_block()
+        await _reply(
+            chat_id,
+            "Daily loss limit reset — trade count / consec-loss limits still active.",
+        )
+
     elif cmd == "help":
         await _reply(
             chat_id,
@@ -188,7 +198,8 @@ async def _handle_command(text: str, chat_id: str) -> None:
             "/exit — close open trade now\n"
             "/sl &lt;price&gt; — tighten SL manually\n"
             "/pause — stop new auto-entries\n"
-            "/resume — re-enable auto-entries\n\n"
+            "/resume — re-enable auto-entries\n"
+            "/reset — clear daily loss-limit + trade-count block\n\n"
             "<b>Reports</b>\n"
             "/today — today's stats\n"
             "/week — this ISO week's report\n"
