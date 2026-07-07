@@ -151,8 +151,8 @@ def _log_blocked_entry(reason: str, option: str, ltp: float, score: int,
     import json as _json
     import re as _re
     import time as _time
-    # Window/pre-market blocks are schedule facts, not filter decisions — skip
-    if "trading window" in reason or "Pre-market" in reason:
+    # Window/pre-market/no-feed blocks are schedule facts, not filter decisions — skip
+    if "trading window" in reason or "Pre-market" in reason or "No live data" in reason:
         return
     # Strip digits from the dedupe key — reasons embed live numbers ("74%",
     # "12pt") which defeated the 5-min dedupe and spammed hundreds of rows
