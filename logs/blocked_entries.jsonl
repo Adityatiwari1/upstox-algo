@@ -813,3 +813,139 @@
 {"ts": "2026-07-06T15:10:13+05:30", "option": "CE", "ltp": 24440.7, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 21% after 14:30 (theta kills low-IV options in last hour)"}
 {"ts": "2026-07-06T15:15:13+05:30", "option": "CE", "ltp": 24434.3, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 10% after 14:30 (theta kills low-IV options in last hour)"}
 {"ts": "2026-07-06T15:20:14+05:30", "option": "CE", "ltp": 24434.0, "score": 2, "entry_type": null, "reason": "Premium decay risk — IV rank 10% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-07T03:33:09+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T03:38:10+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T03:43:10+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T03:48:11+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T03:53:12+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T03:58:12+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:03:12+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:08:13+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:13:13+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:18:13+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:23:14+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:28:15+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:33:16+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:38:16+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:43:16+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:48:16+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:53:17+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T04:58:18+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:03:19+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:08:20+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:13:20+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:18:20+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:23:21+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:28:22+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:33:22+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:38:23+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:43:23+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:48:23+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:53:23+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T05:58:24+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:03:25+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:08:26+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:13:27+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:18:27+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:23:27+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:28:27+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:33:28+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:38:28+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:43:29+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:48:29+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:53:29+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T06:58:30+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:03:30+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:08:31+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:13:31+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:18:32+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:23:32+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:28:33+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:33:34+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:38:35+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:43:36+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:48:36+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:53:37+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T07:58:37+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:03:38+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:08:38+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:13:39+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:18:39+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:23:39+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:28:40+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:33:40+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:38:41+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:43:41+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:48:42+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:53:43+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T08:58:43+05:30", "option": "CE", "ltp": 24430.3, "score": 2, "entry_type": null, "reason": "No live data"}
+{"ts": "2026-07-07T09:30:02+05:30", "option": "CE", "ltp": 24454.2, "score": 3, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-07T09:30:19+05:30", "option": "CE", "ltp": 24455.2, "score": 3, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-07T09:35:20+05:30", "option": "CE", "ltp": 24429.0, "score": 3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-07T09:35:55+05:30", "option": "CE", "ltp": 24445.2, "score": 3, "entry_type": null, "reason": "Retreat active -34pts from high — wait for green bar"}
+{"ts": "2026-07-07T09:40:39+05:30", "option": "CE", "ltp": 24451.0, "score": 3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-07T09:50:00+05:30", "option": "CE", "ltp": 24465.6, "score": 3, "entry_type": null, "reason": "Consolidating — 51pt range in 30min (need >52)"}
+{"ts": "2026-07-07T09:55:02+05:30", "option": "CE", "ltp": 24464.3, "score": 3, "entry_type": null, "reason": "Consolidating — 50pt range in 30min (need >52)"}
+{"ts": "2026-07-07T10:05:43+05:30", "option": "CE", "ltp": 24476.0, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 15min left"}
+{"ts": "2026-07-07T10:10:27+05:30", "option": "CE", "ltp": 24489.5, "score": 3, "entry_type": null, "reason": "Consolidating — 50pt range in 30min (need >52)"}
+{"ts": "2026-07-07T10:10:51+05:30", "option": "CE", "ltp": 24488.4, "score": 5, "entry_type": null, "reason": "Cooldown after CE loss — 10min left"}
+{"ts": "2026-07-07T10:15:51+05:30", "option": "CE", "ltp": 24483.2, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 5min left"}
+{"ts": "2026-07-07T10:16:23+05:30", "option": "CE", "ltp": 24489.1, "score": 5, "entry_type": null, "reason": "Consolidating — 45pt range in 30min (need >52)"}
+{"ts": "2026-07-07T10:21:23+05:30", "option": "CE", "ltp": 24497.3, "score": 5, "entry_type": null, "reason": "Consolidating — 38pt range in 30min (need >53)"}
+{"ts": "2026-07-07T10:26:24+05:30", "option": "CE", "ltp": 24488.8, "score": 5, "entry_type": null, "reason": "Consolidating — 41pt range in 30min (need >53)"}
+{"ts": "2026-07-07T10:30:00+05:30", "option": "CE", "ltp": 24490.1, "score": 5, "entry_type": "reentry", "reason": "Resistance: Round 24500 (10pt above)"}
+{"ts": "2026-07-07T10:40:00+05:30", "option": "CE", "ltp": 24486.0, "score": 3, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >28)"}
+{"ts": "2026-07-07T10:44:51+05:30", "option": "CE", "ltp": 24469.9, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (60min left)"}
+{"ts": "2026-07-07T10:49:52+05:30", "option": "CE", "ltp": 24486.0, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (55min left)"}
+{"ts": "2026-07-07T10:54:52+05:30", "option": "CE", "ltp": 24478.7, "score": 4, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (50min left)"}
+{"ts": "2026-07-07T10:59:53+05:30", "option": "CE", "ltp": 24482.8, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (45min left)"}
+{"ts": "2026-07-07T11:04:53+05:30", "option": "CE", "ltp": 24493.8, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (40min left)"}
+{"ts": "2026-07-07T11:09:54+05:30", "option": "CE", "ltp": 24503.8, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (35min left)"}
+{"ts": "2026-07-07T11:14:55+05:30", "option": "CE", "ltp": 24512.7, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (30min left)"}
+{"ts": "2026-07-07T11:19:56+05:30", "option": "CE", "ltp": 24506.5, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (25min left)"}
+{"ts": "2026-07-07T11:24:56+05:30", "option": "CE", "ltp": 24510.5, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (20min left)"}
+{"ts": "2026-07-07T11:29:57+05:30", "option": "CE", "ltp": 24519.4, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (15min left)"}
+{"ts": "2026-07-07T11:34:57+05:30", "option": "CE", "ltp": 24515.4, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (10min left)"}
+{"ts": "2026-07-07T11:39:58+05:30", "option": "CE", "ltp": 24514.3, "score": 5, "entry_type": null, "reason": "CE side locked — 2 consecutive CE losses (5min left)"}
+{"ts": "2026-07-07T11:45:00+05:30", "option": "CE", "ltp": 24510.2, "score": 5, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >23)"}
+{"ts": "2026-07-07T11:47:00+05:30", "option": "CE", "ltp": 24512.6, "score": 5, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-07T11:49:37+05:30", "option": "CE", "ltp": 24503.1, "score": 4, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-07T11:52:00+05:30", "option": "CE", "ltp": 24513.8, "score": 5, "entry_type": null, "reason": "Consolidating — 22pt range in 30min (need >23)"}
+{"ts": "2026-07-07T11:57:01+05:30", "option": "CE", "ltp": 24522.3, "score": 5, "entry_type": null, "reason": "Consolidating — 22pt range in 30min (need >23)"}
+{"ts": "2026-07-07T12:08:30+05:30", "option": "CE", "ltp": 24516.2, "score": 5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-07T12:12:18+05:30", "option": "CE", "ltp": 24511.5, "score": 2, "entry_type": null, "reason": "Cooldown after CE loss — 15min left"}
+{"ts": "2026-07-07T12:14:17+05:30", "option": "CE", "ltp": 24499.5, "score": 4, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-07T12:17:18+05:30", "option": "CE", "ltp": 24493.0, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 10min left"}
+{"ts": "2026-07-07T12:19:55+05:30", "option": "CE", "ltp": 24488.0, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-07T12:22:18+05:30", "option": "CE", "ltp": 24496.8, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 5min left"}
+{"ts": "2026-07-07T12:24:57+05:30", "option": "CE", "ltp": 24493.6, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-07T12:30:29+05:30", "option": "CE", "ltp": 24488.8, "score": 3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-07T12:35:31+05:30", "option": "CE", "ltp": 24468.7, "score": 3, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-07T12:39:34+05:30", "option": "CE", "ltp": 24463.0, "score": 3, "entry_type": null, "reason": "Retreat active -67pts from high — wait for green bar"}
+{"ts": "2026-07-07T12:40:46+05:30", "option": "CE", "ltp": 24459.1, "score": 2, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-07T12:44:35+05:30", "option": "CE", "ltp": 24472.7, "score": 3, "entry_type": null, "reason": "Retreat active -58pts from high — wait for green bar"}
+{"ts": "2026-07-07T12:45:41+05:30", "option": "CE", "ltp": 24463.9, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T12:46:11+05:30", "option": "CE", "ltp": 24461.3, "score": 2, "entry_type": null, "reason": "IV rank high (79%) — options expensive"}
+{"ts": "2026-07-07T12:52:10+05:30", "option": "CE", "ltp": 24469.3, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T12:52:11+05:30", "option": "CE", "ltp": 24468.7, "score": 2, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-07T12:58:00+05:30", "option": "CE", "ltp": 24457.0, "score": 2, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-07T12:58:19+05:30", "option": "CE", "ltp": 24467.8, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T13:03:00+05:30", "option": "CE", "ltp": 24461.5, "score": 2, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-07T13:08:58+05:30", "option": "PE", "ltp": 24449.0, "score": -3, "entry_type": null, "reason": "IV rank high (88%) — options expensive"}
+{"ts": "2026-07-07T13:46:09+05:30", "option": "CE", "ltp": 24451.0, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T13:57:40+05:30", "option": "CE", "ltp": 24444.5, "score": 2, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-07T13:59:01+05:30", "option": "CE", "ltp": 24453.3, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T14:02:42+05:30", "option": "CE", "ltp": 24448.3, "score": 2, "entry_type": null, "reason": "IV rank high (82%) — options expensive"}
+{"ts": "2026-07-07T14:05:18+05:30", "option": "CE", "ltp": 24456.2, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T14:07:48+05:30", "option": "CE", "ltp": 24453.5, "score": 2, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-07T14:16:28+05:30", "option": "CE", "ltp": 24455.7, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T14:20:00+05:30", "option": "CE", "ltp": 24457.0, "score": 3, "entry_type": null, "reason": "Retreat active -73pts from high — wait for green bar"}
+{"ts": "2026-07-07T14:21:29+05:30", "option": "CE", "ltp": 24452.9, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T14:26:29+05:30", "option": "CE", "ltp": 24450.8, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T14:27:47+05:30", "option": "CE", "ltp": 24454.5, "score": 3, "entry_type": null, "reason": "Retreat active -76pts from high — wait for green bar"}
+{"ts": "2026-07-07T14:35:01+05:30", "option": "CE", "ltp": 24459.2, "score": 3, "entry_type": null, "reason": "Consolidating — 21pt range in 30min (need >23)"}
+{"ts": "2026-07-07T14:36:22+05:30", "option": "CE", "ltp": 24465.7, "score": 3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-07T14:55:47+05:30", "option": "CE", "ltp": 24466.8, "score": 4, "entry_type": null, "reason": "IV rank high (86%) — options expensive"}
+{"ts": "2026-07-07T14:59:53+05:30", "option": "CE", "ltp": 24457.7, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-07T15:00:17+05:30", "option": "PE", "ltp": 24441.9, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-07T15:00:40+05:30", "option": "PE", "ltp": 24437.7, "score": -3, "entry_type": null, "reason": "Consolidating — 19pt range in 30min (need >20)"}
