@@ -949,3 +949,52 @@
 {"ts": "2026-07-07T14:59:53+05:30", "option": "CE", "ltp": 24457.7, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
 {"ts": "2026-07-07T15:00:17+05:30", "option": "PE", "ltp": 24441.9, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
 {"ts": "2026-07-07T15:00:40+05:30", "option": "PE", "ltp": 24437.7, "score": -3, "entry_type": null, "reason": "Consolidating — 19pt range in 30min (need >20)"}
+{"ts": "2026-07-08T10:15:00+05:30", "option": "PE", "ltp": 24235.0, "score": -3, "entry_type": null, "reason": "Consolidating — 44pt range in 30min (need >45)"}
+{"ts": "2026-07-08T10:20:01+05:30", "option": "PE", "ltp": 24249.8, "score": -3, "entry_type": null, "reason": "Consolidating — 39pt range in 30min (need >45)"}
+{"ts": "2026-07-08T10:25:02+05:30", "option": "PE", "ltp": 24222.5, "score": -5, "entry_type": null, "reason": "Consolidating — 41pt range in 30min (need >46)"}
+{"ts": "2026-07-08T10:28:59+05:30", "option": "PE", "ltp": 24246.1, "score": -3, "entry_type": null, "reason": "Cooldown after PE loss — 15min left"}
+{"ts": "2026-07-08T10:34:23+05:30", "option": "PE", "ltp": 24253.0, "score": -3, "entry_type": null, "reason": "Cooldown after PE loss — 10min left"}
+{"ts": "2026-07-08T11:30:33+05:30", "option": "PE", "ltp": 24275.8, "score": -2, "entry_type": null, "reason": "Consolidating — 25pt range in 30min (need >29)"}
+{"ts": "2026-07-08T12:18:23+05:30", "option": "PE", "ltp": 24222.9, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (60min left)"}
+{"ts": "2026-07-08T12:23:23+05:30", "option": "PE", "ltp": 24220.5, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (55min left)"}
+{"ts": "2026-07-08T12:28:24+05:30", "option": "PE", "ltp": 24205.7, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (50min left)"}
+{"ts": "2026-07-08T12:33:24+05:30", "option": "PE", "ltp": 24203.2, "score": -3, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (45min left)"}
+{"ts": "2026-07-08T12:38:24+05:30", "option": "PE", "ltp": 24195.7, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (40min left)"}
+{"ts": "2026-07-08T12:43:24+05:30", "option": "PE", "ltp": 24191.2, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (35min left)"}
+{"ts": "2026-07-08T12:48:24+05:30", "option": "PE", "ltp": 24203.8, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (30min left)"}
+{"ts": "2026-07-08T12:53:25+05:30", "option": "PE", "ltp": 24209.2, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (25min left)"}
+{"ts": "2026-07-08T12:58:25+05:30", "option": "PE", "ltp": 24216.2, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (20min left)"}
+{"ts": "2026-07-08T13:03:27+05:30", "option": "PE", "ltp": 24226.8, "score": -2, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (15min left)"}
+{"ts": "2026-07-08T13:08:27+05:30", "option": "PE", "ltp": 24226.8, "score": -2, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (10min left)"}
+{"ts": "2026-07-08T13:13:27+05:30", "option": "PE", "ltp": 24219.5, "score": -2, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (5min left)"}
+{"ts": "2026-07-08T13:25:00+05:30", "option": "PE", "ltp": 24227.4, "score": -2, "entry_type": null, "reason": "Bounce active +41pts from low — wait for red bar"}
+{"ts": "2026-07-08T13:39:29+05:30", "option": "PE", "ltp": 24216.3, "score": -4, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (60min left)"}
+{"ts": "2026-07-08T13:44:29+05:30", "option": "PE", "ltp": 24204.0, "score": -5, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (55min left)"}
+{"ts": "2026-07-08T13:47:28+05:30", "option": "PE", "ltp": 24146.2, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-08T13:52:29+05:30", "option": "PE", "ltp": 24091.6, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-08T13:57:29+05:30", "option": "PE", "ltp": 24058.3, "score": -3, "entry_type": null, "reason": "IV rank high (98%) — options expensive"}
+{"ts": "2026-07-08T14:02:30+05:30", "option": "PE", "ltp": 23989.8, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-08T14:07:30+05:30", "option": "PE", "ltp": 23964.9, "score": -3, "entry_type": null, "reason": "IV rank high (94%) — options expensive"}
+{"ts": "2026-07-08T14:12:31+05:30", "option": "PE", "ltp": 23894.1, "score": -3, "entry_type": null, "reason": "IV rank high (100%) — options expensive"}
+{"ts": "2026-07-08T14:17:31+05:30", "option": "PE", "ltp": 23945.2, "score": -3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-08T14:22:32+05:30", "option": "PE", "ltp": 23896.4, "score": -3, "entry_type": null, "reason": "IV rank high (83%) — options expensive"}
+{"ts": "2026-07-08T14:27:33+05:30", "option": "PE", "ltp": 23888.6, "score": -3, "entry_type": null, "reason": "IV rank high (80%) — options expensive"}
+{"ts": "2026-07-08T14:32:33+05:30", "option": "PE", "ltp": 23902.2, "score": -3, "entry_type": null, "reason": "IV rank high (78%) — options expensive"}
+{"ts": "2026-07-08T14:37:18+05:30", "option": "PE", "ltp": 23854.2, "score": -3, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (2min left)"}
+{"ts": "2026-07-08T14:37:36+05:30", "option": "PE", "ltp": 23849.2, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-08T14:39:46+05:30", "option": "PE", "ltp": 23855.8, "score": -5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-08T14:44:46+05:30", "option": "PE", "ltp": 23862.9, "score": -3, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-08T14:45:18+05:30", "option": "PE", "ltp": 23857.2, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-08T14:49:46+05:30", "option": "PE", "ltp": 23842.2, "score": -3, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-08T14:51:20+05:30", "option": "PE", "ltp": 23826.0, "score": -3, "entry_type": "momentum", "reason": "Support: SMA200/1h (13pt below)"}
+{"ts": "2026-07-08T14:51:36+05:30", "option": "PE", "ltp": 23810.3, "score": -3, "entry_type": "momentum", "reason": "Support: Round 23800 (10pt below)"}
+{"ts": "2026-07-08T14:51:46+05:30", "option": "PE", "ltp": 23808.1, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-08T14:56:20+05:30", "option": "PE", "ltp": 23823.8, "score": -3, "entry_type": "retest", "reason": "Support: SMA200/1h (11pt below)"}
+{"ts": "2026-07-08T14:56:45+05:30", "option": "PE", "ltp": 23830.3, "score": -5, "entry_type": "sustained", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-08T14:57:08+05:30", "option": "PE", "ltp": 23832.1, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-08T14:58:27+05:30", "option": "PE", "ltp": 23812.5, "score": -3, "entry_type": "retest", "reason": "Support: Round 23800 (13pt below)"}
+{"ts": "2026-07-08T15:01:48+05:30", "option": "PE", "ltp": 23847.7, "score": -5, "entry_type": "retest", "reason": "3 consecutive losses — paused for day"}
+{"ts": "2026-07-08T15:05:00+05:30", "option": "PE", "ltp": 23855.4, "score": -3, "entry_type": null, "reason": "Bounce active +48pts from low — wait for red bar"}
+{"ts": "2026-07-08T15:10:00+05:30", "option": "PE", "ltp": 23862.6, "score": -3, "entry_type": null, "reason": "Bounce active +55pts from low — wait for red bar"}
+{"ts": "2026-07-08T15:15:00+05:30", "option": "PE", "ltp": 23882.8, "score": -3, "entry_type": null, "reason": "Bounce active +76pts from low — wait for red bar"}
+{"ts": "2026-07-08T15:20:01+05:30", "option": "PE", "ltp": 23903.4, "score": -2, "entry_type": null, "reason": "Bounce active +96pts from low — wait for red bar"}
