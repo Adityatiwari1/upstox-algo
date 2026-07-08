@@ -87,6 +87,31 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
     return atm, None, 0.0
 
 
+def _swing_levels(n_bars: int = 36) -> list[tuple[str, float]]:
+    """
+    Recent 5-min swing highs/lows — fractal pivots (bar extreme vs 2 bars on
+    each side) over the last ~3 hours. These are the intraday S/R levels
+    traders actually watch; adding them to _near_sr means their BREAKS become
+    entries through the existing fresh-break logic (S/R clears → flow
+    confirms → fire; flow contradicts → retest watch).
+    Returns the 2 most recent swing highs and lows, deduped by value.
+    """
+    bars = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=n_bars)
+    if len(bars) < 5:
+        return []
+    highs = [b[1] for b in bars]
+    lows  = [b[2] for b in bars]
+    sh: list[float] = []
+    sl: list[float] = []
+    for i in range(2, len(bars) - 2):
+        if highs[i] == max(highs[i - 2:i + 3]) and highs[i] not in sh:
+            sh.append(highs[i])
+        if lows[i] == min(lows[i - 2:i + 3]) and lows[i] not in sl:
+            sl.append(lows[i])
+    return ([("Swing High", v) for v in sh[-2:]]
+            + [("Swing Low", v) for v in sl[-2:]])
+
+
 def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
     """
     Return (reason, level) if ltp is within SR_TOL points of a key level that
@@ -107,6 +132,10 @@ def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
     base = round(ltp / 100) * 100
     for off in (-200, -100, 0, 100, 200):
         levels.append((f"Round {int(base + off)}", float(base + off)))
+
+    # 5-min swing highs/lows — freshest intraday S/R; breaks trade via the
+    # fresh-break logic downstream
+    levels.extend(_swing_levels())
 
     # Previous-day levels — static all session (unlike today's high/low),
     # and the most-watched intraday S/R by institutions and algos.
@@ -355,7 +384,10 @@ class OverallAnalysisPanel(Static):
             _pe_buy, _pe_sell = feed_store.flow_qty(_tpe)
             # CE net buy = bullish; PE net buy = bearish — subtract, don't add
             raw_delta = (_ce_buy - _ce_sell) - (_pe_buy - _pe_sell)
-            cum    = feed_store.cum_delta(_ck) if _ck else 0.0
+            # Rolling window, NOT session-cumulative: session delta goes stale —
+            # 2026-07-07 morning buying (+70k) masked a 170pt afternoon
+            # breakdown and flow stayed bullish through the whole crash.
+            cum    = feed_store.rolling_delta(_ck, minutes=60) if _ck else 0.0
             # OI change from ±3 strikes (same data as OI Signal display — broader than ATM only)
             _ce_chg, _pe_chg = option_chain_service.get_oi_chg(live_ltp) if live_ltp else (0.0, 0.0)
             # Live tick IV preferred (per-tick, real value); REST snapshot as fallback
@@ -484,7 +516,11 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = "Outside trading window (09:30–15:25)"
         elif option == "—":
             no_trade_reason = "Trend too weak"
-        elif high_iv:
+        elif high_iv and not capital_service.is_expiry_afternoon():
+            # Expiry afternoon exempted: premiums are cheap in rupees and gamma
+            # is the trade — "options expensive" is the wrong lens there. The
+            # block killed the 13:08 PE on 2026-07-07 (rank 88%) which then
+            # ran +37%; June 30 expiry winners fired at similar IV.
             no_trade_reason = f"IV rank high ({iv_st.get('iv_rank', 0):.0f}%) — options expensive"
         elif _spread > 5:
             no_trade_reason = f"Bid-ask spread {_spread:.1f}pts — liquidity thin"
@@ -527,7 +563,9 @@ class OverallAnalysisPanel(Static):
                 _exit_ts  = _last_exit.get("exit_ts") or 0.0
                 _mins_ago = (_t.time() - _exit_ts) / 60.0
                 _exit_opt = _last_exit.get("option", "")
-                _was_loss = _last_exit.get("outcome", "") in ("SL_HIT", "LOSS")
+                # Only a REAL loss earns the 15-min same-direction cooldown;
+                # scratch exits get the normal 5-min any-exit cooldown below
+                _was_loss = _last_exit.get("pnl_pts", 0) <= trade_book.REAL_LOSS_PTS
                 if _was_loss and _exit_opt == option and _mins_ago < 15:
                     # Allow early re-entry if market resumed strongly past original entry level.
                     # Price > entry_spot+15 (CE) or < entry_spot-15 (PE) proves the SL
@@ -1028,6 +1066,7 @@ class OverallAnalysisPanel(Static):
                                     score=total, sma_score=sma_score, flow_score=flow_score,
                                     atr_at_entry=lvl.get("atr", 0.0),
                                     expiry_day=capital_service.is_expiry_day(),
+                                    regime=lvl.get("regime", "NORMAL"),
                                 )
                                 _loc = "ITM" if _itm else "OTM"
                                 log.info(
@@ -1866,6 +1905,11 @@ class SRPanel(Static):
                 if abs(lvl - ltp) <= SR_TOL and round(lvl) not in seen:
                     seen.add(round(lvl))
                     candidates.append((lvl, lbl))
+
+        for lbl, lvl in _swing_levels():
+            if abs(lvl - ltp) <= SR_TOL and round(lvl) not in seen:
+                seen.add(round(lvl))
+                candidates.append((lvl, lbl))
 
         candidates.sort(key=lambda x: x[0])
 

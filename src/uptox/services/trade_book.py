@@ -23,6 +23,17 @@ except ImportError:
 _IST              = ZoneInfo("Asia/Kolkata")
 _SESSION_CLOSE    = dt_time(15, 25)   # force-exit ALL trades at 3:25 PM IST
 
+# A trade only counts as a "real" loss for behavioral blocks (direction
+# lockout, consecutive-loss pause, post-loss cooldown) when it loses at
+# least this many premium points. Scratches (-0.1/-0.5pt trail exits) are
+# not wrong directional reads — on 2026-07-08 three scratch "losses" paused
+# the system for the day during a -430pt crash it had called correctly.
+REAL_LOSS_PTS = -5.0
+# Symmetrically, only meaningful winners count toward the 2-win "protect
+# profits" stop — with the profit lock turning scratches into small wins,
+# two +4pt exits must not pause a day whose real move is still coming.
+REAL_WIN_PTS = 8.0
+
 log = logging.getLogger(__name__)
 
 _TRADES_FILE     = Path("logs/trades.json")
@@ -114,6 +125,7 @@ def _load() -> None:
                             ep, opt, opt_key, target=tgt, initial_sl=sl,
                             expiry_afternoon=is_expiry_afternoon(),
                             expiry_day=is_expiry_day(),
+                            regime=data.get("regime", "NORMAL"),
                         )
                     log.info(
                         "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
@@ -224,6 +236,7 @@ def open_trade(
     flow_score: int = 0,
     atr_at_entry: float = 0.0,
     expiry_day: bool = False,
+    regime: str = "NORMAL",
 ) -> None:
     global _open_trade
     if _open_trade:
@@ -262,6 +275,7 @@ def open_trade(
         "flow_score":   flow_score,
         "atr_at_entry": round(atr_at_entry, 1),
         "expiry_day":   expiry_day,
+        "regime":       regime,
     }
     from uptox.services import trailing_sl_service
     from uptox.services.capital_service import is_expiry_afternoon, is_expiry_day
@@ -271,6 +285,7 @@ def open_trade(
         target=target, initial_sl=sl,
         expiry_afternoon=ea,
         expiry_day=is_expiry_day(),
+        regime=regime,
     )
     log.info(
         "Paper OPEN%s: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",
@@ -475,6 +490,10 @@ def check_time_exit() -> str | None:
       read was wrong; exiting here saves ~5pt vs waiting for the full SL.
     - stale_exit_25min: >25 min in trade with pnl < +5pt — thesis failed, most
       losing option trades die slowly to theta rather than hitting SL fast.
+      SKIPPED if the trade ever reached ≥+5pt: a real move already happened,
+      so the trailing SL (with its profit lock) manages the position — the
+      stale exit amputated a CE 24400 runner at +1.1pt on 2026-07-06 that
+      later printed +22pt on the same contract.
     Returns exit reason string or None. Caller closes the trade.
     """
     if not _open_trade:
@@ -487,7 +506,11 @@ def check_time_exit() -> str | None:
     if elapsed_min <= 10.0 and pnl <= -10.0:
         return "mae_exit_10min"
     if elapsed_min >= 25.0 and pnl < 5.0:
-        return "stale_exit_25min"
+        from uptox.services import trailing_sl_service
+        ts = trailing_sl_service.get_status()
+        peaked = ts.get("active") and ts.get("peak_pnl_pts", 0.0) >= 5.0
+        if not peaked:
+            return "stale_exit_25min"
     return None
 
 
@@ -698,13 +721,17 @@ def get_daily_stats() -> dict:
     _uniq_ids   = list(dict.fromkeys(t.get("id", i) for i, t in enumerate(today_trades)))
     trade_count = max(0, len(_uniq_ids) - _daily_trades_reset_n)
 
-    # Consecutive losses (from most recent backward)
+    # Consecutive REAL losses (from most recent backward, only trades after
+    # the last Z-reset). Scratches neither count nor break the streak — a
+    # -0.2pt trail exit says nothing about the directional read.
     consec_losses = 0
-    for t in reversed(today_trades):
-        if t.get("pnl_pts", 0) < 0:
+    for t in reversed(today_trades[_daily_trades_reset_n:]):
+        pnl = t.get("pnl_pts", 0)
+        if pnl <= REAL_LOSS_PTS:
             consec_losses += 1
-        else:
+        elif pnl > 0:
             break
+        # scratch (REAL_LOSS_PTS < pnl <= 0): skip — neither counts nor breaks
 
     # Wins since last Z-reset — after 2 wins the day's edge is usually extracted;
     # trade 3+ tends to give profits back. Z-reset clears this along with count.
@@ -715,7 +742,12 @@ def get_daily_stats() -> dict:
         _by_id.setdefault(t.get("id", i), 0.0)
         _by_id[t.get("id", i)] += t.get("pnl_rs", 0.0)
     _net_by_trade = list(_by_id.values())[_daily_trades_reset_n:]
-    wins_today = sum(1 for p in _net_by_trade if p > 0)
+    # Only REAL wins count — with the profit lock turning scratches into
+    # small wins, two +4pt exits must not trigger the 2-win "protect
+    # profits" pause while the day's real move is still coming.
+    from uptox.services.capital_service import NIFTY_LOT_SIZE
+    _real_win_rs = REAL_WIN_PTS * NIFTY_LOT_SIZE
+    wins_today = sum(1 for p in _net_by_trade if p >= _real_win_rs)
 
     # Check limits — Z-reset only clears the loss-limit check; trade count/consec still enforced
     blocked_reason = None
@@ -746,8 +778,8 @@ def get_daily_stats() -> dict:
 
 def reset_daily_block() -> None:
     """
-    Reset daily loss-limit AND trade-count counters — gives fresh N trades with fresh P&L budget.
-    Consec-loss limit is NOT reset (psychological safeguard stays active).
+    Full daily-block reset: fresh P&L budget, fresh trade slots, and a fresh
+    consecutive-loss / win counter (all counters baseline from this moment).
     """
     global _daily_pnl_reset_rs, _daily_trades_reset_n
     from datetime import datetime as _dt
@@ -756,7 +788,7 @@ def reset_daily_block() -> None:
     _daily_pnl_reset_rs   = sum(t.get("pnl_rs", 0.0) for t in today_trades)
     _daily_trades_reset_n = len(today_trades)
     log.warning(
-        "Daily block reset — P&L baseline ₹%.0f, trade count baseline %d; consec-loss limit unchanged",
+        "Daily block reset — P&L baseline ₹%.0f, trade/consec/win baselines at %d trades",
         _daily_pnl_reset_rs, _daily_trades_reset_n,
     )
 
@@ -795,15 +827,23 @@ def direction_locked(option: str) -> tuple[bool, float]:
     """
     today = datetime.now(_IST).strftime("%Y-%m-%d")
     same_dir = [t for t in _trades if t.get("date") == today and t.get("option") == option]
-    if len(same_dir) < 2:
+    # Walk backward: count REAL losses; winners break the streak; scratches
+    # are invisible (neither count nor break) — same rule as consec_losses.
+    real_losses = 0
+    last_loss_ts = 0.0
+    for t in reversed(same_dir):
+        pnl = t.get("pnl_pts", 0)
+        if pnl <= REAL_LOSS_PTS:
+            real_losses += 1
+            if not last_loss_ts:
+                last_loss_ts = t.get("exit_ts") or 0.0
+            if real_losses >= 2:
+                break
+        elif pnl > 0:
+            break
+    if real_losses < 2 or not last_loss_ts:
         return False, 0.0
-    last2 = same_dir[-2:]
-    if not all(t.get("pnl_pts", 0) < 0 for t in last2):
-        return False, 0.0
-    exit_ts = last2[-1].get("exit_ts") or 0.0
-    if not exit_ts:
-        return False, 0.0
-    mins_ago = (time.time() - exit_ts) / 60.0
+    mins_ago = (time.time() - last_loss_ts) / 60.0
     if mins_ago < 60.0:
         return True, 60.0 - mins_ago
     return False, 0.0

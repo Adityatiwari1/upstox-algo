@@ -46,6 +46,25 @@ _stopped_out:     bool  = False
 _expiry_afternoon: bool  = False   # per-tick multiple SL active on expiry day
 _expiry_day:       bool  = False   # bar-close 35% trail instead of phase system above
 
+# Absolute profit lock — independent of the %-of-target milestones. The phase
+# system keys off progress toward target, so on wide-ATR days (target 2R away)
+# a +15pt peak can be only ~40% progress and lock nothing: 2026-07-08 all three
+# PE trades peaked +7.9..+15.3pt and trailed back to scratch. Once peak gain
+# reaches the arm threshold, never give back more than the protected fraction.
+#
+# Regime-aware: a flat lock either exits choppy scratches too late or cuts
+# genuine trend continuation too early. In CONSOLIDATING markets, moves
+# reverse fast — arm early, protect more (bank the bird in hand). In
+# TRENDING markets, pullbacks are noise on the way to a bigger move — arm
+# later, protect less, leave room to run. NORMAL sits in between (these are
+# the original flat values, unchanged for the default case).
+_LOCK_TABLE = {
+    "CONSOLIDATING": {"min_pts": 4.0, "keep_frac": 0.60, "big_pts": 10.0, "big_frac": 0.70},
+    "NORMAL":        {"min_pts": 6.0, "keep_frac": 0.50, "big_pts": 15.0, "big_frac": 0.60},
+    "TRENDING":       {"min_pts": 10.0, "keep_frac": 0.40, "big_pts": 25.0, "big_frac": 0.55},
+}
+_regime: str = "NORMAL"
+
 # Expiry afternoon per-tick step SL — locks in at price multiples (intrabar spike protection)
 _EXPIRY_STEPS = [
     (5.0, 3.5),   # 5× entry → SL at 3.5×
@@ -121,14 +140,17 @@ def set_entry(
     initial_sl: float     = 0.0,
     expiry_afternoon: bool = False,
     expiry_day: bool      = False,
+    regime: str            = "NORMAL",
 ) -> None:
     """Milestone-based trailing SL, checked every tick.
     On expiry_afternoon: also applies per-tick multiple SL.
-    On expiry_day: bar-close 35% trail used instead of the milestone system above."""
+    On expiry_day: bar-close 35% trail used instead of the milestone system above.
+    regime: "TRENDING" | "NORMAL" | "CONSOLIDATING" — from atr_service.get_regime(),
+    picks which profit-lock table (_LOCK_TABLE) governs this trade."""
     global _entry_price, _initial_sl, _initial_risk, _target, _side, _option_key
     global _peak, _trail_sl, _sl_floor, _phase
     global _post_target_anchor, _post_target_range
-    global _active, _stopped_out, _expiry_afternoon, _expiry_day
+    global _active, _stopped_out, _expiry_afternoon, _expiry_day, _regime
 
     _entry_price      = price
     _initial_sl       = initial_sl if initial_sl else round(price * 0.91, 1)
@@ -141,6 +163,7 @@ def set_entry(
     _stopped_out      = False
     _expiry_afternoon = expiry_afternoon
     _expiry_day       = expiry_day
+    _regime           = regime if regime in _LOCK_TABLE else "NORMAL"
 
     _initial_risk = round(price - _initial_sl, 1)
     _sl_floor     = _initial_sl
@@ -192,6 +215,17 @@ def update(instrument_key: str, ltp: float) -> bool:
     # reaches 4 and on_bar_close's 35% trail can activate); only the
     # repeating 25%-lag extension rule inside is normal-day-only.
     _update_phase(ltp)
+
+    # Absolute profit lock — protects a fraction of peak gain regardless of
+    # how far away the target is (see _LOCK_TABLE above; regime-dependent)
+    peak_gain = _peak - _entry_price
+    lock_cfg = _LOCK_TABLE.get(_regime, _LOCK_TABLE["NORMAL"])
+    if peak_gain >= lock_cfg["min_pts"]:
+        frac = lock_cfg["big_frac"] if peak_gain >= lock_cfg["big_pts"] else lock_cfg["keep_frac"]
+        lock_floor = round(_entry_price + peak_gain * frac, 1)
+        if lock_floor > _sl_floor:
+            _sl_floor = lock_floor
+            log.info("Profit lock (%s): peak_gain=%.1f  floor → %.1f", _regime, peak_gain, _sl_floor)
 
     # Expiry afternoon: per-tick multiple SL — catches intrabar spikes that retrace
     # Works alongside the phase/bar-close floor; whichever is higher wins

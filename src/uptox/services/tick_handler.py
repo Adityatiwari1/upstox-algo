@@ -25,6 +25,7 @@ _limit_warned_today: str = ""  # date string — approaching-limit alert sent on
 _first_nifty_ts:      float = 0.0   # epoch of first Nifty tick this session
 _last_valid_option_ts: float = 0.0  # epoch when tbq/tsq last seen > 0
 _option_resub_ts:      float = 0.0  # epoch of last re-subscription attempt
+_resub_attempts:       int   = 0    # consecutive re-subs without recovery
 _OPTION_STALE_SECS  = 90    # re-sub if no valid option tick for this long
 _OPTION_RESUB_COOLDOWN = 300  # minimum gap between re-sub attempts
 
@@ -68,8 +69,9 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
             tick.vtt   = mff.vtt
             tick.atp   = mff.atp
             if tick.tbq or tick.tsq:
-                global _last_valid_option_ts
+                global _last_valid_option_ts, _resub_attempts
                 _last_valid_option_ts = _time.monotonic()
+                _resub_attempts = 0
 
     elif feed.HasField("ltpc"):
         tick.ltp   = feed.ltpc.ltp
@@ -161,15 +163,35 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
             _since_resub  = now_mono - _option_resub_ts
             if _since_valid > _OPTION_STALE_SECS and _since_resub > _OPTION_RESUB_COOLDOWN:
                 _option_resub_ts = now_mono
+                _resub_attempts += 1
                 import logging as _lg
                 _lg.getLogger(__name__).warning(
-                    "[feed-health] Option tbq/tsq stale %.0fs — re-subscribing", _since_valid
+                    "[feed-health] Option tbq/tsq stale %.0fs — recovery attempt %d",
+                    _since_valid, _resub_attempts,
                 )
-                option_chain_service.reset_atm_tracker()
-                keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)
-                if keys:
+
+                async def _recover(ltp: float, attempt: int) -> None:
+                    from uptox.config.settings import settings as _settings
                     from uptox.api.feed_client import subscribe
-                    asyncio.create_task(subscribe(keys))
+                    # A chain whose expiry has passed holds DEAD instrument keys
+                    # (app ran overnight through an expiry, 2026-07-08 morning:
+                    # 50min outage). Re-subscribing to them can never recover —
+                    # re-fetch the chain first. Also force a re-fetch if a plain
+                    # re-subscribe already failed once.
+                    expiry = option_chain_service.get_expiry()
+                    today_str = datetime.now(_IST).strftime("%Y-%m-%d")
+                    if not expiry or expiry < today_str or attempt >= 2:
+                        _lg.getLogger(__name__).warning(
+                            "[feed-health] Re-fetching option chain (expiry=%s, attempt=%d)",
+                            expiry or "none", attempt,
+                        )
+                        await option_chain_service.fetch_and_prime(_settings.access_token)
+                    option_chain_service.reset_atm_tracker()
+                    keys = option_chain_service.get_keys_for_atm(ltp, n=5)
+                    if keys:
+                        await subscribe(keys)
+
+                asyncio.create_task(_recover(tick.ltp, _resub_attempts))
 
         if option_chain_service.atm_changed(tick.ltp):
             keys = option_chain_service.get_keys_for_atm(tick.ltp, n=5)

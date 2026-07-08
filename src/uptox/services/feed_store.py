@@ -2,6 +2,8 @@
 In-memory store for latest tick data.
 Feed client writes here; UI widgets read from here.
 """
+import time as _time
+from collections import deque
 from dataclasses import dataclass, field
 
 
@@ -53,6 +55,16 @@ def flow_qty(tick: TickData | None) -> tuple[float, float]:
     return buy, sell
 
 
+# Rolling delta: per-minute delta sums, so flow can be read over a recent
+# window instead of the whole session. Session-cumulative delta goes stale —
+# on 2026-07-07 morning buying left it at +70k and an entire 170pt afternoon
+# breakdown couldn't flip its sign, so flow_score stayed bullish while the
+# market crashed (same failure 2026-07-03). instrument_key → deque of
+# (minute_epoch, delta_sum); entries older than _ROLLING_MAX_MIN are dropped.
+_ROLLING_MAX_MIN = 90   # keep a bit more than the largest window queried
+_delta_minutes: dict[str, deque] = {}
+
+
 def update(instrument_key: str, tick: TickData) -> None:
     prev = _store.get(instrument_key)
     _store[instrument_key] = tick
@@ -62,7 +74,18 @@ def update(instrument_key: str, tick: TickData) -> None:
     # tbq/tsq are order queue snapshots — used for delta_sc, not here.
     if prev and tick.ltq > 0:
         direction = 1 if tick.ltp > prev.ltp else -1 if tick.ltp < prev.ltp else 0
-        _cum_delta[instrument_key] += tick.ltq * direction
+        delta = tick.ltq * direction
+        _cum_delta[instrument_key] += delta
+        if delta:
+            minute = int(_time.time() // 60)
+            dq = _delta_minutes.setdefault(instrument_key, deque())
+            if dq and dq[-1][0] == minute:
+                dq[-1] = (minute, dq[-1][1] + delta)
+            else:
+                dq.append((minute, delta))
+                cutoff = minute - _ROLLING_MAX_MIN
+                while dq and dq[0][0] < cutoff:
+                    dq.popleft()
 
 
 def get(instrument_key: str) -> TickData | None:
@@ -71,6 +94,15 @@ def get(instrument_key: str) -> TickData | None:
 
 def cum_delta(instrument_key: str) -> float:
     return _cum_delta.get(instrument_key, 0.0)
+
+
+def rolling_delta(instrument_key: str, minutes: int = 60) -> float:
+    """Sum of executed-flow delta over the last `minutes` minutes."""
+    dq = _delta_minutes.get(instrument_key)
+    if not dq:
+        return 0.0
+    cutoff = int(_time.time() // 60) - minutes
+    return float(sum(d for m, d in dq if m >= cutoff))
 
 
 def set_status(status: str) -> None:
