@@ -891,12 +891,17 @@ def entries_taken_today() -> set[tuple[str, str]]:
     return out
 
 
-def direction_locked(option: str) -> tuple[bool, float]:
+def direction_locked(option: str, spot_ltp: float = 0.0) -> tuple[bool, float]:
     """
     True if the last 2 closed trades today in this direction were both losses —
     that side isn't paying today; lock it for 60 min from the last exit.
     The 15-min cooldown alone just delays the same mistake (seen 2026-07-02:
     three consecutive CE losses, each entered right after cooldown expired).
+
+    Resume override: the market moving ≥25pt beyond the last loss's entry spot
+    in the trade's favor proves the losses were timing, not direction — stay
+    locked and you sit out the exact move the trades predicted (2026-07-09:
+    PE locked 14:15-15:15, the -100pt breakdown ran 15:00-15:15).
     Returns (locked, minutes_remaining).
     """
     today = datetime.now(_IST).strftime("%Y-%m-%d")
@@ -905,12 +910,14 @@ def direction_locked(option: str) -> tuple[bool, float]:
     # are invisible (neither count nor break) — same rule as consec_losses.
     real_losses = 0
     last_loss_ts = 0.0
+    last_loss_spot = 0.0
     for t in reversed(same_dir):
         pnl = t.get("pnl_pts", 0)
         if pnl <= REAL_LOSS_PTS:
             real_losses += 1
             if not last_loss_ts:
                 last_loss_ts = t.get("exit_ts") or 0.0
+                last_loss_spot = t.get("spot_entry") or 0.0
             if real_losses >= 2:
                 break
         elif pnl > 0:
@@ -918,9 +925,21 @@ def direction_locked(option: str) -> tuple[bool, float]:
     if real_losses < 2 or not last_loss_ts:
         return False, 0.0
     mins_ago = (time.time() - last_loss_ts) / 60.0
-    if mins_ago < 60.0:
-        return True, 60.0 - mins_ago
-    return False, 0.0
+    if mins_ago >= 60.0:
+        return False, 0.0
+    if spot_ltp and last_loss_spot:
+        resumed = (
+            (option == "CE" and spot_ltp > last_loss_spot + 25.0)
+            or (option == "PE" and spot_ltp < last_loss_spot - 25.0)
+        )
+        if resumed:
+            log.info(
+                "Direction lock RELEASED: %s — spot %.1f moved ≥25pt beyond last "
+                "loss entry %.1f, market proving the direction",
+                option, spot_ltp, last_loss_spot,
+            )
+            return False, 0.0
+    return True, 60.0 - mins_ago
 
 
 # Load existing trades at import time

@@ -261,6 +261,8 @@ class OverallAnalysisPanel(Static):
     _sr_block_option:   str   = ""    # direction the block applied to
     _sr_block_ts:       float = 0.0   # when the block was recorded — context expires
     _SR_BLOCK_TTL:      int   = 600   # seconds a block stays valid as "fresh break" context
+    _SR_AWAY_CLEAR:     float = 25.0  # pts price must drift AWAY from a blocking level
+                                      # before away-side entry is allowed (break not required)
     _sr_retest_mode:    bool  = False  # fake break → waiting for retest + 2 confirming bars
     _sr_retest_ts:      float = 0.0   # when retest watch started — expires via TTL
     _SR_RETEST_TTL:     int   = 1800  # 30 min; survives filter wobble but not forever
@@ -582,7 +584,7 @@ class OverallAnalysisPanel(Static):
         # Post-trade cooldown, bounce/retreat filter, consolidation check
         else:
             import time as _t
-            _dir_locked, _lock_left = trade_book.direction_locked(option)
+            _dir_locked, _lock_left = trade_book.direction_locked(option, live_ltp)
             if _dir_locked:
                 no_trade_reason = (
                     f"{option} side locked — 2 consecutive {option} losses"
@@ -1024,20 +1026,46 @@ class OverallAnalysisPanel(Static):
                             self._sr_block_option = option
                             self._sr_block_ts     = time.time()
                         else:
-                            # "Fresh break" only if the stored block matches this
+                            # Stored block context only counts if it matches this
                             # direction and hasn't gone stale — a block recorded for
                             # a signal that died must not fire a fake break event
                             # when an unrelated entry clears S/R much later.
-                            fresh_break = (
+                            fresh_break = False
+                            _blk_ctx = (
                                 self._sr_blocked_prev
                                 and self._sr_block_option == option
                                 and (time.time() - self._sr_block_ts) <= self._SR_BLOCK_TTL
                             )
-                            self._sr_blocked_prev = False
-                            if fresh_break:
+                            _bl = self._sr_block_level
+                            # A break means price crossed the level IN the trade's
+                            # direction. Merely drifting out of tolerance AWAY from
+                            # the wall leaves it intact between price and the move —
+                            # 2026-07-09 both -10pt losses entered PE seconds after a
+                            # support block, 15pt ABOVE the unbroken swing low.
+                            _through = _blk_ctx and (
+                                (option == "CE" and ltp > _bl) or
+                                (option == "PE" and ltp < _bl)
+                            )
+                            if _blk_ctx and not _through and abs(ltp - _bl) < self._SR_AWAY_CLEAR:
+                                watch_tag = (
+                                    f"  [bold red]⚠ BLOCKED — S/R {_bl:.0f} intact"
+                                    f" ({abs(ltp - _bl):.0f}pt away, need break or"
+                                    f" {self._SR_AWAY_CLEAR:.0f}pt clearance)[/]"
+                                )
+                                _log_blocked_entry(
+                                    f"S/R intact: {_bl:.0f} not broken ({abs(ltp - _bl):.0f}pt away)",
+                                    option, ltp, total, entry_type,
+                                )
+                                entry_type = None
+                                # keep _sr_blocked_prev armed; original ts stands so
+                                # the TTL still expires genuinely stale context
+                            else:
+                                fresh_break = _through
+                                self._sr_blocked_prev = False
+                            if entry_type and fresh_break:
                                 # On the clearing tick _near_sr returns level 0.0 —
                                 # the broken level is the one stored at block time
-                                _broken_level = self._sr_block_level
+                                _broken_level = _bl
                                 # Just cleared S/R — classify: flow confirms → fire; flow contradicts → retest watch
                                 _flow_bad = (
                                     (option == "CE" and flow_score < 0) or
