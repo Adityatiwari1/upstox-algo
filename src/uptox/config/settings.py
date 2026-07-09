@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        # Stale .env keys (e.g. a removed setting still present on a deployed
+        # box) must never crash startup — pydantic v2 defaults to extra_forbid
+        extra = "ignore"
 
     def reload(self) -> None:
         """Re-read .env into this same instance — no process restart needed.
