@@ -22,9 +22,15 @@ log = logging.getLogger(__name__)
 
 _MAXLEN        = 30 * 375   # per-key session history cap
 _GLOBAL_MAXLEN = 10 * 375   # ~10 trading days of pooled ATM IV samples
-_HIGH_RANK_THR = 70.0       # block buys above this
 _LOW_RANK_THR  = 20.0       # bonus: IV cheap, prefer buying
 _MIN_POOL      = 400        # pooled samples needed before the pool drives rank
+
+
+def _high_rank_thr() -> float:
+    """Block-buys threshold — adaptive (learning_service tunes iv_rank_block),
+    so it must be read live, never cached in a module constant."""
+    from uptox.services import adaptive_params
+    return float(adaptive_params.get("iv_rank_block"))
 
 _FILE = Path("logs/iv_history.json")
 _SAVE_EVERY_SECS = 120.0
@@ -102,7 +108,7 @@ def get_current_iv(instrument_key: str) -> float | None:
 
 def is_high_iv(instrument_key: str) -> bool:
     rank = get_iv_rank(instrument_key)
-    return rank is not None and rank > _HIGH_RANK_THR
+    return rank is not None and rank > _high_rank_thr()
 
 
 def is_low_iv(instrument_key: str) -> bool:
@@ -119,7 +125,7 @@ def get_status(instrument_key: str) -> dict:
         "high_iv":   is_high_iv(instrument_key),
         "low_iv":    is_low_iv(instrument_key),
         "label":     (
-            "HIGH — avoid buying" if rank is not None and rank > _HIGH_RANK_THR else
+            "HIGH — avoid buying" if rank is not None and rank > _high_rank_thr() else
             "LOW — good to buy"  if rank is not None and rank < _LOW_RANK_THR  else
             "NORMAL"             if rank is not None else "—"
         ),

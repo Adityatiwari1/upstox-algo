@@ -231,8 +231,12 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
                 _close_and_notify(tick.ltp, time_exit)
                 closed = True
 
-        if not closed and trailing_sl_service.update(instrument_key, tick.ltp):
-            _close_and_notify(tick.ltp, "trail_sl")
+        if not closed:
+            if trailing_sl_service.update(instrument_key, tick.ltp):
+                _close_and_notify(tick.ltp, "trail_sl")
+            else:
+                # Live mode: push any trail-floor rise into the resting broker SL-M
+                trade_book.sync_sl_order()
 
     # ── Daily/weekly/monthly report + learning at 3:30 PM (once) ─────────────
     now   = datetime.now(_IST)

@@ -43,6 +43,7 @@ _trades: list[dict] = []
 _open_trade: dict | None = None
 _daily_pnl_reset_rs:    float = 0.0   # P&L baseline at last Z-reset; subtract to restart loss counter
 _daily_trades_reset_n:  int   = 0     # trade count at last Z-reset; subtract to give fresh trade slots
+_slots_logged:          int   = -1    # last logged trade-slot count (log only on change)
 
 _XLSX_COLS = [
     ("Date",         "date"),
@@ -88,8 +89,16 @@ def _save_open(force: bool = False) -> None:
     try:
         _OPEN_TRADE_FILE.parent.mkdir(exist_ok=True)
         if _open_trade:
+            data = dict(_open_trade)
+            # Snapshot live trail state — restart recovery must restore the
+            # earned peak/floor, not reset the profit lock to entry defaults
+            from uptox.services import trailing_sl_service
+            ts = trailing_sl_service.get_status()
+            if ts.get("active"):
+                data["trail_peak"]     = ts["peak"]
+                data["trail_sl_floor"] = ts["sl_floor"]
             _OPEN_TRADE_FILE.write_text(
-                json.dumps(_open_trade, indent=2, ensure_ascii=False), encoding="utf-8"
+                json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
             )
         elif _OPEN_TRADE_FILE.exists():
             _OPEN_TRADE_FILE.unlink(missing_ok=True)
@@ -117,6 +126,8 @@ def _load() -> None:
                     sl      = float(data.get("sl", 0))
                     opt     = data.get("option", "")
                     opt_key = data.get("option_key", "")
+                    peak_saved  = float(data.pop("trail_peak", 0.0))
+                    floor_saved = float(data.pop("trail_sl_floor", 0.0))
                     if ep:
                         from uptox.services import trailing_sl_service
                         from uptox.services.capital_service import is_expiry_afternoon, is_expiry_day
@@ -127,9 +138,13 @@ def _load() -> None:
                             expiry_day=is_expiry_day(),
                             regime=data.get("regime", "NORMAL"),
                         )
+                        if peak_saved or floor_saved:
+                            trailing_sl_service.restore_state(
+                                peak=peak_saved, sl_floor=floor_saved,
+                            )
                     log.info(
-                        "Restored open trade from disk: %s %s @ %.1f  SL=%.1f",
-                        opt, data.get("strike"), ep, sl,
+                        "Restored open trade from disk: %s %s @ %.1f  SL=%.1f  Peak=%.1f  SL_Floor=%.1f",
+                        opt, data.get("strike"), ep, sl, peak_saved or ep, floor_saved or sl,
                     )
         except Exception as e:
             log.error("open_trade restore error: %s", e)
@@ -294,10 +309,28 @@ def open_trade(
     _save_open(force=True)
     from uptox.services.telegram_service import notify_trade_open
     notify_trade_open(_open_trade)
-    # Live order — fire only when mode is live; paper record kept regardless
+    # Live order — fire only when mode is live; paper record kept regardless.
+    # BUY, then ONE resting SL-M at the broker (exchange allows a single stop
+    # order — the trail modifies its trigger via sync_sl_order, never adds one).
     from uptox.services import trading_mode, order_service
     if trading_mode.is_live() and option_key:
-        order_service.schedule_order(option_key, "BUY", _open_trade["qty"], price=entry_price)
+        _tid = _open_trade["id"]
+
+        def _store_sl_id(oid: str) -> None:
+            if _open_trade and _open_trade.get("id") == _tid:
+                _open_trade["sl_order_id"]      = oid
+                _open_trade["sl_order_trigger"] = _open_trade["sl"]
+                _save_open(force=True)
+            else:
+                # Trade already closed before the SL-M rested — orphan stop
+                # at the broker would fire on a flat position; kill it.
+                log.warning("SL-M %s rested after trade %s closed — cancelling", oid, _tid)
+                order_service._spawn(order_service.cancel_order(oid))
+
+        order_service.schedule_entry_with_sl(
+            option_key, _open_trade["qty"], entry_price, sl,
+            on_sl_order_id=_store_sl_id,
+        )
 
 
 def close_trade(exit_price: float, reason: str) -> dict | None:
@@ -309,21 +342,27 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
     pnl_pts = round(exit_price - _open_trade["entry_price"], 1)
     pnl_rs  = round(pnl_pts * _open_trade["lots"] * NIFTY_LOT_SIZE, 0)
 
-    # Outcome based purely on exit price — reason is just metadata
+    # Trail state must be read before trailing_sl_service.exit_trade() below
+    from uptox.services import trailing_sl_service as _tsl
+    ts = _tsl.get_status()
+
+    # Outcome based purely on exit price — reason is just metadata.
+    # SL_HIT checks the LIVE trail floor, not the static entry SL: the floor
+    # is what actually stopped the trade out (entry "sl" never moves, so a
+    # dynamic-floor stop at a loss used to log as generic LOSS).
+    live_sl = ts["sl_floor"] if ts.get("active") else _open_trade["sl"]
     if exit_price >= _open_trade["target"]:
         outcome = "TARGET_HIT"     # closed above target (trail ran past it)
-    elif exit_price <= _open_trade["sl"]:
-        outcome = "SL_HIT"         # closed at or below initial SL
     elif pnl_pts > 0:
         outcome = "WIN"            # trail SL caught profits between SL and target
+    elif exit_price <= live_sl and pnl_pts < 0:
+        outcome = "SL_HIT"         # stopped out at or below the active floor
     elif pnl_pts < 0:
         outcome = "LOSS"
     else:
         outcome = "BREAKEVEN"
 
     # Capture peak price / max unrealised profit before trail SL fired
-    from uptox.services import trailing_sl_service as _tsl
-    ts = _tsl.get_status()
     peak_price  = ts["peak"] if ts.get("active") and ts["peak"] >= _open_trade["entry_price"] else exit_price
     max_pnl_pts = round(peak_price - _open_trade["entry_price"], 1)
     max_pnl_rs  = round(max_pnl_pts * _open_trade["lots"] * NIFTY_LOT_SIZE, 0)
@@ -350,6 +389,7 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
         "peak_price":   round(peak_price, 1),
         "max_pnl_pts":  max_pnl_pts,
         "max_pnl_rs":   max_pnl_rs,
+        "sl_floor_exit": round(live_sl, 1),   # active trail floor at close ("sl" = initial entry SL)
         "spot_exit":              spot_exit,
         "spot_move_pts":          round(spot_exit - spot_entry, 1),
         "spot_directional_pts":   round((spot_exit - spot_entry) * favorable, 1),
@@ -370,13 +410,17 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
         "Paper CLOSE: %s  P&L=%.1fpts  ₹%.0f  reason=%s",
         outcome, pnl_pts, pnl_rs, reason,
     )
-    # Live exit order — fire only when mode is live; paper record kept regardless
+    # Live exit order — fire only when mode is live; paper record kept regardless.
+    # Cancels the resting SL-M before selling (skips the sell if it already filled).
     from uptox.services import trading_mode, order_service
     if trading_mode.is_live():
         opt_key   = closed.get("option_key", "")
         qty       = closed.get("qty", 0)
         if opt_key and qty:
-            order_service.schedule_order(opt_key, "SELL", qty, price=exit_price)
+            order_service.schedule_exit(
+                opt_key, qty, exit_price,
+                sl_order_id=closed.get("sl_order_id", ""),
+            )
     return closed
 
 
@@ -435,6 +479,17 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
         "Partial CLOSE: %d lots @ %.1f  P&L=%.1fpts ₹%.0f  remain=%d lots  new_SL=%.1f",
         close_lots, exit_price, pnl_pts, pnl_rs, remain_lots, old_target,
     )
+    # Live: sell the banked half, then shrink the resting SL-M to the remaining
+    # qty and lift its trigger to the new profit-floor SL (old target).
+    from uptox.services import trading_mode, order_service
+    if trading_mode.is_live():
+        opt_key = _open_trade.get("option_key", "")
+        if opt_key:
+            order_service.schedule_order(opt_key, "SELL", close_lots * NIFTY_LOT_SIZE, price=exit_price)
+        oid = _open_trade.get("sl_order_id", "")
+        if oid:
+            _open_trade["sl_order_trigger"] = old_target
+            order_service.schedule_sl_modify(oid, _open_trade["qty"], old_target)
     return {"closed_lots": close_lots, "pnl_rs": pnl_rs, "remaining_trade": _open_trade}
 
 
@@ -512,6 +567,33 @@ def check_time_exit() -> str | None:
         if not peaked:
             return "stale_exit_25min"
     return None
+
+
+def sync_sl_order() -> None:
+    """
+    Live mode: keep the single resting broker SL-M in step with the trail
+    floor. Called per tick after trailing_sl_service.update(); only fires a
+    modify when the floor rose ≥1pt past the last synced trigger — the broker
+    order is MOVED, never duplicated (exchange allows one stop per position).
+    """
+    if not _open_trade:
+        return
+    oid = _open_trade.get("sl_order_id", "")
+    if not oid:
+        return
+    from uptox.services import trading_mode
+    if not trading_mode.is_live():
+        return
+    from uptox.services import trailing_sl_service
+    st = trailing_sl_service.get_status()
+    if not st.get("active"):
+        return
+    floor = st["sl_floor"]
+    last  = _open_trade.get("sl_order_trigger", _open_trade.get("sl", 0.0))
+    if floor - last >= 1.0:
+        _open_trade["sl_order_trigger"] = floor
+        from uptox.services import order_service
+        order_service.schedule_sl_modify(oid, _open_trade["qty"], floor)
 
 
 def get_per_trade_breach() -> bool:
@@ -597,20 +679,6 @@ def get_target_action(current_price: float) -> str:
     from uptox.services import trailing_sl_service
     trailing_sl_service.shift_target(new_tgt)
     return "trail"
-
-
-def check_exit(current_price: float) -> str | None:
-    """
-    Returns exit reason if SL or target is hit, else None.
-    Called per-tick in tick_handler.
-    """
-    if not _open_trade or not current_price:
-        return None
-    if current_price <= _open_trade["sl"]:
-        return "sl_hit"
-    if current_price >= _open_trade["target"]:
-        return "target_hit"
-    return None
 
 
 def has_open_trade() -> bool:
@@ -716,10 +784,19 @@ def get_daily_stats() -> dict:
     pnl_rs      = pnl_rs_total - _daily_pnl_reset_rs
     cap         = capital_service.get_capital()
     pnl_pct     = round(pnl_rs / cap * 100, 2) if cap else 0.0
-    # Partial exits write two records with the same id (half banked + remainder)
-    # — count unique trades, or one partial winner burns two trade slots.
-    _uniq_ids   = list(dict.fromkeys(t.get("id", i) for i, t in enumerate(today_trades)))
-    trade_count = max(0, len(_uniq_ids) - _daily_trades_reset_n)
+    # Trade slots: only REAL trades consume one. Scratches (net P&L between
+    # REAL_LOSS_PTS and REAL_WIN_PTS) are temporary stop-outs, not used
+    # opportunities — on 2026-07-08 three scratch exits filled all 3 slots by
+    # 13:39 and the system sat out the -430pt afternoon crash it had called.
+    # Group by id first: partial exits write two records for one trade.
+    _net_pts_by_id: dict = {}
+    for i, t in enumerate(today_trades[_daily_trades_reset_n:]):
+        k = t.get("id", i)
+        _net_pts_by_id[k] = _net_pts_by_id.get(k, 0.0) + t.get("pnl_pts", 0.0)
+    trade_count = sum(
+        1 for p in _net_pts_by_id.values()
+        if p <= REAL_LOSS_PTS or p >= REAL_WIN_PTS
+    )
 
     # Consecutive REAL losses (from most recent backward, only trades after
     # the last Z-reset). Scratches neither count nor break the streak — a
@@ -735,25 +812,22 @@ def get_daily_stats() -> dict:
 
     # Wins since last Z-reset — after 2 wins the day's edge is usually extracted;
     # trade 3+ tends to give profits back. Z-reset clears this along with count.
-    # Group records by trade id first: a partial exit writes two records for one
-    # trade, which otherwise counts as "2 wins" and falsely locks the day.
-    _by_id: dict = {}
-    for i, t in enumerate(today_trades):
-        _by_id.setdefault(t.get("id", i), 0.0)
-        _by_id[t.get("id", i)] += t.get("pnl_rs", 0.0)
-    _net_by_trade = list(_by_id.values())[_daily_trades_reset_n:]
     # Only REAL wins count — with the profit lock turning scratches into
     # small wins, two +4pt exits must not trigger the 2-win "protect
     # profits" pause while the day's real move is still coming.
-    from uptox.services.capital_service import NIFTY_LOT_SIZE
-    _real_win_rs = REAL_WIN_PTS * NIFTY_LOT_SIZE
-    wins_today = sum(1 for p in _net_by_trade if p >= _real_win_rs)
+    wins_today = sum(1 for p in _net_pts_by_id.values() if p >= REAL_WIN_PTS)
 
     # Check limits — Z-reset only clears the loss-limit check; trade count/consec still enforced
     blocked_reason = None
     loss_limit_pct = capital_service.get_daily_loss_limit_pct()
     max_trades     = capital_service.get_max_trades_per_day()
     max_consec     = capital_service.get_max_consec_losses()
+
+    global _slots_logged
+    if trade_count != _slots_logged:
+        log.info("Trade slots: %d/%d used today (%d remaining)",
+                 trade_count, max_trades, max(0, max_trades - trade_count))
+        _slots_logged = trade_count
 
     if pnl_pct <= -loss_limit_pct:
         blocked_reason = f"Daily loss limit hit ({pnl_pct:.1f}% / -{loss_limit_pct}%)"

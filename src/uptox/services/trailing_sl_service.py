@@ -21,6 +21,7 @@ fundamentally different from a normal trending day.
 """
 from __future__ import annotations
 import logging
+import time
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ _post_target_range:  float = 0.0   # latest extension's range (new_target - anch
 
 _active:          bool  = False
 _stopped_out:     bool  = False
+_last_trail_log_ts:    float = 0.0   # throttle for the periodic [trail-sl] status log
+_last_logged_floor:    float = 0.0
 _expiry_afternoon: bool  = False   # per-tick multiple SL active on expiry day
 _expiry_day:       bool  = False   # bar-close 35% trail instead of phase system above
 
@@ -171,10 +174,32 @@ def set_entry(
     _post_target_anchor = 0.0
     _post_target_range  = 0.0
 
+    global _last_trail_log_ts, _last_logged_floor
+    _last_trail_log_ts = 0.0
+    _last_logged_floor = _sl_floor
+
     log.info(
         "Trail SL: %s %s @ %.1f  SL=%.1f  tgt=%.1f",
         side, option_key, price, _trail_sl, _target,
     )
+
+
+def restore_state(peak: float = 0.0, sl_floor: float = 0.0) -> None:
+    """
+    Re-apply persisted trail state after an app restart. set_entry() alone
+    resets peak/floor to entry-day defaults, which silently discards any
+    profit lock earned before the restart. Floor and peak only ever move
+    up — same invariant as the live trail.
+    """
+    global _peak, _sl_floor, _trail_sl
+    if not _active:
+        return
+    if peak > _peak:
+        _peak = peak
+    if sl_floor > _sl_floor:
+        _sl_floor = sl_floor
+        _trail_sl = _sl_floor
+    log.info("Trail SL state restored: Peak=%.1f SL_Floor=%.1f", _peak, _sl_floor)
 
 
 def on_bar_close(ltp: float, atr_pts: float | None = None) -> None:
@@ -244,6 +269,18 @@ def update(instrument_key: str, ltp: float) -> bool:
             )
 
     _trail_sl = _sl_floor
+
+    # Periodic status line — every 30s, or immediately on a ≥1pt floor shift —
+    # so post-hoc log analysis can reconstruct the trail without tick data.
+    global _last_trail_log_ts, _last_logged_floor
+    _now = time.time()
+    if (_now - _last_trail_log_ts) >= 30.0 or (_sl_floor - _last_logged_floor) >= 1.0:
+        log.info(
+            "[trail-sl] Price=%.1f Peak=%.1f Floor=%.1f Phase=%d",
+            ltp, _peak, _sl_floor, _phase,
+        )
+        _last_trail_log_ts = _now
+        _last_logged_floor = _sl_floor
 
     if not _stopped_out and ltp <= _trail_sl:
         _stopped_out = True

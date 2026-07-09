@@ -14,7 +14,6 @@ class Settings(BaseSettings):
 
     telegram_token:   str   = ""
     telegram_chat_id: str   = ""
-    iv_rank_block:    float = 70.0   # block buys if IV rank > this %
 
     class Config:
         env_file = ".env"

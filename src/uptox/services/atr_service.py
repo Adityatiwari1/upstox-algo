@@ -1,8 +1,13 @@
 """ATR (Average True Range) on OHLC candle history from sma_service."""
 from __future__ import annotations
+import logging
+
 from uptox.services.sma_service import TimeFrame
 
+log = logging.getLogger(__name__)
+
 _NIFTY = "NSE_INDEX|Nifty 50"
+_last_regime: str = ""   # last regime returned for Nifty — log shifts only
 
 # Regime thresholds (Nifty 5-min ATR14, Nifty points)
 _ATR_TRENDING     = 35.0   # above → trending
@@ -43,11 +48,19 @@ def get_regime(iv: float = 0.0, instrument_key: str = _NIFTY) -> dict:
     consolidating = atr <= _ATR_CONSOLIDATING and (iv <= 0 or iv < _IV_CONSOLIDATING)
 
     if trending:
-        return {"regime": "TRENDING",      "sl_pct": 0.10, "rr": 3.0, "atr": atr}
+        out = {"regime": "TRENDING",      "sl_pct": 0.10, "rr": 3.0, "atr": atr}
     elif consolidating:
-        return {"regime": "CONSOLIDATING", "sl_pct": 0.05, "rr": 1.5, "atr": atr}
+        out = {"regime": "CONSOLIDATING", "sl_pct": 0.05, "rr": 1.5, "atr": atr}
     else:
-        return {"regime": "NORMAL",        "sl_pct": 0.08, "rr": 2.0, "atr": atr}
+        out = {"regime": "NORMAL",        "sl_pct": 0.08, "rr": 2.0, "atr": atr}
+
+    global _last_regime
+    if instrument_key == _NIFTY and out["regime"] != _last_regime:
+        if _last_regime:
+            log.info("Regime shift: %s → %s  (ATR=%.1f IV=%.1f)",
+                     _last_regime, out["regime"], atr, iv)
+        _last_regime = out["regime"]
+    return out
 
 
 def get_atr(instrument_key: str, tf: TimeFrame = TimeFrame.M5, period: int = 14) -> float | None:

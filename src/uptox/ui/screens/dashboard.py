@@ -87,6 +87,9 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
     return atm, None, 0.0
 
 
+_swing_cache: tuple[int, list[tuple[str, float]]] = (-1, [])
+
+
 def _swing_levels(n_bars: int = 36) -> list[tuple[str, float]]:
     """
     Recent 5-min swing highs/lows — fractal pivots (bar extreme vs 2 bars on
@@ -95,7 +98,14 @@ def _swing_levels(n_bars: int = 36) -> list[tuple[str, float]]:
     entries through the existing fresh-break logic (S/R clears → flow
     confirms → fire; flow contradicts → retest watch).
     Returns the 2 most recent swing highs and lows, deduped by value.
+    Result cached per 5-min slot — pivots only change on bar close, and this
+    runs in the GUI thread on every entry check.
     """
+    global _swing_cache
+    import time as _time
+    _slot = int(_time.time() // 300)
+    if _swing_cache[0] == _slot:
+        return _swing_cache[1]
     bars = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=n_bars)
     if len(bars) < 5:
         return []
@@ -108,8 +118,11 @@ def _swing_levels(n_bars: int = 36) -> list[tuple[str, float]]:
             sh.append(highs[i])
         if lows[i] == min(lows[i - 2:i + 3]) and lows[i] not in sl:
             sl.append(lows[i])
-    return ([("Swing High", v) for v in sh[-2:]]
-            + [("Swing Low", v) for v in sl[-2:]])
+    out = ([("Swing High", v) for v in sh[-2:]]
+           + [("Swing Low", v) for v in sl[-2:]])
+    if out:   # don't cache the warm-up empty result — candles may still be loading
+        _swing_cache = (_slot, out)
+    return out
 
 
 def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
@@ -243,8 +256,14 @@ class OverallAnalysisPanel(Static):
     _session_open: float = 0.0   # first live tick of the day (approx. open; restart mid-day = restart price)
 
     # ── S/R breakout quality + retest tracking ───────────────────────────────
-    _sr_blocked_prev:   bool  = False  # was S/R blocking entry on previous tick
+    _sr_blocked_prev:   bool  = False  # was S/R blocking an entry attempt earlier
+    _sr_block_level:    float = 0.0   # the level that blocked (breakout anchor for retest)
+    _sr_block_option:   str   = ""    # direction the block applied to
+    _sr_block_ts:       float = 0.0   # when the block was recorded — context expires
+    _SR_BLOCK_TTL:      int   = 600   # seconds a block stays valid as "fresh break" context
     _sr_retest_mode:    bool  = False  # fake break → waiting for retest + 2 confirming bars
+    _sr_retest_ts:      float = 0.0   # when retest watch started — expires via TTL
+    _SR_RETEST_TTL:     int   = 1800  # 30 min; survives filter wobble but not forever
     _sr_retest_level:   float = 0.0   # the S/R level that was broken (to watch for retest)
     _sr_retest_option:  str   = ""    # CE or PE direction of the break
     _sr_retest_bars:    int   = 0     # consecutive confirming bars counted so far
@@ -479,6 +498,13 @@ class OverallAnalysisPanel(Static):
         today_event   = get_event_today()
         req_score     = max(int(adaptive_params.get("min_score")), event_min_score())
 
+        # Consolidating regime: range-bound tape shakes out breakout entries
+        # that would be fine in a trend — demand one extra score point.
+        from uptox.services import atr_service as _atr_regime
+        consol_regime = _atr_regime.get_regime()["regime"] == "CONSOLIDATING"
+        if consol_regime:
+            req_score += 1
+
         # Gap-day context: big overnight gap (>50pt) makes the first hour treacherous —
         # gap fills/fades trap breakout entries, so demand one extra score point till 10:30.
         _prev_close = t.close if t and t.close else 0.0
@@ -546,6 +572,10 @@ class OverallAnalysisPanel(Static):
             elif gap_day:
                 no_trade_reason = (
                     f"Gap day ({_gap_pts:+.0f}pt open) — need score ≥{req_score} till 10:30, got {total:+d}"
+                )
+            elif consol_regime:
+                no_trade_reason = (
+                    f"Consolidating regime — need score ≥{req_score}, got {total:+d}"
                 )
             else:
                 no_trade_reason = "Weak conviction"
@@ -664,14 +694,28 @@ class OverallAnalysisPanel(Static):
         bk_min_dist = adaptive_params.get("bk_min_dist")
         bk_timeout  = adaptive_params.get("bk_timeout")
 
+        if self._sr_retest_mode and (time.time() - self._sr_retest_ts) > self._SR_RETEST_TTL:
+            log.info("S/R retest watch expired (%.0fmin) — level %.1f abandoned",
+                     self._SR_RETEST_TTL / 60, self._sr_retest_level)
+            self._sr_retest_mode = False
+            self._sr_retest_bars = 0
+
         if tradeable and cur_price:
             direction_flip = (self._last_option is not None and self._last_option != option)
             if direction_flip:
                 if trade_book.has_open_trade():
-                    trade_book.close_trade(cur_price, "direction_change")
+                    # Exit at the HELD option's price — cur_price is the NEW
+                    # direction's ATM premium, a different contract entirely
+                    ot_flip = trade_book.get_open_trade()
+                    _fk     = ot_flip.get("option_key", "")
+                    _fl     = feed_store.get(_fk) if _fk else None
+                    _fp     = _fl.ltp if (_fl and _fl.ltp) else ot_flip.get(
+                        "current_price", ot_flip["entry_price"])
+                    trade_book.close_trade(_fp, "direction_change")
                 self._watch = "IDLE"
                 self._bk_max_dist = 0.0
                 self._sr_retest_mode = False
+                self._sr_blocked_prev = False
                 self._orb_watching   = False
                 self._pdx_watching   = False
 
@@ -800,8 +844,11 @@ class OverallAnalysisPanel(Static):
                     # Waits for pullback to the broken level + 2 confirming bars.
                     if self._sr_retest_mode and self._sr_retest_option == option:
                         _rl   = self._sr_retest_level
-                        _zone = 20.0   # within 20pt of level = "near enough" for retest
-                        _fail = 15.0   # >15pt below (CE) / above (PE) = break failed
+                        # Both thresholds carry a 5pt buffer over their original
+                        # values (20/15) — checks run on raw ticks, and a single
+                        # freak tick through the line was declaring BREAK FAILED
+                        _zone = 25.0   # within this of level = "near enough" for retest
+                        _fail = 20.0   # beyond this below (CE) / above (PE) = break failed
 
                         _near_level = abs(ltp - _rl) <= _zone
                         _break_failed = (
@@ -973,10 +1020,24 @@ class OverallAnalysisPanel(Static):
                             _log_blocked_entry(sr_block, option, ltp, total, entry_type)
                             entry_type = None
                             self._sr_blocked_prev = True
+                            self._sr_block_level  = _broken_level
+                            self._sr_block_option = option
+                            self._sr_block_ts     = time.time()
                         else:
-                            fresh_break = self._sr_blocked_prev
+                            # "Fresh break" only if the stored block matches this
+                            # direction and hasn't gone stale — a block recorded for
+                            # a signal that died must not fire a fake break event
+                            # when an unrelated entry clears S/R much later.
+                            fresh_break = (
+                                self._sr_blocked_prev
+                                and self._sr_block_option == option
+                                and (time.time() - self._sr_block_ts) <= self._SR_BLOCK_TTL
+                            )
                             self._sr_blocked_prev = False
                             if fresh_break:
+                                # On the clearing tick _near_sr returns level 0.0 —
+                                # the broken level is the one stored at block time
+                                _broken_level = self._sr_block_level
                                 # Just cleared S/R — classify: flow confirms → fire; flow contradicts → retest watch
                                 _flow_bad = (
                                     (option == "CE" and flow_score < 0) or
@@ -994,6 +1055,7 @@ class OverallAnalysisPanel(Static):
                                     )
                                     entry_type = None
                                     self._sr_retest_mode    = True
+                                    self._sr_retest_ts      = time.time()
                                     self._sr_retest_level   = _broken_level
                                     self._sr_retest_option  = option
                                     self._sr_retest_bars    = 0
@@ -1083,15 +1145,28 @@ class OverallAnalysisPanel(Static):
                 log.info("Breakout watch cancelled — signal dropped")
                 self._watch = "IDLE"
                 self._bk_max_dist = 0.0
-                self._sr_retest_mode = False
+                self._sr_blocked_prev = False
                 self._orb_watching   = False
                 self._pdx_watching   = False
-            if trade_book.has_open_trade() and self._last_tradeable:
-                ot_exit = trade_book.get_open_trade()
-                exit_key  = ot_exit.get("option_key", "") if ot_exit else ""
-                exit_live = feed_store.get(exit_key) if exit_key else None
-                exit_p    = exit_live.ltp if exit_live else (ot_exit["entry_price"] if ot_exit else 0.0)
-                trade_book.close_trade(exit_p, "signal_flip")
+                # _sr_retest_mode intentionally survives — the retest pullback
+                # itself weakens score / trips the bounce filter, so resetting
+                # here killed every retest setup mid-wait; a TTL expires it instead
+            if trade_book.has_open_trade():
+                # Only a genuine REVERSAL force-closes (score now ≥2 against the
+                # held side). Filter wobble — score dip, IV rank, consolidation,
+                # bounce — used to dump the position at market here, overriding
+                # the trail SL that exists precisely to sit through such noise.
+                # Trail floor / mae / stale / session-close manage everything else.
+                ot_exit   = trade_book.get_open_trade()
+                _held     = ot_exit.get("option", "")
+                _reversed = (_held == "CE" and total <= -2) or (_held == "PE" and total >= 2)
+                if _reversed:
+                    exit_key  = ot_exit.get("option_key", "")
+                    exit_live = feed_store.get(exit_key) if exit_key else None
+                    exit_p    = exit_live.ltp if (exit_live and exit_live.ltp) else ot_exit.get(
+                        "current_price", ot_exit["entry_price"])
+                    log.info("Signal reversal against %s (score %+d) — closing", _held, total)
+                    trade_book.close_trade(exit_p, "signal_flip")
 
         self._last_option = option if tradeable else self._last_option
 
