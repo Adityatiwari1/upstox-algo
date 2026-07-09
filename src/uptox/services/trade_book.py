@@ -630,6 +630,12 @@ def get_target_action(current_price: float) -> str:
     if not _open_trade:
         return "close"
 
+    # Range days mean-revert — extending the target past a consolidating-day
+    # move gives the profit back to the snapback. Target hit = bank it.
+    if str(_open_trade.get("regime", "")).startswith("CONSOLIDATING"):
+        log.info("Target: CONSOLIDATING regime → close and bank (no extension)")
+        return "close"
+
     elapsed_min = max((time.time() - _open_trade.get("entry_ts", time.time())) / 60, 0.5)
     velocity    = _open_trade["pnl_pts"] / elapsed_min   # pts/min
 

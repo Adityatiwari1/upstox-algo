@@ -736,12 +736,16 @@ class OverallAnalysisPanel(Static):
                         repeat_count=trade_book.same_direction_streak(option),
                     )
                     potential  = (lvl_re["target"] - entry_price) / entry_price if entry_price else 0
+                    # ≥10pt absolute also qualifies — the %-only gate demanded
+                    # 14pt+ on a ₹140 premium, silently vetoing small-target
+                    # re-entries that are the whole game on consolidating days
+                    potential_pts = lvl_re["target"] - entry_price
                     # Guard 2: premium velocity — delta × half-ATR / price ≥ 8%
                     from uptox.services import atr_service
                     atr_pts   = atr_service.get_atr(NIFTY, TimeFrame.M5) or 30.0
                     delta_val = abs(entry_live.delta) if entry_live.delta else 0.3
                     exp_move  = delta_val * (atr_pts * 0.4) / entry_price if entry_price else 0
-                    if potential < 0.10:
+                    if potential < 0.10 and potential_pts < 10.0:
                         watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — target only {potential*100:.0f}% away[/]"
                     elif exp_move < 0.08:
                         watch_tag = f"  [dim]⟳ RE-ENTRY SKIP — slow premium ({exp_move*100:.0f}%/move)[/]"
