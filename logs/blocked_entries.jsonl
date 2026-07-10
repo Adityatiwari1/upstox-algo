@@ -1054,3 +1054,42 @@
 {"ts": "2026-07-09T15:14:18+05:30", "option": "PE", "ltp": 23940.8, "score": -3, "entry_type": null, "reason": "PE side locked — 2 consecutive PE losses (1min left)"}
 {"ts": "2026-07-09T15:17:10+05:30", "option": "PE", "ltp": 23954.5, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
 {"ts": "2026-07-09T15:22:27+05:30", "option": "PE", "ltp": 23969.8, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T09:31:48+05:30", "option": "CE", "ltp": 24173.5, "score": 5, "entry_type": "sustained", "reason": "Resistance: Swing High (14pt above)"}
+{"ts": "2026-07-10T09:33:19+05:30", "option": "CE", "ltp": 24174.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (15pt above)"}
+{"ts": "2026-07-10T09:50:00+05:30", "option": "CE", "ltp": 24208.7, "score": 3, "entry_type": null, "reason": "Consolidating — 58pt range in 30min (need >67)"}
+{"ts": "2026-07-10T09:55:05+05:30", "option": "CE", "ltp": 24204.7, "score": 3, "entry_type": null, "reason": "Consolidating — 58pt range in 30min (need >65)"}
+{"ts": "2026-07-10T10:00:19+05:30", "option": "CE", "ltp": 24221.5, "score": 3, "entry_type": null, "reason": "Consolidating — 51pt range in 30min (need >60)"}
+{"ts": "2026-07-10T10:05:29+05:30", "option": "CE", "ltp": 24210.0, "score": 3, "entry_type": null, "reason": "Consolidating — 45pt range in 30min (need >60)"}
+{"ts": "2026-07-10T10:10:43+05:30", "option": "CE", "ltp": 24222.6, "score": 3, "entry_type": null, "reason": "Consolidating — 34pt range in 30min (need >58)"}
+{"ts": "2026-07-10T10:15:43+05:30", "option": "CE", "ltp": 24214.2, "score": 3, "entry_type": null, "reason": "Consolidating — 30pt range in 30min (need >57)"}
+{"ts": "2026-07-10T10:20:44+05:30", "option": "CE", "ltp": 24210.2, "score": 3, "entry_type": null, "reason": "Consolidating — 27pt range in 30min (need >55)"}
+{"ts": "2026-07-10T10:25:44+05:30", "option": "CE", "ltp": 24210.8, "score": 3, "entry_type": null, "reason": "Consolidating — 25pt range in 30min (need >54)"}
+{"ts": "2026-07-10T10:30:20+05:30", "option": "CE", "ltp": 24199.8, "score": 3, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-10T10:35:20+05:30", "option": "CE", "ltp": 24193.4, "score": 3, "entry_type": null, "reason": "Retreat active -32pts from high — wait for green bar"}
+{"ts": "2026-07-10T10:41:50+05:30", "option": "CE", "ltp": 24205.6, "score": 3, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-10T10:46:54+05:30", "option": "CE", "ltp": 24204.2, "score": 5, "entry_type": "sustained", "reason": "Resistance: Swing High (15pt above)"}
+{"ts": "2026-07-10T10:59:03+05:30", "option": "CE", "ltp": 24199.0, "score": 4, "entry_type": null, "reason": "Retreat active -26pts from high — wait for green bar"}
+{"ts": "2026-07-10T12:20:28+05:30", "option": "CE", "ltp": 24164.2, "score": 3, "entry_type": null, "reason": "Retreat active -61pts from high — wait for green bar"}
+{"ts": "2026-07-10T12:40:02+05:30", "option": "CE", "ltp": 24183.0, "score": 3, "entry_type": null, "reason": "Retreat active -42pts from high — wait for green bar"}
+{"ts": "2026-07-10T12:45:06+05:30", "option": "CE", "ltp": 24190.2, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (10pt above)"}
+{"ts": "2026-07-10T12:45:25+05:30", "option": "CE", "ltp": 24193.7, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (12pt above)"}
+{"ts": "2026-07-10T12:50:07+05:30", "option": "CE", "ltp": 24186.3, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (14pt above)"}
+{"ts": "2026-07-10T12:51:14+05:30", "option": "CE", "ltp": 24191.8, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (14pt above)"}
+{"ts": "2026-07-10T12:55:00+05:30", "option": "CE", "ltp": 24189.7, "score": 3, "entry_type": null, "reason": "Retreat active -36pts from high — wait for green bar"}
+{"ts": "2026-07-10T13:00:02+05:30", "option": "CE", "ltp": 24183.2, "score": 3, "entry_type": null, "reason": "Retreat active -42pts from high — wait for green bar"}
+{"ts": "2026-07-10T13:03:40+05:30", "option": "CE", "ltp": 24201.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (10pt above)"}
+{"ts": "2026-07-10T13:05:16+05:30", "option": "CE", "ltp": 24192.5, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (8pt above)"}
+{"ts": "2026-07-10T13:50:03+05:30", "option": "CE", "ltp": 24195.4, "score": 3, "entry_type": null, "reason": "Retreat active -30pts from high — wait for green bar"}
+{"ts": "2026-07-10T14:20:00+05:30", "option": "PE", "ltp": 24189.3, "score": -3, "entry_type": null, "reason": "Bounce active +55pts from low — wait for red bar"}
+{"ts": "2026-07-10T14:30:05+05:30", "option": "CE", "ltp": 24212.2, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 14% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T14:35:07+05:30", "option": "CE", "ltp": 24206.1, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 23% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T14:40:16+05:30", "option": "CE", "ltp": 24211.8, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 26% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T14:45:18+05:30", "option": "CE", "ltp": 24209.8, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 27% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T14:50:22+05:30", "option": "CE", "ltp": 24216.8, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 18% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T14:55:23+05:30", "option": "CE", "ltp": 24203.8, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 24% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T15:00:50+05:30", "option": "CE", "ltp": 24212.2, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T15:07:46+05:30", "option": "CE", "ltp": 24201.0, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 26% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T15:12:47+05:30", "option": "CE", "ltp": 24210.1, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 0% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T15:18:33+05:30", "option": "CE", "ltp": 24200.8, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-10T15:20:10+05:30", "option": "CE", "ltp": 24201.9, "score": 4, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-10T15:23:33+05:30", "option": "CE", "ltp": 24214.0, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 3% after 14:30 (theta kills low-IV options in last hour)"}
