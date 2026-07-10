@@ -143,16 +143,37 @@ async def cancel_order(order_id: str) -> dict:
     return data
 
 
-async def get_order_status(order_id: str) -> str:
-    """Return the order's status string ("complete", "open", "cancelled", ...)
-    or "" if the lookup fails."""
+async def get_order_details(order_id: str) -> dict:
+    """Full order record from the broker (status, average_price, trigger_price,
+    filled_quantity, ...). Returns {} if the lookup fails."""
     try:
         async with httpx.AsyncClient(timeout=10) as c:
             r = await c.get(_DETAILS_URL, params={"order_id": order_id}, headers=_headers())
-        return ((r.json().get("data") or {}).get("status") or "").lower()
+        return (r.json().get("data") or {})
     except Exception as exc:
-        log.error("LIVE ORDER STATUS ERROR (%s): %s", order_id, exc)
-        return ""
+        log.error("LIVE ORDER DETAILS ERROR (%s): %s", order_id, exc)
+        return {}
+
+
+async def get_order_status(order_id: str) -> str:
+    """Return the order's status string ("complete", "open", "cancelled", ...)
+    or "" if the lookup fails."""
+    return ((await get_order_details(order_id)).get("status") or "").lower()
+
+
+async def get_positions() -> list[dict]:
+    """Broker's live intraday positions — ground truth for reconciliation.
+    Returns [] on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(
+                "https://api.upstox.com/v2/portfolio/short-term-positions",
+                headers=_headers(),
+            )
+        return (r.json().get("data") or [])
+    except Exception as exc:
+        log.error("LIVE POSITIONS ERROR: %s", exc)
+        return []
 
 
 def _spawn(coro) -> None:
@@ -252,6 +273,43 @@ def schedule_sl_modify(order_id: str, qty: int, trigger_price: float) -> None:
     _spawn(_run())
 
 
+async def exit_with_sl_cleanup(
+    instrument_token: str,
+    qty: int,
+    price: float,
+    sl_order_id: str = "",
+    tag: str = "uptox",
+) -> str:
+    """
+    App-side exit sequence: cancel the resting SL-M first, then SELL LIMIT.
+    If the cancel fails because the SL-M already filled (broker stopped us out
+    in the same moment), the SELL is skipped — selling again would open a
+    naked short. Returns "skipped_sl_filled", "sold", or "error".
+    """
+    if sl_order_id:
+        try:
+            await cancel_order(sl_order_id)
+        except Exception:
+            status = await get_order_status(sl_order_id)
+            if status == "complete":
+                log.warning(
+                    "Exit skipped: SL-M %s already FILLED at broker — position flat",
+                    sl_order_id,
+                )
+                return "skipped_sl_filled"
+            log.warning(
+                "SL-M cancel failed (status=%s) — proceeding with SELL anyway",
+                status or "unknown",
+            )
+    try:
+        await place_order(instrument_token, "SELL", qty, price, tag)
+        return "sold"
+    except Exception as exc:
+        log.error("LIVE EXIT ERROR (SELL %s qty=%d price=%.1f): %s",
+                  instrument_token, qty, price, exc)
+        return "error"
+
+
 def schedule_exit(
     instrument_token: str,
     qty: int,
@@ -259,37 +317,9 @@ def schedule_exit(
     sl_order_id: str = "",
     tag: str = "uptox",
 ) -> None:
-    """
-    App-side exit sequence: cancel the resting SL-M first, then SELL LIMIT.
-    If the cancel fails because the SL-M already filled (broker stopped us out
-    in the same moment), the SELL is skipped — selling again would open a
-    naked short.
-    """
+    """Fire-and-forget wrapper around exit_with_sl_cleanup()."""
     if not instrument_token or qty <= 0 or price <= 0:
         log.warning("schedule_exit: invalid params  token=%s qty=%d price=%.1f",
                     instrument_token, qty, price)
         return
-
-    async def _run() -> None:
-        if sl_order_id:
-            try:
-                await cancel_order(sl_order_id)
-            except Exception:
-                status = await get_order_status(sl_order_id)
-                if status == "complete":
-                    log.warning(
-                        "Exit skipped: SL-M %s already FILLED at broker — position flat",
-                        sl_order_id,
-                    )
-                    return
-                log.warning(
-                    "SL-M cancel failed (status=%s) — proceeding with SELL anyway",
-                    status or "unknown",
-                )
-        try:
-            await place_order(instrument_token, "SELL", qty, price, tag)
-        except Exception as exc:
-            log.error("LIVE EXIT ERROR (SELL %s qty=%d price=%.1f): %s",
-                      instrument_token, qty, price, exc)
-
-    _spawn(_run())
+    _spawn(exit_with_sl_cleanup(instrument_token, qty, price, sl_order_id, tag))
