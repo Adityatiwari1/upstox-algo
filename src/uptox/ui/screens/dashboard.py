@@ -632,10 +632,17 @@ class OverallAnalysisPanel(Static):
                         _c_hi     = max(b[1] for b in _congest)
                         _c_lo     = min(b[2] for b in _congest)
                         _c_range  = _c_hi - _c_lo
-                        if _c_range < _atr_m5 * 1.5:
+                        # One-way grind is trend, not chop — a small range only
+                        # means consolidation when price went nowhere inside it.
+                        # Gap mornings inflate ATR so a steady +45pt climb read
+                        # as "consolidating" (2026-07-10: blocked 09:50-10:25,
+                        # entry finally at the top). Efficiency = net move/range.
+                        _c_net = abs(_congest[-1][3] - _congest[0][0])
+                        _c_eff = (_c_net / _c_range) if _c_range > 0 else 0.0
+                        if _c_range < _atr_m5 * 1.5 and _c_eff < 0.6:
                             no_trade_reason = (
                                 f"Consolidating — {_c_range:.0f}pt range in 30min "
-                                f"(need >{_atr_m5 * 1.5:.0f})"
+                                f"(need >{_atr_m5 * 1.5:.0f}, drift {_c_eff:.0%})"
                             )
         # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
