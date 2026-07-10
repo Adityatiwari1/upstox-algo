@@ -29,10 +29,11 @@ import httpx
 
 from uptox.services import order_service as osvc
 
-_IST   = ZoneInfo("Asia/Kolkata")
-_CHAIN = "https://api.upstox.com/v2/option/chain"
-_NIFTY = "NSE_INDEX|Nifty 50"
-_TAG   = "uptox-smoke"
+_IST      = ZoneInfo("Asia/Kolkata")
+_CHAIN    = "https://api.upstox.com/v2/option/chain"
+_CONTRACT = "https://api.upstox.com/v2/option/contract"
+_NIFTY    = "NSE_INDEX|Nifty 50"
+_TAG      = "uptox-smoke"
 
 log = logging.getLogger("smoke_test")
 
@@ -84,17 +85,36 @@ def _order_id(resp: dict) -> str:
     return ids[0] if ids else ""
 
 
+def _auth_headers() -> dict:
+    from uptox.config.settings import settings
+    return {"Authorization": f"Bearer {settings.access_token}",
+            "Accept": "application/json"}
+
+
+async def _list_expiries() -> list[str]:
+    """Valid Nifty option expiry dates from today onward, soonest first."""
+    async with httpx.AsyncClient(timeout=15) as c:
+        r = await c.get(_CONTRACT, params={"instrument_key": _NIFTY},
+                        headers=_auth_headers())
+    rows = r.json().get("data") or []
+    today = datetime.now(_IST).strftime("%Y-%m-%d")
+    return sorted({row.get("expiry") for row in rows
+                   if (row.get("expiry") or "") >= today})
+
+
 async def _pick_strike(expiry: str, side: str, min_prem: float, max_prem: float) -> tuple[str, int, float]:
     """Deep-OTM strike in the premium band with the most OI. Returns
     (instrument_key, strike, ltp)."""
-    from uptox.config.settings import settings
     async with httpx.AsyncClient(timeout=15) as c:
         r = await c.get(_CHAIN, params={"instrument_key": _NIFTY, "expiry_date": expiry},
-                        headers={"Authorization": f"Bearer {settings.access_token}",
-                                 "Accept": "application/json"})
+                        headers=_auth_headers())
     rows = r.json().get("data") or []
     if not rows:
-        raise RuntimeError(f"option chain empty for expiry {expiry}: {r.text[:200]}")
+        valid = await _list_expiries()
+        raise RuntimeError(
+            f"no option chain for expiry {expiry} — valid expiries: {valid[:6]}"
+            f" (omit --expiry to auto-pick)"
+        )
     cands = []
     for row in rows:
         leg = row.get("call_options" if side == "CE" else "put_options") or {}
@@ -284,6 +304,14 @@ async def amain(args) -> None:
     if not args.dry_run:
         if not (10 <= now.hour < 15):
             log.warning("outside the calm 10:00-15:00 IST window — proceed only if intentional")
+        if not args.expiry:
+            expiries = await _list_expiries()
+            if not expiries:
+                raise RuntimeError("could not fetch valid expiries — check token")
+            today = now.strftime("%Y-%m-%d")
+            # prefer the nearest expiry that is NOT today (expiry-day gamma)
+            args.expiry = next((e for e in expiries if e > today), expiries[0])
+            log.info("auto-picked expiry %s (valid: %s)", args.expiry, expiries[:4])
         if args.expiry == now.strftime("%Y-%m-%d"):
             log.warning("selected expiry is TODAY — expiry-day gamma, premiums move fast")
 
@@ -315,7 +343,8 @@ async def amain(args) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Attended live-API smoke test (1 lot, deep OTM)")
-    p.add_argument("--expiry",     type=str, help="option expiry YYYY-MM-DD (required unless --dry-run)")
+    p.add_argument("--expiry",     type=str, default="",
+                   help="option expiry YYYY-MM-DD (omit to auto-pick the nearest non-today expiry)")
     p.add_argument("--side",       choices=("CE", "PE"), default="PE")
     p.add_argument("--qty",        type=int, default=65, help="quantity = 1 lot (default 65)")
     p.add_argument("--min-prem",   type=float, default=5.0)
@@ -324,8 +353,6 @@ def main() -> None:
                    help="also let an SL-M really trigger to prove the naked-short guard")
     p.add_argument("--dry-run",    action="store_true", help="rehearse full flow, no HTTP")
     args = p.parse_args()
-    if not args.dry_run and not args.expiry:
-        p.error("--expiry is required unless --dry-run")
 
     logfile = _setup_logging()
     log.info("log file: %s", logfile)
