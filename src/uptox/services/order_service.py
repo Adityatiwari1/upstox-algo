@@ -22,11 +22,37 @@ import httpx
 
 log = logging.getLogger(__name__)
 
-# v3 HFT endpoints — lower latency than api.upstox.com
-_ORDER_URL   = "https://api-hft.upstox.com/v3/order/place"
-_MODIFY_URL  = "https://api-hft.upstox.com/v3/order/modify"
-_CANCEL_URL  = "https://api-hft.upstox.com/v3/order/cancel"
+# Order endpoints exist on two hosts: api-hft (lower latency, but requires a
+# static IP registered in the Upstox developer app — else 403 UDAPI1154) and
+# the standard api host (no IP restriction). Try HFT first, fall back to
+# standard once and remember for the session.
+_HFT_BASE    = "https://api-hft.upstox.com"
+_STD_BASE    = "https://api.upstox.com"
 _DETAILS_URL = "https://api.upstox.com/v2/order/details"
+_hft_blocked = False
+
+
+async def _order_request(method: str, path: str, *, json_body: dict | None = None,
+                         params: dict | None = None) -> httpx.Response:
+    """Order-API request with automatic HFT→standard fallback on the
+    static-IP block (UDAPI1154)."""
+    global _hft_blocked
+    bases = [_STD_BASE] if _hft_blocked else [_HFT_BASE, _STD_BASE]
+    last: httpx.Response | None = None
+    for base in bases:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.request(method, base + path, json=json_body,
+                                params=params, headers=_headers())
+        if base == _HFT_BASE and r.status_code == 403 and "UDAPI1154" in r.text:
+            log.warning(
+                "HFT endpoint blocked (no static IP registered with Upstox) — "
+                "falling back to standard endpoint for this session"
+            )
+            _hft_blocked = True
+            last = r
+            continue
+        return r
+    return last  # both failed — caller handles status
 
 # Gap between entry BUY and placing the protective SL-M — a stop SELL sent
 # before the BUY fills would be a fresh short if triggered.
@@ -85,8 +111,7 @@ async def place_order(
         order_type, transaction_type.upper(), instrument_token, qty, price, trigger_price,
     )
 
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.post(_ORDER_URL, json=payload, headers=_headers())
+    r = await _order_request("POST", "/v3/order/place", json_body=payload)
 
     data = r.json()
     if r.status_code not in (200, 201):
@@ -121,8 +146,7 @@ async def modify_order(
         "disclosed_quantity": 0,
         "trigger_price":      round(trigger_price, 1),
     }
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.put(_MODIFY_URL, json=payload, headers=_headers())
+    r = await _order_request("PUT", "/v3/order/modify", json_body=payload)
     data = r.json()
     if r.status_code not in (200, 201):
         log.error("LIVE MODIFY FAILED: HTTP %d  %s  payload=%s", r.status_code, data, payload)
@@ -133,8 +157,7 @@ async def modify_order(
 
 async def cancel_order(order_id: str) -> dict:
     """Cancel a resting order. Raises if the order is no longer open (e.g. filled)."""
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.delete(_CANCEL_URL, params={"order_id": order_id}, headers=_headers())
+    r = await _order_request("DELETE", "/v3/order/cancel", params={"order_id": order_id})
     data = r.json()
     if r.status_code not in (200, 201):
         log.warning("LIVE CANCEL FAILED: HTTP %d  %s  order_id=%s", r.status_code, data, order_id)
