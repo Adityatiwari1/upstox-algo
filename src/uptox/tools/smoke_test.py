@@ -302,6 +302,13 @@ def _install_dry_run() -> None:
 async def amain(args) -> None:
     now = datetime.now(_IST)
     if not args.dry_run:
+        market_open = (9, 15) <= (now.hour, now.minute) < (15, 30)
+        if not market_open and not args.force:
+            raise SystemExit(
+                "market closed (IST %s) — after-hours orders are treated as AMO and "
+                "rejected (UDAPI1162). Run 10:00-15:00 IST, or --force to override."
+                % now.strftime("%H:%M")
+            )
         if not (10 <= now.hour < 15):
             log.warning("outside the calm 10:00-15:00 IST window — proceed only if intentional")
         if not args.expiry:
@@ -352,6 +359,7 @@ def main() -> None:
     p.add_argument("--money-test", action="store_true",
                    help="also let an SL-M really trigger to prove the naked-short guard")
     p.add_argument("--dry-run",    action="store_true", help="rehearse full flow, no HTTP")
+    p.add_argument("--force",      action="store_true", help="override the market-hours guard")
     args = p.parse_args()
 
     logfile = _setup_logging()
