@@ -125,21 +125,31 @@ def _swing_levels(n_bars: int = 36) -> list[tuple[str, float]]:
     return out
 
 
-def _near_sr(ltp: float, option: str) -> tuple[str | None, float]:
+def _near_sr(ltp: float, option: str, sma_score: int = 0) -> tuple[str | None, float]:
     """
     Return (reason, level) if ltp is within SR_TOL points of a key level that
     would act as resistance (CE) or support (PE). Returns (None, 0.0) if clear.
+
+    SMA-derived levels are skipped when the 5m trend is ALIGNED with the entry
+    (sma_score ±2 in its direction): a rising SMA overhead ratchets up with
+    price and never "breaks", so it walls out entire grind trends — 2026-07-13
+    the afternoon +75pt leg was blocked 15+ times by SMA50/1h re-arming 8-15pt
+    above a rising market. Static levels (PDH/PDL, pivots, rounds, swings)
+    always block; they clear honestly when actually broken.
     """
     SR_TOL = adaptive_params.get("sr_tolerance")
     levels: list[tuple[str, float]] = []
 
-    # SMA levels on M5 and H1 are the most watched S/R by algo traders
-    for tf, label in ((TimeFrame.M5, "5m"), (TimeFrame.H1, "1h")):
-        smas = sma_service.get_smas(NIFTY, tf)
-        for p in (20, 50, 100, 200):
-            v = smas.get(p)
-            if v:
-                levels.append((f"SMA{p}/{label}", v))
+    # SMA levels on M5 and H1 are the most watched S/R by algo traders —
+    # but only as obstacles when the trend is NOT already going our way
+    trend_aligned = (option == "CE" and sma_score >= 2) or (option == "PE" and sma_score <= -2)
+    if not trend_aligned:
+        for tf, label in ((TimeFrame.M5, "5m"), (TimeFrame.H1, "1h")):
+            smas = sma_service.get_smas(NIFTY, tf)
+            for p in (20, 50, 100, 200):
+                v = smas.get(p)
+                if v:
+                    levels.append((f"SMA{p}/{label}", v))
 
     # Round hundred levels ±200pt around current price
     base = round(ltp / 100) * 100
@@ -270,6 +280,21 @@ class OverallAnalysisPanel(Static):
     _sr_retest_option:  str   = ""    # CE or PE direction of the break
     _sr_retest_bars:    int   = 0     # consecutive confirming bars counted so far
     _sr_retest_last_bar: int  = -1   # bar_slot of the last counted bar (avoid double-count)
+
+    # ── PDL-reclaim / PDH-loss (gap open beyond a prev-day level, price takes
+    #    the level back, bases ≥15min, then breaks the base range → entry) ─────
+    _rc_watching:  bool  = False
+    _rc_side:      str   = ""     # "CE" = opened below PDL, reclaimed it; "PE" = mirror at PDH
+    _rc_level:     float = 0.0   # the PDL/PDH being reclaimed/lost
+    _rc_ts:        float = 0.0   # when the reclaim happened — basing clock
+    _rc_hi:        float = 0.0   # base range built during the basing window
+    _rc_lo:        float = float("inf")
+    _rc_frozen:    bool  = False  # True once the 15-min base is locked from bar data
+    _rc_done_ce:   bool  = False  # one reclaim trade per side per day
+    _rc_done_pe:   bool  = False
+    _RC_BASE_SECS: int   = 900   # 15 min basing before a base-break counts
+    _RC_EXPIRE_SECS: int = 5400  # stale after 90 min without a base break
+    _RC_FAIL_PTS:  float = 15.0  # falling back through the level by this = failed reclaim
 
     # ── Opening Range Breakout (09:15–09:30 window) ───────────────────────────
     _orb_high:     float = 0.0
@@ -531,6 +556,65 @@ class OverallAnalysisPanel(Static):
         if counter_bias:
             req_score += 1
 
+        # ── PDL-reclaim / PDH-loss tracking — every tick, signal-independent ──
+        # Gap opens beyond a prev-day level, price takes the level back, bases
+        # on it ≥15min, then breaks out of the base range: the reclaim is the
+        # trade (2026-07-13: opened under PDL 24124, reclaimed, based, then
+        # +230pt trend — the raw level block had no path to that entry).
+        if _pdo and self._session_open and live_ltp:
+            import time as _rc_t
+            if self._rc_watching:
+                _lvl = self._rc_level
+                _elapsed = _rc_t.time() - self._rc_ts
+                failed = (
+                    (self._rc_side == "CE" and live_ltp < _lvl - self._RC_FAIL_PTS)
+                    or (self._rc_side == "PE" and live_ltp > _lvl + self._RC_FAIL_PTS)
+                )
+                # After the base is frozen, breaking OUT of it the WRONG way
+                # also invalidates the setup (base failed, not just the level)
+                if self._rc_frozen and not failed:
+                    failed = (
+                        (self._rc_side == "CE" and live_ltp < self._rc_lo - 2.0)
+                        or (self._rc_side == "PE" and live_ltp > self._rc_hi + 2.0)
+                    )
+                if failed or _elapsed > self._RC_EXPIRE_SECS:
+                    log.info("Reclaim watch reset (%s of %.0f): %s",
+                             self._rc_side, _lvl, "failed back through" if failed else "expired")
+                    self._rc_watching = False
+                    self._rc_frozen = False
+                elif _elapsed < self._RC_BASE_SECS:
+                    # basing window — tick extremes as fallback range
+                    self._rc_hi = max(self._rc_hi, live_ltp)
+                    self._rc_lo = min(self._rc_lo, live_ltp)
+                elif not self._rc_frozen:
+                    # 15min done — lock the base from the CLOSED 5-min bars of
+                    # the basing window (freak ticks can't define the range);
+                    # tick-built extremes stay as fallback if bars unavailable
+                    _bars = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=3)
+                    if _bars:
+                        self._rc_hi = max(b[1] for b in _bars)
+                        self._rc_lo = min(b[2] for b in _bars)
+                    self._rc_frozen = True
+                    log.info("Reclaim base FROZEN (%s of %.0f): %.1f-%.1f — waiting for break",
+                             self._rc_side, _lvl, self._rc_lo, self._rc_hi)
+            else:
+                if (not self._rc_done_ce
+                        and self._session_open < _pdo["low"] and live_ltp > _pdo["low"]):
+                    self._rc_watching, self._rc_side = True, "CE"
+                    self._rc_level, self._rc_ts = _pdo["low"], _rc_t.time()
+                    self._rc_hi = self._rc_lo = live_ltp
+                    self._rc_frozen = False
+                    log.info("PDL reclaim armed: opened %.0f < PDL %.0f, now %.0f — basing clock started",
+                             self._session_open, _pdo["low"], live_ltp)
+                elif (not self._rc_done_pe
+                        and self._session_open > _pdo["high"] and live_ltp < _pdo["high"]):
+                    self._rc_watching, self._rc_side = True, "PE"
+                    self._rc_level, self._rc_ts = _pdo["high"], _rc_t.time()
+                    self._rc_hi = self._rc_lo = live_ltp
+                    self._rc_frozen = False
+                    log.info("PDH loss armed: opened %.0f > PDH %.0f, now %.0f — basing clock started",
+                             self._session_open, _pdo["high"], live_ltp)
+
         no_trade_reason = None
         if bot_control.is_paused():
             no_trade_reason = "Paused via Telegram (/resume to re-enable)"
@@ -544,6 +628,27 @@ class OverallAnalysisPanel(Static):
             no_trade_reason = "Outside trading window (09:30–15:25)"
         elif option == "—":
             no_trade_reason = "Trend too weak"
+        # Extreme gap (≥150pt): the move already happened overnight — entering
+        # in the gap's direction is buying the exhaust (2026-07-13: -133 gap,
+        # PE at the day's low, market then trended UP 230pt). Ban the gap-side
+        # trade UNLESS price breaks the opening range in the gap's direction —
+        # that's continuation proof (a real crash day must stay tradeable).
+        elif (
+            _gap_pts <= -150 and option == "PE"
+            and not (self._orb_ready and live_ltp < self._orb_low)
+        ):
+            no_trade_reason = (
+                f"Gap-down {_gap_pts:+.0f}pt — PE banned (fade risk)"
+                f" unless ORB low {self._orb_low:.0f} breaks"
+            )
+        elif (
+            _gap_pts >= 150 and option == "CE"
+            and not (self._orb_ready and live_ltp > self._orb_high)
+        ):
+            no_trade_reason = (
+                f"Gap-up {_gap_pts:+.0f}pt — CE banned (fade risk)"
+                f" unless ORB high {self._orb_high:.0f} breaks"
+            )
         elif high_iv and not capital_service.is_expiry_afternoon():
             # Expiry afternoon exempted: premiums are cheap in rupees and gamma
             # is the trade — "options expensive" is the wrong lens there. The
@@ -764,6 +869,46 @@ class OverallAnalysisPanel(Static):
                             option, entry_key, entry_price, potential * 100, exp_move * 100,
                         )
 
+                # ── PDL-reclaim / PDH-loss base-break entry ───────────────────
+                # Basing window done + price breaks OUT of the base range in the
+                # reclaim direction + flow not contradicting → take it. Skips the
+                # static-level S/R check downstream (the reclaimed level IS the
+                # validation), same precedent as sr_retest.
+                if (not entry_type and self._rc_watching
+                        and self._rc_side == option
+                        and entry_key and entry_price):
+                    import time as _rc_t2
+                    _based = self._rc_frozen
+                    _breaks = (
+                        (option == "CE" and live_ltp > self._rc_hi + 2.0)
+                        or (option == "PE" and live_ltp < self._rc_lo - 2.0)
+                    )
+                    _flow_agrees = (
+                        (option == "CE" and flow_score >= 0)
+                        or (option == "PE" and flow_score <= 0)
+                    )
+                    if _based and _breaks and _flow_agrees:
+                        entry_type = "pdl_reclaim" if option == "CE" else "pdh_loss"
+                        self._rc_watching = False
+                        if option == "CE":
+                            self._rc_done_ce = True
+                        else:
+                            self._rc_done_pe = True
+                        log.info(
+                            "%s: level %.0f reclaimed, based %.0fmin in %.0f-%.0f, "
+                            "broke %s @ %.1f flow=%+d",
+                            entry_type, self._rc_level,
+                            (_rc_t2.time() - self._rc_ts) / 60,
+                            self._rc_lo, self._rc_hi,
+                            "above" if option == "CE" else "below", live_ltp, flow_score,
+                        )
+                    elif _based:
+                        watch_tag = (
+                            f"  [bold yellow]⟳ RECLAIM {option}[/]"
+                            f" [dim]based at {self._rc_level:.0f}, need"
+                            f" {'>' + format(self._rc_hi + 2.0, '.0f') if option == 'CE' else '<' + format(self._rc_lo - 2.0, '.0f')}[/]"
+                        )
+
                 # ── Opening Range Breakout — arm watch on first break ─────────
                 # On break: record ORB level as departure anchor, require bk_min_dist
                 # before entering. Departure alone is enough (no retest/timeout).
@@ -969,7 +1114,11 @@ class OverallAnalysisPanel(Static):
                         # Price must travel ≥MIN_DEPART pts first; prevents instant
                         # entry on restart when price == breakout price
                         departed  = self._bk_max_dist >= bk_min_dist
-                        retest    = departed and dist_now <= self._RETEST_PTS
+                        # Retest = "departed, then returned to the level" — in a
+                        # consolidating regime that's just mean-reversion chop, and
+                        # it went 0W/5L (-31.8pts) across Jul 6-13, including both
+                        # Jul-9 -10s. Trend days keep the retest entry.
+                        retest    = departed and dist_now <= self._RETEST_PTS and not consol_regime
                         timed_out = departed and elapsed >= bk_timeout
 
                         if retest:
@@ -1011,8 +1160,17 @@ class OverallAnalysisPanel(Static):
                             (option == "CE" and flow_score >= 2)
                             or (option == "PE" and flow_score <= -2)
                         )
+                        # On a gap morning the 4-bar confirmation is fake: every
+                        # bar inherits the overnight SMA displacement (price sits
+                        # 100pt+ from the SMAs because of the gap, not intraday
+                        # order flow) and flow is polluted by opening prints.
+                        # 3rd gap-morning trap 2026-07-13: sustained PE fired 57s
+                        # into the window, 5pt from the day's low, -10pt. ORB
+                        # stays available — it demands a real range break.
+                        _gap_sustained_ban = abs(_gap_pts) > 50 and _now_ist.hour < 10
                         if (not entry_type and self._consec_sma_bars >= 4
-                                and abs(sma_score) == 2 and _oi_ok and _flow_ok):
+                                and abs(sma_score) == 2 and _oi_ok and _flow_ok
+                                and not _gap_sustained_ban):
                             entry_type = "sustained"
                             log.info(
                                 "Sustained signal: %s sma_score=%+d for %d bars oi_sc=%+d "
@@ -1022,11 +1180,12 @@ class OverallAnalysisPanel(Static):
                             )
 
                     if entry_type:
-                        # sr_retest entries already validated at the broken level — skip normal S/R check
-                        if entry_type == "sr_retest":
+                        # sr_retest / reclaim entries already validated at their
+                        # own level — skip the normal S/R proximity check
+                        if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss"):
                             sr_block, _broken_level = None, 0.0
                         else:
-                            sr_block, _broken_level = _near_sr(ltp, option)
+                            sr_block, _broken_level = _near_sr(ltp, option, sma_score)
                         if sr_block:
                             watch_tag = f"  [bold red]⚠ BLOCKED — {sr_block}[/]"
                             log.info("Entry blocked by S/R: %s @ %.1f  (%s)", option, ltp, sr_block)
