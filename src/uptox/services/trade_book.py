@@ -354,8 +354,12 @@ def _attach_costs(trade_id: str, option_key: str, qty: int,
                 t["cost_rs"]    = cost
                 t["pnl_rs_net"] = round(t.get("pnl_rs", 0.0) - cost, 2)
                 _save()
-                log.info("Charges attached: %s  cost=₹%.2f  net=₹%.2f",
-                         trade_id, cost, t["pnl_rs_net"])
+                # adjust_for_pnl(pnl_rs) already ran gross at close_trade() —
+                # true up the live capital pool now that the real fee is known
+                from uptox.services import capital_service
+                capital_service.adjust_for_pnl(-cost)
+                log.info("Charges attached: %s  cost=₹%.2f  net=₹%.2f  capital→₹%.0f",
+                         trade_id, cost, t["pnl_rs_net"], capital_service.get_capital())
                 break
 
     try:

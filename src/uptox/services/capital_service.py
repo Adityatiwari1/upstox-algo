@@ -53,11 +53,17 @@ def adjust_for_pnl(pnl_rs: float) -> None:
 
 
 def sync_from_history(trades: list) -> None:
+    """Realised P&L uses pnl_rs_net (after real broker charges) where the
+    async charges lookup has landed; falls back to gross pnl_rs for trades
+    still awaiting pricing or from before cost tracking existed."""
     global _capital
-    realised = sum(float(t.get("pnl_rs", 0.0)) for t in trades if t.get("outcome") != "OPEN")
+    realised = sum(
+        float(t.get("pnl_rs_net")) if t.get("pnl_rs_net") is not None else float(t.get("pnl_rs", 0.0))
+        for t in trades if t.get("outcome") != "OPEN"
+    )
     _capital  = round(_base_capital + realised, 2)
     log.info(
-        "Capital synced: base=₹%.0f  realised=₹%.0f  current=₹%.0f",
+        "Capital synced: base=₹%.0f  realised(net)=₹%.0f  current=₹%.0f",
         _base_capital, realised, _capital,
     )
 
