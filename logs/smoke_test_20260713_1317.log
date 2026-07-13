@@ -1,0 +1,14 @@
+2026-07-13 07:47:18,387 INFO    smoke_test: log file: logs/smoke_test_20260713_1317.log
+2026-07-13 07:47:18,679 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-07-13 07:47:18,692 INFO    smoke_test: auto-picked expiry 2026-07-14 (valid: ['2026-07-14', '2026-07-21', '2026-07-28', '2026-08-04'])
+2026-07-13 07:47:18,881 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-07-14 "HTTP/1.1 200 OK"
+2026-07-13 07:47:18,884 INFO    smoke_test: SELECTED: 24500 CE NSE_FO|51393 @ ₹11.50  qty=65  (max spend ₹785)
+2026-07-13 07:47:30,900 INFO    uptox.services.order_service: LIVE ORDER → LIMIT BUY NSE_FO|51393  qty=65  price=12.7  trigger=0.0
+2026-07-13 07:47:31,122 INFO    httpx: HTTP Request: POST https://api-hft.upstox.com/v3/order/place "HTTP/1.1 200 OK"
+2026-07-13 07:47:31,123 INFO    uptox.services.order_service: LIVE ORDER ACCEPTED: order_ids=['260713000194446']  LIMIT BUY NSE_FO|51393  qty=65
+2026-07-13 07:47:31,263 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000194446 "HTTP/1.1 200 OK"
+2026-07-13 07:47:31,264 INFO    smoke_test: poll 260713000194446 → status=rejected filled=0 avg=0.0 trigger=0.0
+2026-07-13 07:47:31,264 ERROR   smoke_test: SMOKE TEST ERROR: entry did not fill: {'exchange': 'NFO', 'product': 'I', 'price': 12.7, 'quantity': 65, 'status': 'rejected', 'guid': None, 'tag': 'uptox-smoke', 'instrument_token': 'NSE_FO|51393', 'placed_by': '5VCNLB', 'tradingsymbol': 'NIFTY2671424500CE', 'trading_symbol': 'NIFTY2671424500CE', 'order_type': 'LIMIT', 'validity': 'DAY', 'trigger_price': 0.0, 'disclosed_quantity': 0, 'transaction_type': 'BUY', 'average_price': 0.0, 'filled_quantity': 0, 'pending_quantity': 0, 'status_message': 'You need to add Rs. 66.50 in your account to place this trade.', 'status_message_raw': 'RMS:Margin Exceeds,Required:1566.50, Available:1500.00 for entity account-5VCNLB across exchange across segment across product ', 'exchange_order_id': '', 'parent_order_id': None, 'order_id': '260713000194446', 'variety': 'SIMPLE', 'order_timestamp': '2026-07-13 13:17:31', 'exchange_timestamp': None, 'is_amo': False, 'order_request_id': '1', 'order_ref_id': 'UDAPI-I-rExCqssilIqXROKzp66VHZko'}
+2026-07-13 07:47:31,264 WARNING smoke_test: aborting — flattening script-owned exposure
+2026-07-13 07:47:31,384 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000194446 "HTTP/1.1 200 OK"
+2026-07-13 07:47:31,386 INFO    smoke_test: FLATTEN: entry order 260713000194446 already rejected, nothing to cancel

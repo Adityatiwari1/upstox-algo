@@ -38,7 +38,8 @@ _TAG      = "uptox-smoke"
 log = logging.getLogger("smoke_test")
 
 # script-held state so an abort can always flatten
-_state = {"pos_qty": 0, "pos_key": "", "sl_order_id": "", "last_ltp": 0.0}
+_state = {"pos_qty": 0, "pos_key": "", "sl_order_id": "", "last_ltp": 0.0,
+          "entry_order_id": ""}
 
 
 def _setup_logging() -> Path:
@@ -130,7 +131,23 @@ async def _pick_strike(expiry: str, side: str, min_prem: float, max_prem: float)
 
 
 async def _flatten() -> None:
-    """Abort path: cancel resting SL, market-out any open position."""
+    """Abort path: cancel any still-resting ENTRY order, cancel resting SL,
+    market-out any filled position. An unfilled entry (e.g. thin liquidity on
+    a far-OTM strike, seen 2026-07-13: BUY timed out at 'open' with 0 filled)
+    would otherwise sit live at the exchange with nothing here to cancel it."""
+    if _state["entry_order_id"]:
+        oid = _state["entry_order_id"]
+        d = await osvc.get_order_details(oid)
+        st = (d.get("status") or "").lower()
+        if st not in ("complete", "cancelled", "rejected"):
+            log.warning("FLATTEN: cancelling unfilled ENTRY order %s (status=%s)", oid, st)
+            try:
+                await osvc.cancel_order(oid)
+            except Exception as e:
+                log.error("FLATTEN: entry cancel failed (%s) — CHECK BROKER APP: order %s", e, oid)
+        else:
+            log.info("FLATTEN: entry order %s already %s, nothing to cancel", oid, st)
+        _state["entry_order_id"] = ""
     if _state["sl_order_id"]:
         log.warning("FLATTEN: cancelling SL order %s", _state["sl_order_id"])
         try:
@@ -155,11 +172,13 @@ async def run_happy_path(key: str, strike: int, ltp: float, qty: int) -> None:
     _state.update(pos_key=key, last_ltp=ltp)
 
     # 1. entry
-    if _confirm(f"STEP 1  BUY {qty} × {strike} @ LIMIT {round(ltp*1.05,1)} (marketable)"):
-        resp = await osvc.place_order(key, "BUY", qty, price=round(ltp * 1.05, 1), tag=_TAG)
-        d = await _poll_terminal(_order_id(resp), ("complete",))
+    if _confirm(f"STEP 1  BUY {qty} × {strike} @ LIMIT {round(ltp*1.10,1)} (marketable)"):
+        resp = await osvc.place_order(key, "BUY", qty, price=round(ltp * 1.10, 1), tag=_TAG)
+        _state["entry_order_id"] = _order_id(resp)
+        d = await _poll_terminal(_state["entry_order_id"], ("complete",), timeout_s=90.0)
         if (d.get("status") or "").lower() != "complete":
             raise RuntimeError(f"entry did not fill: {d}")
+        _state["entry_order_id"] = ""   # filled — nothing left for flatten to cancel
         _state["pos_qty"] = qty
         fill = float(d.get("average_price") or ltp)
         log.info("ENTRY FILLED @ %.2f", fill)
@@ -242,10 +261,12 @@ async def run_money_test(key: str, strike: int, ltp: float, qty: int) -> None:
     _state.update(pos_key=key, last_ltp=ltp)
     if not _confirm(f"MONEY  BUY {qty} × {strike} then SL trigger 5%% below — will take a real ~5%% loss"):
         return
-    resp = await osvc.place_order(key, "BUY", qty, price=round(ltp * 1.05, 1), tag=_TAG)
-    d = await _poll_terminal(_order_id(resp), ("complete",))
+    resp = await osvc.place_order(key, "BUY", qty, price=round(ltp * 1.10, 1), tag=_TAG)
+    _state["entry_order_id"] = _order_id(resp)
+    d = await _poll_terminal(_state["entry_order_id"], ("complete",), timeout_s=90.0)
     if (d.get("status") or "").lower() != "complete":
         raise RuntimeError(f"money-test entry did not fill: {d}")
+    _state["entry_order_id"] = ""   # filled — nothing left for flatten to cancel
     _state["pos_qty"] = qty
     fill = float(d.get("average_price") or ltp)
     trig = round(fill * 0.95, 1)
