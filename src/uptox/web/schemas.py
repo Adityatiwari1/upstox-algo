@@ -51,6 +51,8 @@ class Trade(BaseModel):
     peak_price: float | None = Field(default=None, description="Best option price reached (closed trades only)")
     max_pnl_pts: float | None = Field(default=None, description="Max unrealised P&L pts before close (closed trades only)")
     max_pnl_rs: float | None = None
+    cost_rs: float | None = Field(default=None, description="Broker's real round-trip charges (brokerage+STT+fees, from Upstox charges API). Arrives async shortly after close — null until then.")
+    pnl_rs_net: float | None = Field(default=None, description="pnl_rs minus cost_rs — true P&L after real broker charges. Null until cost_rs lands.")
 
 
 class TradeStats(BaseModel):
@@ -60,6 +62,8 @@ class TradeStats(BaseModel):
     win_rate: float = Field(description="Percent, 0-100")
     total_pnl_pts: float
     total_pnl_rs: float
+    total_cost_rs: float = Field(default=0.0, description="Sum of real broker charges across trades that have them")
+    total_pnl_rs_net: float = Field(default=0.0, description="total_pnl_rs minus total_cost_rs")
     avg_win: float = Field(description="Average winning trade, in option pts")
     avg_loss: float = Field(description="Average losing trade, in option pts (negative)")
     best: float = Field(description="Best single trade, option pts")
