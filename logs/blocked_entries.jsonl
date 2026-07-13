@@ -1098,3 +1098,11 @@
 {"ts": "2026-07-13T10:29:37+05:30", "option": "CE", "ltp": 24154.7, "score": 4, "entry_type": null, "reason": "Consolidating — 36pt range in 30min (need >57, drift 7%)"}
 {"ts": "2026-07-13T10:30:00+05:30", "option": "CE", "ltp": 24147.7, "score": 3, "entry_type": "orb", "reason": "Resistance: SMA50/5m (14pt above)"}
 {"ts": "2026-07-13T10:55:06+05:30", "option": "CE", "ltp": 24124.4, "score": 3, "entry_type": null, "reason": "Retreat active -32pts from high — wait for green bar"}
+{"ts": "2026-07-13T11:12:01+05:30", "option": "CE", "ltp": 24160.8, "score": 4, "entry_type": "retest", "reason": "Resistance: SMA100/5m (7pt above)"}
+{"ts": "2026-07-13T11:37:41+05:30", "option": "PE", "ltp": 24139.8, "score": -2, "entry_type": null, "reason": "Consolidating — 29pt range in 30min (need >32, drift 30%)"}
+{"ts": "2026-07-13T12:31:05+05:30", "option": "CE", "ltp": 24174.4, "score": 5, "entry_type": "sustained", "reason": "Resistance: Pivot PP (11pt above)"}
+{"ts": "2026-07-13T12:31:16+05:30", "option": "CE", "ltp": 24173.0, "score": 5, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-13T12:45:01+05:30", "option": "CE", "ltp": 24213.5, "score": 5, "entry_type": "sustained", "reason": "Resistance: PDH (15pt above)"}
+{"ts": "2026-07-13T12:45:06+05:30", "option": "CE", "ltp": 24212.6, "score": 5, "entry_type": "sustained", "reason": "S/R intact: 24228 not broken (16pt away)"}
+{"ts": "2026-07-13T12:45:19+05:30", "option": "CE", "ltp": 24218.3, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (14pt above)"}
+{"ts": "2026-07-13T12:51:54+05:30", "option": "CE", "ltp": 24224.8, "score": 5, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
