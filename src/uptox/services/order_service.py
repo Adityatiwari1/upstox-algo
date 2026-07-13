@@ -3,12 +3,14 @@ Live order placement via Upstox v2 REST API.
 Only called when trading_mode.is_live() == True.
 
 Entries/exits are intraday LIMIT orders; the protective stop is a single
-SL-M (market-on-trigger) SELL order resting at the broker. The exchange
-allows only ONE stop order per position, so the trailing SL never places a
-second order — it MODIFIES the resting SL-M's trigger price upward as the
-trail floor rises. App-side exits (target, stale, reversal) cancel the SL-M
-first, then sell; if the cancel fails because the SL-M already filled, the
-sell is skipped — the position is already flat.
+SL (stop-limit) SELL order resting at the broker — trigger plus our own
+limit band below it (NSE options disallow SL-M; brokers otherwise attach a
+band we don't control). The exchange allows only ONE stop order per
+position, so the trailing SL never places a second order — it MODIFIES the
+resting stop's trigger (and band) upward as the trail floor rises.
+App-side exits (target, stale, reversal) cancel the stop first, then sell;
+if the cancel fails because the stop already filled, the sell is skipped —
+the position is already flat.
 
 instrument_token format: "NSE_FO|<exchange_token>" — same as instrument_key
 from option_chain_service.
@@ -70,32 +72,49 @@ def _headers() -> dict:
     }
 
 
+# Stop orders on NSE options cannot be market-on-trigger (SL-M) — the broker
+# silently converts them to stop-LIMIT with a band we don't control (seen
+# 2026-07-13: our SL-M trigger 7.1 became "SL lmt @ 7.35" in Upstox). Place
+# explicit SL orders instead: trigger + our own limit band below it, wide
+# enough to fill through a fast move but bounded by our choice.
+_SL_LIMIT_BAND = 0.05
+
+
+def sl_limit_price(trigger: float) -> float:
+    """Limit price for a SELL stop: trigger minus the protection band."""
+    return round(max(trigger * (1.0 - _SL_LIMIT_BAND), 0.1), 1)
+
+
 async def place_order(
     instrument_token: str,
     transaction_type: str,   # "BUY" | "SELL"
     qty: int,
     price: float = 0.0,
     tag: str = "uptox",
-    order_type: str = "LIMIT",     # "LIMIT" | "MARKET" | "SL-M"
-    trigger_price: float = 0.0,    # required for SL-M
+    order_type: str = "LIMIT",     # "LIMIT" | "MARKET" | "SL" | "SL-M"
+    trigger_price: float = 0.0,    # required for SL / SL-M
 ) -> dict:
     """
     Place an intraday order via Upstox v3 API. Returns response dict.
     Raises on HTTP error or API-level error.
 
     LIMIT: price > 0, trigger_price = 0.
-    SL-M:  trigger_price > 0, price = 0 (fills at market once triggered).
+    SL:    trigger_price > 0 AND price > 0 (stop-limit — use for option stops).
+    SL-M:  trigger_price > 0, price = 0 (indexes/futures only; options get
+           silently converted to SL by the broker).
     """
     if order_type == "LIMIT" and price <= 0:
         raise ValueError(f"Limit order requires price > 0, got {price}")
     if order_type == "SL-M" and trigger_price <= 0:
         raise ValueError(f"SL-M order requires trigger_price > 0, got {trigger_price}")
+    if order_type == "SL" and (trigger_price <= 0 or price <= 0):
+        raise ValueError(f"SL order requires trigger AND limit price, got t={trigger_price} p={price}")
 
     payload = {
         "quantity":           qty,
         "product":            "I",          # intraday margin
         "validity":           "DAY",
-        "price":              round(price, 1) if order_type == "LIMIT" else 0,
+        "price":              round(price, 1) if order_type in ("LIMIT", "SL") else 0,
         "tag":                tag,
         "instrument_token":   instrument_token,
         "order_type":         order_type,
@@ -134,14 +153,18 @@ async def modify_order(
     order_id: str,
     qty: int,
     trigger_price: float,
-    order_type: str = "SL-M",
+    order_type: str = "SL",
+    price: float | None = None,
 ) -> dict:
-    """Modify a resting order — used to trail the SL-M trigger upward."""
+    """Modify a resting stop — trail the trigger upward, moving our limit
+    band with it (price defaults to sl_limit_price(trigger))."""
+    if price is None:
+        price = sl_limit_price(trigger_price) if order_type == "SL" else 0.0
     payload = {
         "order_id":           order_id,
         "quantity":           qty,
         "validity":           "DAY",
-        "price":              0,
+        "price":              round(price, 1),
         "order_type":         order_type,
         "disclosed_quantity": 0,
         "trigger_price":      round(trigger_price, 1),
@@ -269,13 +292,14 @@ def schedule_entry_with_sl(
         try:
             data = await place_order(
                 instrument_token, "SELL", qty,
-                order_type="SL-M", trigger_price=sl_trigger, tag="uptox-sl",
+                price=sl_limit_price(sl_trigger),
+                order_type="SL", trigger_price=sl_trigger, tag="uptox-sl",
             )
             ids = (data.get("data") or {}).get("order_ids", [])
             if ids and on_sl_order_id:
                 on_sl_order_id(ids[0])
         except Exception as exc:
-            log.error("LIVE SL-M PLACE ERROR (%s trigger=%.1f): %s — position UNPROTECTED "
+            log.error("LIVE SL PLACE ERROR (%s trigger=%.1f): %s — position UNPROTECTED "
                       "at broker, app-side trail still active",
                       instrument_token, sl_trigger, exc)
 

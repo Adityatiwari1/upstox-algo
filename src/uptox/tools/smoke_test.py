@@ -166,27 +166,35 @@ async def run_happy_path(key: str, strike: int, ltp: float, qty: int) -> None:
     else:
         fill = ltp
 
-    # 2. resting SL-M
+    # 2. resting SL (stop-limit with OUR band — SL-M gets silently converted
+    #    on NSE options, seen 2026-07-13)
     trig = round(fill * 0.70, 1)
-    if _confirm(f"STEP 2  place SL-M SELL trigger {trig} (30%% below fill)"):
-        resp = await osvc.place_order(key, "SELL", qty, order_type="SL-M",
+    limit = osvc.sl_limit_price(trig)
+    if _confirm(f"STEP 2  place SL SELL trigger {trig} / limit {limit} (30%% below fill)"):
+        resp = await osvc.place_order(key, "SELL", qty, price=limit, order_type="SL",
                                       trigger_price=trig, tag=_TAG)
         _state["sl_order_id"] = _order_id(resp)
         d = await _poll_terminal(_state["sl_order_id"], ("trigger pending", "open"))
-        log.info("SL-M RESTING: id=%s status=%s", _state["sl_order_id"], d.get("status"))
+        log.info("SL RESTING: id=%s status=%s trigger=%s limit=%s",
+                 _state["sl_order_id"], d.get("status"),
+                 d.get("trigger_price"), d.get("price"))
 
-    # 3+4. trail steps — modify trigger up twice
+    # 3+4. trail steps — modify trigger up twice, band moves with it
     for i, frac in enumerate((0.75, 0.80), start=3):
-        new_trig = round(fill * frac, 1)
-        if _state["sl_order_id"] and _confirm(f"STEP {i}  MODIFY trigger → {new_trig}"):
+        new_trig  = round(fill * frac, 1)
+        new_limit = osvc.sl_limit_price(new_trig)
+        if _state["sl_order_id"] and _confirm(f"STEP {i}  MODIFY trigger → {new_trig} / limit {new_limit}"):
             await osvc.modify_order(_state["sl_order_id"], qty, new_trig)
             d = await osvc.get_order_details(_state["sl_order_id"])
-            got = float(d.get("trigger_price") or 0)
-            log.info("VERIFY trigger now %.1f — %s", got,
-                     "PASS" if abs(got - new_trig) < 0.51 else "FAIL")
+            got_t = float(d.get("trigger_price") or 0)
+            got_p = float(d.get("price") or 0)
+            log.info("VERIFY trigger %.1f limit %.1f — %s",
+                     got_t, got_p,
+                     "PASS" if abs(got_t - new_trig) < 0.51 and abs(got_p - new_limit) < 0.51
+                     else "FAIL")
 
-    # 5. cancel SL-M
-    if _state["sl_order_id"] and _confirm("STEP 5  CANCEL the SL-M"):
+    # 5. cancel SL
+    if _state["sl_order_id"] and _confirm("STEP 5  CANCEL the SL"):
         await osvc.cancel_order(_state["sl_order_id"])
         d = await _poll_terminal(_state["sl_order_id"], ("cancelled",))
         log.info("CANCEL %s", "PASS" if (d.get("status") or "").lower() == "cancelled" else f"FAIL: {d}")
@@ -229,10 +237,10 @@ async def run_negative_paths() -> None:
 
 
 async def run_money_test(key: str, strike: int, ltp: float, qty: int) -> None:
-    """Let a real SL-M actually TRIGGER, then prove exit_with_sl_cleanup
+    """Let a real SL stop actually TRIGGER, then prove exit_with_sl_cleanup
     detects the fill and SKIPS the sell (the naked-short guard)."""
     _state.update(pos_key=key, last_ltp=ltp)
-    if not _confirm(f"MONEY  BUY {qty} × {strike} then SL-M trigger 5%% below — will take a real ~5%% loss"):
+    if not _confirm(f"MONEY  BUY {qty} × {strike} then SL trigger 5%% below — will take a real ~5%% loss"):
         return
     resp = await osvc.place_order(key, "BUY", qty, price=round(ltp * 1.05, 1), tag=_TAG)
     d = await _poll_terminal(_order_id(resp), ("complete",))
@@ -241,14 +249,14 @@ async def run_money_test(key: str, strike: int, ltp: float, qty: int) -> None:
     _state["pos_qty"] = qty
     fill = float(d.get("average_price") or ltp)
     trig = round(fill * 0.95, 1)
-    resp = await osvc.place_order(key, "SELL", qty, order_type="SL-M",
-                                  trigger_price=trig, tag=_TAG)
+    resp = await osvc.place_order(key, "SELL", qty, price=osvc.sl_limit_price(trig),
+                                  order_type="SL", trigger_price=trig, tag=_TAG)
     _state["sl_order_id"] = _order_id(resp)
-    log.info("SL-M %s trigger=%.1f — waiting for it to FIRE (up to 15 min, Ctrl+C aborts+flattens)",
-             _state["sl_order_id"], trig)
+    log.info("SL %s trigger=%.1f limit=%.1f — waiting for it to FIRE (up to 15 min, Ctrl+C aborts+flattens)",
+             _state["sl_order_id"], trig, osvc.sl_limit_price(trig))
     d = await _poll_terminal(_state["sl_order_id"], ("complete",), timeout_s=900)
     if (d.get("status") or "").lower() != "complete":
-        log.warning("SL-M did not trigger in window — flattening manually")
+        log.warning("SL did not trigger in window — flattening manually")
         return
     _state["pos_qty"] = 0   # broker already sold via trigger
     outcome = await osvc.exit_with_sl_cleanup(key, qty, round(fill * 0.95, 1),
@@ -272,19 +280,20 @@ def _install_dry_run() -> None:
                          order_type="LIMIT", trigger_price=0.0):
         seq["n"] += 1
         oid = f"DRY{seq['n']}"
-        book[oid] = {"status": "trigger pending" if order_type == "SL-M" else "complete",
+        book[oid] = {"status": "trigger pending" if order_type in ("SL", "SL-M") else "complete",
                      "average_price": price or 10.0, "trigger_price": trigger_price,
-                     "filled_quantity": qty}
+                     "price": price, "filled_quantity": qty}
         log.info("[dry] place %s %s %s qty=%d price=%.1f trig=%.1f → %s",
                  order_type, side, token, qty, price, trigger_price, oid)
         return {"data": {"order_ids": [oid]}}
     async def fake_details(oid):
         return dict(book.get(oid, {}))
-    async def fake_modify(oid, qty, trig, order_type="SL-M"):
+    async def fake_modify(oid, qty, trig, order_type="SL", price=None):
         if oid not in book:
             raise RuntimeError("[dry] 404 order not found")
         book[oid]["trigger_price"] = trig
-        log.info("[dry] modify %s trig=%.1f", oid, trig)
+        book[oid]["price"] = price if price is not None else osvc.sl_limit_price(trig)
+        log.info("[dry] modify %s trig=%.1f limit=%.1f", oid, trig, book[oid]["price"])
         return {}
     async def fake_cancel(oid):
         if oid not in book:
@@ -357,7 +366,7 @@ def main() -> None:
     p.add_argument("--min-prem",   type=float, default=5.0)
     p.add_argument("--max-prem",   type=float, default=15.0)
     p.add_argument("--money-test", action="store_true",
-                   help="also let an SL-M really trigger to prove the naked-short guard")
+                   help="also let a real SL stop trigger to prove the naked-short guard")
     p.add_argument("--dry-run",    action="store_true", help="rehearse full flow, no HTTP")
     p.add_argument("--force",      action="store_true", help="override the market-hours guard")
     args = p.parse_args()
