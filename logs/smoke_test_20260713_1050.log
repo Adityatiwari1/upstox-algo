@@ -1,0 +1,49 @@
+2026-07-13 05:20:16,143 INFO    smoke_test: log file: logs/smoke_test_20260713_1050.log
+2026-07-13 05:20:16,347 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/option/contract?instrument_key=NSE_INDEX%7CNifty+50 "HTTP/1.1 200 OK"
+2026-07-13 05:20:16,366 INFO    smoke_test: auto-picked expiry 2026-07-14 (valid: ['2026-07-14', '2026-07-21', '2026-07-28', '2026-08-04'])
+2026-07-13 05:20:16,433 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-07-14 "HTTP/1.1 200 OK"
+2026-07-13 05:20:16,437 INFO    smoke_test: SELECTED: 23700 PE NSE_FO|51356 @ ₹9.70  qty=65  (max spend ₹662)
+2026-07-13 05:20:22,270 INFO    uptox.services.order_service: LIVE ORDER → LIMIT BUY NSE_FO|51356  qty=65  price=10.2  trigger=0.0
+2026-07-13 05:20:22,323 INFO    httpx: HTTP Request: POST https://api-hft.upstox.com/v3/order/place "HTTP/1.1 200 OK"
+2026-07-13 05:20:22,324 INFO    uptox.services.order_service: LIVE ORDER ACCEPTED: order_ids=['260713000101580']  LIMIT BUY NSE_FO|51356  qty=65
+2026-07-13 05:20:22,367 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000101580 "HTTP/1.1 200 OK"
+2026-07-13 05:20:22,368 INFO    smoke_test: poll 260713000101580 → status=complete filled=65 avg=9.75 trigger=0.0
+2026-07-13 05:20:22,368 INFO    smoke_test: ENTRY FILLED @ 9.75
+2026-07-13 05:20:39,804 INFO    uptox.services.order_service: LIVE ORDER → SL SELL NSE_FO|51356  qty=65  price=6.5  trigger=6.8
+2026-07-13 05:20:39,864 INFO    httpx: HTTP Request: POST https://api-hft.upstox.com/v3/order/place "HTTP/1.1 200 OK"
+2026-07-13 05:20:39,865 INFO    uptox.services.order_service: LIVE ORDER ACCEPTED: order_ids=['260713000101763']  SL SELL NSE_FO|51356  qty=65
+2026-07-13 05:20:39,919 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000101763 "HTTP/1.1 200 OK"
+2026-07-13 05:20:39,920 INFO    smoke_test: poll 260713000101763 → status=trigger pending filled=0 avg=0.0 trigger=6.8
+2026-07-13 05:20:39,920 INFO    smoke_test: SL RESTING: id=260713000101763 status=trigger pending trigger=6.8 limit=6.5
+2026-07-13 05:21:13,915 INFO    httpx: HTTP Request: PUT https://api-hft.upstox.com/v3/order/modify "HTTP/1.1 200 OK"
+2026-07-13 05:21:13,916 INFO    uptox.services.order_service: LIVE SL MODIFIED: order_id=260713000101763  trigger → 7.3  qty=65
+2026-07-13 05:21:13,968 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000101763 "HTTP/1.1 200 OK"
+2026-07-13 05:21:13,970 INFO    smoke_test: VERIFY trigger 7.3 limit 6.9 — PASS
+2026-07-13 05:22:28,316 INFO    httpx: HTTP Request: PUT https://api-hft.upstox.com/v3/order/modify "HTTP/1.1 200 OK"
+2026-07-13 05:22:28,317 INFO    uptox.services.order_service: LIVE SL MODIFIED: order_id=260713000101763  trigger → 7.8  qty=65
+2026-07-13 05:22:28,361 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000101763 "HTTP/1.1 200 OK"
+2026-07-13 05:22:28,362 INFO    smoke_test: VERIFY trigger 7.8 limit 7.4 — PASS
+2026-07-13 05:22:35,584 INFO    httpx: HTTP Request: DELETE https://api-hft.upstox.com/v3/order/cancel?order_id=260713000101763 "HTTP/1.1 200 OK"
+2026-07-13 05:22:35,585 INFO    uptox.services.order_service: LIVE ORDER CANCELLED: order_id=260713000101763
+2026-07-13 05:22:35,629 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000101763 "HTTP/1.1 200 OK"
+2026-07-13 05:22:35,631 INFO    smoke_test: poll 260713000101763 → status=cancelled filled=0 avg=0.0 trigger=7.8
+2026-07-13 05:22:35,631 INFO    smoke_test: CANCEL PASS
+2026-07-13 05:22:39,938 INFO    uptox.services.order_service: LIVE ORDER → LIMIT SELL NSE_FO|51356  qty=65  price=9.3  trigger=0.0
+2026-07-13 05:22:39,993 INFO    httpx: HTTP Request: POST https://api-hft.upstox.com/v3/order/place "HTTP/1.1 200 OK"
+2026-07-13 05:22:39,994 INFO    uptox.services.order_service: LIVE ORDER ACCEPTED: order_ids=['260713000102767']  LIMIT SELL NSE_FO|51356  qty=65
+2026-07-13 05:22:40,041 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=260713000102767 "HTTP/1.1 200 OK"
+2026-07-13 05:22:40,042 INFO    smoke_test: poll 260713000102767 → status=complete filled=65 avg=9.7 trigger=0.0
+2026-07-13 05:22:40,042 INFO    smoke_test: EXIT FILLED @ 9.7
+2026-07-13 05:23:18,045 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/portfolio/short-term-positions "HTTP/1.1 200 OK"
+2026-07-13 05:23:18,046 INFO    smoke_test: POSITIONS: 1 rows, this contract qty=0 — PASS (flat)
+2026-07-13 05:23:25,037 INFO    httpx: HTTP Request: DELETE https://api-hft.upstox.com/v3/order/cancel?order_id=SMOKE-BOGUS-1 "HTTP/1.1 404 Not Found"
+2026-07-13 05:23:25,038 WARNING uptox.services.order_service: LIVE CANCEL FAILED: HTTP 404  {'status': 'error', 'errors': [{'errorCode': 'UDAPI100010', 'message': 'Order not found', 'propertyPath': None, 'invalidValue': None, 'error_code': 'UDAPI100010', 'property_path': None, 'invalid_value': None}]}  order_id=SMOKE-BOGUS-1
+2026-07-13 05:23:25,039 INFO    smoke_test: NEG 1 PASS — raised as expected: Client error '404 Not Found' for url 'https://api-hft.upstox.com/v3/order/cancel?order_id=SMOKE-BOGUS-1'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-07-13 05:23:29,147 INFO    httpx: HTTP Request: PUT https://api-hft.upstox.com/v3/order/modify "HTTP/1.1 404 Not Found"
+2026-07-13 05:23:29,148 ERROR   uptox.services.order_service: LIVE MODIFY FAILED: HTTP 404  {'status': 'error', 'errors': [{'errorCode': 'UDAPI100010', 'message': 'Order not found', 'propertyPath': None, 'invalidValue': None, 'error_code': 'UDAPI100010', 'property_path': None, 'invalid_value': None}]}  payload={'order_id': 'SMOKE-BOGUS-2', 'quantity': 65, 'validity': 'DAY', 'price': 4.8, 'order_type': 'SL', 'disclosed_quantity': 0, 'trigger_price': 5.0}
+2026-07-13 05:23:29,148 INFO    smoke_test: NEG 2 PASS — raised as expected: Client error '404 Not Found' for url 'https://api-hft.upstox.com/v3/order/modify'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-07-13 05:23:30,501 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/order/details?order_id=SMOKE-BOGUS-3 "HTTP/1.1 404 Not Found"
+2026-07-13 05:23:30,502 INFO    smoke_test: NEG 3 PASS — status=''
+2026-07-13 05:23:30,502 INFO    smoke_test: SMOKE TEST COMPLETE — review PASS/FAIL lines above and the log file
