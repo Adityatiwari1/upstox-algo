@@ -4,10 +4,17 @@
     "trail_atr_baseline": 20.0,
     "bk_min_dist": 11.0,
     "bk_timeout": 300,
-    "sr_tolerance": 15.0,
+    "sr_tolerance": 20.0,
     "pcr_bull_block": 0.5,
     "pcr_bear_block": 2.0,
     "iv_rank_block": 70.0
   },
-  "log": []
+  "log": [
+    {
+      "param": "sr_tolerance",
+      "old": 15.0,
+      "new": 20.0,
+      "reason": "S/R blocks saved avg -18pt/30min over 36 blocks — restore toward default"
+    }
+  ]
 }

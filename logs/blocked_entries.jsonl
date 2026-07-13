@@ -1106,3 +1106,25 @@
 {"ts": "2026-07-13T12:45:06+05:30", "option": "CE", "ltp": 24212.6, "score": 5, "entry_type": "sustained", "reason": "S/R intact: 24228 not broken (16pt away)"}
 {"ts": "2026-07-13T12:45:19+05:30", "option": "CE", "ltp": 24218.3, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (14pt above)"}
 {"ts": "2026-07-13T12:51:54+05:30", "option": "CE", "ltp": 24224.8, "score": 5, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-13T12:57:38+05:30", "option": "CE", "ltp": 24225.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (8pt above)"}
+{"ts": "2026-07-13T13:00:15+05:30", "option": "CE", "ltp": 24218.3, "score": 5, "entry_type": "sustained", "reason": "Resistance: PDH (10pt above)"}
+{"ts": "2026-07-13T13:00:41+05:30", "option": "CE", "ltp": 24213.2, "score": 5, "entry_type": "retest", "reason": "S/R intact: 24228 not broken (15pt away)"}
+{"ts": "2026-07-13T13:03:29+05:30", "option": "CE", "ltp": 24219.8, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (15pt above)"}
+{"ts": "2026-07-13T13:05:00+05:30", "option": "CE", "ltp": 24210.7, "score": 3, "entry_type": null, "reason": "Retreat active -49pts from high — wait for green bar"}
+{"ts": "2026-07-13T14:30:14+05:30", "option": "CE", "ltp": 24226.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (10pt above)"}
+{"ts": "2026-07-13T14:30:30+05:30", "option": "CE", "ltp": 24228.2, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 21% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-13T14:36:02+05:30", "option": "CE", "ltp": 24226.8, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (9pt above)"}
+{"ts": "2026-07-13T14:37:28+05:30", "option": "CE", "ltp": 24220.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: PDH (8pt above)"}
+{"ts": "2026-07-13T14:39:09+05:30", "option": "CE", "ltp": 24217.8, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 29% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-13T14:41:05+05:30", "option": "CE", "ltp": 24223.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (13pt above)"}
+{"ts": "2026-07-13T14:43:11+05:30", "option": "CE", "ltp": 24220.6, "score": 5, "entry_type": "sustained", "reason": "Resistance: PDH (8pt above)"}
+{"ts": "2026-07-13T14:44:09+05:30", "option": "CE", "ltp": 24224.8, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 26% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-13T14:51:00+05:30", "option": "CE", "ltp": 24240.7, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-13T14:52:59+05:30", "option": "CE", "ltp": 24243.7, "score": 5, "entry_type": "pdh_break", "reason": "Resistance: Pivot R1 (6pt above)"}
+{"ts": "2026-07-13T14:56:37+05:30", "option": "CE", "ltp": 24242.0, "score": 5, "entry_type": null, "reason": "Premium decay risk — IV rank 27% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-13T14:58:00+05:30", "option": "CE", "ltp": 24247.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: Pivot R1 (3pt above)"}
+{"ts": "2026-07-13T15:00:02+05:30", "option": "CE", "ltp": 24221.7, "score": 5, "entry_type": "sustained", "reason": "Resistance: PDH (7pt above)"}
+{"ts": "2026-07-13T15:00:03+05:30", "option": "CE", "ltp": 24221.8, "score": 5, "entry_type": "sustained", "reason": "Resistance: SMA50/1h (15pt above)"}
+{"ts": "2026-07-13T15:05:00+05:30", "option": "CE", "ltp": 24226.0, "score": 5, "entry_type": null, "reason": "Retreat active -34pts from high — wait for green bar"}
+{"ts": "2026-07-13T15:10:00+05:30", "option": "CE", "ltp": 24213.7, "score": 4, "entry_type": null, "reason": "Retreat active -46pts from high — wait for green bar"}
+{"ts": "2026-07-13T15:10:15+05:30", "option": "CE", "ltp": 24212.8, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 24% after 14:30 (theta kills low-IV options in last hour)"}
