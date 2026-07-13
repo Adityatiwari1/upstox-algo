@@ -207,6 +207,28 @@ async def get_order_status(order_id: str) -> str:
     return ((await get_order_details(order_id)).get("status") or "").lower()
 
 
+async def get_charges(instrument_token: str, qty: int, price: float,
+                      transaction_type: str, product: str = "I") -> float | None:
+    """Broker's own fee calculation for one order (₹ total: brokerage + STT +
+    stamp + transaction + GST...). Standard-API rate class. None on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(
+                "https://api.upstox.com/v2/charges/brokerage",
+                params={"instrument_token": instrument_token, "quantity": qty,
+                        "product": product, "transaction_type": transaction_type.upper(),
+                        "price": price},
+                headers=_headers(),
+            )
+        charges = ((r.json().get("data") or {}).get("charges") or {})
+        total = charges.get("total")
+        return float(total) if total is not None else None
+    except Exception as exc:
+        log.error("CHARGES LOOKUP ERROR (%s %s qty=%d): %s",
+                  transaction_type, instrument_token, qty, exc)
+        return None
+
+
 async def get_positions() -> list[dict]:
     """Broker's live intraday positions — ground truth for reconciliation.
     Returns [] on failure."""

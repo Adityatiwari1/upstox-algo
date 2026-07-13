@@ -184,6 +184,17 @@ class PerformancePanel(Static):
         def _rs(v: float) -> str:
             return f"₹{v:+,.0f}"
 
+        total_cost   = s.get("total_cost_rs", 0.0)
+        total_net    = s.get("total_pnl_rs_net", s["total_pnl_rs"])
+        net_col      = "green" if total_net >= 0 else "red"
+        # How many trades still have no cost_rs yet (async charges lookup in flight)
+        priced_n     = sum(1 for t in trades if t.get("cost_rs") is not None)
+        costs_line   = (
+            f"[dim]{'Costs (real)':<16}[/] [red]-{_rs(total_cost)[1:]}[/]"
+            f"  [dim]({priced_n}/{s['total']} priced)[/]\n"
+            f"[dim]{'Net (after fees)':<16}[/] [{net_col}]{_rs(total_net)}[/]\n\n"
+        )
+
         self.update(
             f"[bold cyan]▸ Performance[/]  [{r_col}]{rating}[/]"
             f"  [dim](last {w} of {total_all} trades)[/]\n\n"
@@ -194,6 +205,7 @@ class PerformancePanel(Static):
             f"[dim]{'Win Rate':<16}[/] [{wr_col}]{s['win_rate']}%[/]\n\n"
             "[dim]── P&L ────────────────────────────────────────[/]\n"
             f"[dim]{'Total':<16}[/] [{pnl_col}]{s['total_pnl_pts']:+.1f} pts   {_rs(s['total_pnl_rs'])}[/]\n"
+            f"{costs_line}"
             f"[dim]{'Avg Win':<16}[/] [green]{s['avg_win']:+.1f} pts   {_rs(avg_win_rs)}[/]\n"
             f"[dim]{'Avg Loss':<16}[/] [red]{s['avg_loss']:.1f} pts   {_rs(avg_loss_rs)}[/]\n"
             f"[dim]{'Best Trade':<16}[/] [green]{s['best']:+.1f} pts   {_rs(best_rs)}[/]\n"
@@ -383,7 +395,7 @@ class TradeHistoryPanel(Widget):
         tbl = self.query_one(DataTable)
         tbl.add_columns("#", "Date", "In", "Out", "Strike", "T",
                         "Entry", "Exit", "Peak", "P&L pts", "Max pts",
-                        "P&L ₹", "Outcome", "Reason")
+                        "P&L ₹", "Costs ₹", "Net ₹", "Outcome", "Reason")
         self._refresh()
         self.set_interval(2.0, self._refresh)
 
@@ -412,6 +424,15 @@ class TradeHistoryPanel(Widget):
             pnl_str  = f"{t['pnl_pts']:+.1f}"
             rs_str   = f"{t['pnl_rs']:+,.0f}"
 
+            cost_rs  = t.get("cost_rs")
+            net_rs   = t.get("pnl_rs_net")
+            cost_str = f"{cost_rs:.0f}" if cost_rs is not None else "…"
+            if net_rs is not None:
+                net_c   = "green" if net_rs >= 0 else "red"
+                net_str = f"[{net_c}]{net_rs:+,.0f}[/]"
+            else:
+                net_str = "[dim]…[/]"   # charges lookup still in flight
+
             tbl.add_row(
                 str(i),
                 t["date"],
@@ -425,6 +446,8 @@ class TradeHistoryPanel(Widget):
                 f"[{pnl_c}]{pnl_str}[/]",
                 f"[yellow]{maxp_str}[/]",
                 f"[{pnl_c}]{rs_str}[/]",
+                f"[dim]{cost_str}[/]",
+                net_str,
                 f"[{col}]{t['outcome']}[/]",
                 t.get("exit_reason", "—"),
             )

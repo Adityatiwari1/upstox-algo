@@ -79,15 +79,19 @@ _EX_OPEN_TRADE = {
 _EX_STATS = {
     "total": 16, "wins": 11, "losses": 5, "win_rate": 68.8,
     "total_pnl_pts": 152.6, "total_pnl_rs": 13901.0,
+    "total_cost_rs": 720.0, "total_pnl_rs_net": 13181.0,
     "avg_win": 17.8, "avg_loss": -8.7, "best": 58.0, "worst": -22.0,
     "expectancy": 9.4, "avg_rr": 2.04,
 }
 
 _EX_TODAY = {**_EX_STATS, "total": 0, "wins": 0, "losses": 0, "win_rate": 0.0,
-             "total_pnl_pts": 0.0, "total_pnl_rs": 0.0, "date": "2026-06-26", "pnl_pct_today": 0.0}
+             "total_pnl_pts": 0.0, "total_pnl_rs": 0.0,
+             "total_cost_rs": 0.0, "total_pnl_rs_net": 0.0,
+             "date": "2026-06-26", "pnl_pct_today": 0.0}
 
 _EX_DAILY = [{**_EX_STATS, "total": 5, "wins": 3, "losses": 2, "win_rate": 60.0,
-              "total_pnl_pts": 8.2, "total_pnl_rs": 1066.0, "date": "2026-06-25"}]
+              "total_pnl_pts": 8.2, "total_pnl_rs": 1066.0,
+              "total_cost_rs": 225.0, "total_pnl_rs_net": 841.0, "date": "2026-06-25"}]
 
 _EX_CAPITAL = {
     "base": 50000.0, "current": 63901.0, "realised_lifetime": 13901.0,

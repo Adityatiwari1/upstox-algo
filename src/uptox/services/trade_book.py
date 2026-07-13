@@ -333,6 +333,37 @@ def open_trade(
         )
 
 
+def _attach_costs(trade_id: str, option_key: str, qty: int,
+                  entry_price: float, exit_price: float) -> None:
+    """Fetch the broker's real charges for the round trip (Upstox brokerage
+    API) and attach cost_rs / pnl_rs_net to the closed record. Async — the
+    record is re-saved when the numbers land. Runs in paper mode too: the
+    fees are what they WOULD be, so paper P&L stops flattering itself."""
+    if not option_key or qty <= 0 or not exit_price:
+        return
+    from uptox.services import order_service
+
+    async def _run() -> None:
+        buy  = await order_service.get_charges(option_key, qty, entry_price, "BUY")
+        sell = await order_service.get_charges(option_key, qty, exit_price, "SELL")
+        if buy is None and sell is None:
+            return
+        cost = round((buy or 0.0) + (sell or 0.0), 2)
+        for t in reversed(_trades):
+            if t.get("id") == trade_id and t.get("outcome") != "OPEN":
+                t["cost_rs"]    = cost
+                t["pnl_rs_net"] = round(t.get("pnl_rs", 0.0) - cost, 2)
+                _save()
+                log.info("Charges attached: %s  cost=₹%.2f  net=₹%.2f",
+                         trade_id, cost, t["pnl_rs_net"])
+                break
+
+    try:
+        order_service._spawn(_run())
+    except Exception as e:
+        log.error("charges attach error: %s", e)
+
+
 def close_trade(exit_price: float, reason: str) -> dict | None:
     global _open_trade
     if not _open_trade:
@@ -410,6 +441,8 @@ def close_trade(exit_price: float, reason: str) -> dict | None:
         "Paper CLOSE: %s  P&L=%.1fpts  ₹%.0f  reason=%s",
         outcome, pnl_pts, pnl_rs, reason,
     )
+    _attach_costs(closed["id"], closed.get("option_key", ""), closed.get("qty", 0),
+                  closed["entry_price"], closed["exit_price"])
     # Live exit order — fire only when mode is live; paper record kept regardless.
     # Cancels the resting SL-M before selling (skips the sell if it already filled).
     from uptox.services import trading_mode, order_service
@@ -479,6 +512,8 @@ def partial_close_trade(exit_price: float, reason: str) -> dict | None:
         "Partial CLOSE: %d lots @ %.1f  P&L=%.1fpts ₹%.0f  remain=%d lots  new_SL=%.1f",
         close_lots, exit_price, pnl_pts, pnl_rs, remain_lots, old_target,
     )
+    _attach_costs(closed_rec["id"], _open_trade.get("option_key", ""),
+                  close_lots * NIFTY_LOT_SIZE, closed_rec["entry_price"], exit_price)
     # Live: sell the banked half, then shrink the resting SL-M to the remaining
     # qty and lift its trigger to the new profit-floor SL (old target).
     from uptox.services import trading_mode, order_service
@@ -745,6 +780,7 @@ def get_stats(trades: list[dict] | None = None) -> dict:
         return {
             "total": 0, "wins": 0, "losses": 0, "win_rate": 0.0,
             "total_pnl_pts": 0.0, "total_pnl_rs": 0.0,
+            "total_cost_rs": 0.0, "total_pnl_rs_net": 0.0,
             "avg_win": 0.0, "avg_loss": 0.0,
             "best": 0.0, "worst": 0.0, "expectancy": 0.0,
             "avg_rr": 0.0,
@@ -760,19 +796,24 @@ def get_stats(trades: list[dict] | None = None) -> dict:
     # achieved RR = avg_win / avg_loss
     avg_rr = round(avg_w / avg_l, 2) if avg_l else 0.0
 
+    total_pnl_rs = sum(t["pnl_rs"] for t in closed)
+    total_cost   = sum(t.get("cost_rs", 0.0) or 0.0 for t in closed)
+
     return {
-        "total":         len(closed),
-        "wins":          len(wins),
-        "losses":        len(losses),
-        "win_rate":      round(wr * 100, 1),
-        "total_pnl_pts": round(sum(t["pnl_pts"] for t in closed), 1),
-        "total_pnl_rs":  round(sum(t["pnl_rs"]  for t in closed), 0),
-        "avg_win":       round(avg_w, 1),
-        "avg_loss":      round(-avg_l, 1),    # negative = loss
-        "best":          round(max((t["pnl_pts"] for t in closed), default=0.0), 1),
-        "worst":         round(min((t["pnl_pts"] for t in closed), default=0.0), 1),
-        "expectancy":    round(expect, 1),
-        "avg_rr":        avg_rr,
+        "total":            len(closed),
+        "wins":             len(wins),
+        "losses":           len(losses),
+        "win_rate":         round(wr * 100, 1),
+        "total_pnl_pts":    round(sum(t["pnl_pts"] for t in closed), 1),
+        "total_pnl_rs":     round(total_pnl_rs, 0),
+        "total_cost_rs":    round(total_cost, 0),
+        "total_pnl_rs_net": round(total_pnl_rs - total_cost, 0),
+        "avg_win":          round(avg_w, 1),
+        "avg_loss":         round(-avg_l, 1),    # negative = loss
+        "best":             round(max((t["pnl_pts"] for t in closed), default=0.0), 1),
+        "worst":            round(min((t["pnl_pts"] for t in closed), default=0.0), 1),
+        "expectancy":       round(expect, 1),
+        "avg_rr":           avg_rr,
     }
 
 
