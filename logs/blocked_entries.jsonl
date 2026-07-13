@@ -1093,3 +1093,5 @@
 {"ts": "2026-07-10T15:18:33+05:30", "option": "CE", "ltp": 24200.8, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
 {"ts": "2026-07-10T15:20:10+05:30", "option": "CE", "ltp": 24201.9, "score": 4, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
 {"ts": "2026-07-10T15:23:33+05:30", "option": "CE", "ltp": 24214.0, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 3% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-13T09:35:00+05:30", "option": "PE", "ltp": 24028.3, "score": -3, "entry_type": null, "reason": "Bounce active +25pts from low — wait for red bar"}
+{"ts": "2026-07-13T09:36:51+05:30", "option": "PE", "ltp": 24043.5, "score": -3, "entry_type": null, "reason": "Cooldown after PE loss — 15min left"}
