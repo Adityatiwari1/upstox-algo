@@ -703,6 +703,7 @@ class OverallAnalysisPanel(Static):
                 # Only a REAL loss earns the 15-min same-direction cooldown;
                 # scratch exits get the normal 5-min any-exit cooldown below
                 _was_loss = _last_exit.get("pnl_pts", 0) <= trade_book.REAL_LOSS_PTS
+                _was_win  = _last_exit.get("pnl_pts", 0) > 0
                 if _was_loss and _exit_opt == option and _mins_ago < 15:
                     # Allow early re-entry if market resumed strongly past original entry level.
                     # Price > entry_spot+15 (CE) or < entry_spot-15 (PE) proves the SL
@@ -714,6 +715,26 @@ class OverallAnalysisPanel(Static):
                     ) if _entry_spot else False
                     if not _resumed:
                         no_trade_reason = f"Cooldown after {option} loss — {15 - _mins_ago:.0f}min left"
+                elif _was_win and _exit_opt == option and _mins_ago < 15:
+                    # Post-win chase guard: re-entering the direction that just
+                    # paid, minutes later at a worse level, is buying the bounce
+                    # after harvesting the dip — 2026-07-14 BOTH losses (-10.5,
+                    # -5.7) were 5-min re-entries after PE wins, the second at
+                    # the exact day low. Mirror of the loss-side resume rule:
+                    # continuation must be PROVEN — spot pushing ≥15pt beyond
+                    # the winner's exit spot in the trade's direction.
+                    _exit_spot = _last_exit.get("spot_exit", 0.0)
+                    _continuing = (
+                        (option == "CE" and live_ltp > _exit_spot + 15) or
+                        (option == "PE" and live_ltp < _exit_spot - 15)
+                    ) if _exit_spot else False
+                    if not _continuing:
+                        no_trade_reason = (
+                            f"Post-win chase guard — {option} again only if move"
+                            f" continues past {_exit_spot:.0f} ({15 - _mins_ago:.0f}min left)"
+                        )
+                    elif _mins_ago < 5:
+                        no_trade_reason = f"Cooldown — {5 - _mins_ago:.0f}min after last exit"
                 elif _mins_ago < 5:
                     no_trade_reason = f"Cooldown — {5 - _mins_ago:.0f}min after last exit"
 

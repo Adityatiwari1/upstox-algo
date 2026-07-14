@@ -21,12 +21,15 @@ NIFTY_KEY = "NSE_INDEX|Nifty 50"
 _URL_TMPL = "https://api.upstox.com/v2/historical-candle/{key}/day/{to}/{frm}"
 
 _ohlc: dict | None = None   # {date, open, high, low, close}
+_primed_on: str | None = None   # the session date this cache is valid FOR
+_refreshing: bool = False
 
 
 async def fetch_and_prime(access_token: str) -> None:
     """Fetch the last week of daily candles, cache the most recent completed day."""
-    global _ohlc
+    global _ohlc, _primed_on
     today = date.today()
+    _primed_on = today.isoformat()
     url = _URL_TMPL.format(
         key=quote(NIFTY_KEY, safe=""),
         to=today.isoformat(),
@@ -61,14 +64,47 @@ async def fetch_and_prime(access_token: str) -> None:
         _log.exception("prev_day fetch error: %s", e)
 
 
+def _refresh_async() -> None:
+    """Kick off a background re-fetch; callers keep getting None until it lands."""
+    global _refreshing
+    if _refreshing:
+        return
+    _refreshing = True
+    _log.warning("prev_day OHLC stale (primed on %s) — re-fetching for today", _primed_on)
+    import asyncio
+    from uptox.config.settings import settings
+
+    async def _run() -> None:
+        global _refreshing
+        try:
+            await fetch_and_prime(settings.access_token)
+        finally:
+            _refreshing = False
+
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_run())
+    except RuntimeError:
+        asyncio.run(_run())
+
+
 def get_ohlc() -> dict | None:
-    """Previous trading day's OHLC, or None if not primed."""
+    """Previous trading day's OHLC, or None if not primed.
+
+    Date-guarded: the cache is only valid on the session day it was fetched.
+    The app runs overnight in tmux, so a startup-only fetch served FRIDAY's
+    candle all of Tuesday 2026-07-14 — pdl_reclaim armed off Jul-10's low
+    (24,123) instead of Jul-13's (24,023). Wrong-day levels are worse than
+    none: return None and re-fetch in the background until fresh."""
+    if _ohlc and _primed_on != date.today().isoformat():
+        _refresh_async()
+        return None
     return _ohlc
 
 
 def get_pivots() -> dict | None:
-    """Classic pivot levels from prev-day H/L/C, or None if not primed."""
-    if not _ohlc:
+    """Classic pivot levels from prev-day H/L/C, or None if not primed/fresh."""
+    if not get_ohlc():
         return None
     h, l, c = _ohlc["high"], _ohlc["low"], _ohlc["close"]
     pp = (h + l + c) / 3

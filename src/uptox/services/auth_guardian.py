@@ -18,11 +18,30 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime, time as dt_time
+from zoneinfo import ZoneInfo
 
 log = logging.getLogger(__name__)
 
+_IST = ZoneInfo("Asia/Kolkata")
 _CHECK_INTERVAL = 600     # seconds — 10 min; cheap profile-ping, fine at this cadence
 _MAX_FAILURES_BEFORE_ALERT = 2
+_QUIET_END = dt_time(8, 30)   # resume proactive re-login at 08:30 IST
+
+
+def _in_quiet_window(now: datetime | None = None) -> bool:
+    """True when an invalid token is EXPECTED and re-login should wait.
+
+    Upstox kills every access token at 03:30 IST daily — an unattended
+    headless login at 03:36 (seen 2026-07-15) serves nothing before the
+    9:15 open and pages the user's phone with a new-login alert every
+    night. Same on weekends: Friday's token dies Saturday 03:30 and
+    nothing needs one until Monday pre-market. Outside this window
+    (evenings, mid-session) an invalid token is abnormal → re-login."""
+    now = now or datetime.now(_IST)
+    if now.weekday() >= 5:          # Saturday/Sunday
+        return True
+    return now.time() < _QUIET_END  # 00:00–08:30 IST
 
 
 async def run_forever() -> None:
@@ -46,6 +65,11 @@ async def run_forever() -> None:
             continue
         if valid is None:
             continue   # network blip — don't force a re-login on a timeout
+
+        if _in_quiet_window():
+            log.debug("auth_guardian: token invalid but in quiet window "
+                      "(nightly 03:30 expiry / weekend) — re-login deferred to 08:30 IST")
+            continue
 
         log.warning("auth_guardian: token invalid — attempting re-login")
         try:
