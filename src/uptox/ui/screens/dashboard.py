@@ -37,20 +37,29 @@ def _kv(rows: list[tuple[str, str, str]]) -> str:
     )
 
 
-def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]:
+# Strike-selection bounds and capital tiers (user spec 2026-07-15):
+#   ITM capped at 3 levels, OTM at 5, ATM as normal.
+#   ≤ ₹25K  → OTM-first (cheap premiums preserve margin headroom)
+#   ≥ ₹50K  → ATM-first (ITM when ATM is decay-cheap, OTM when unaffordable)
+#   between → ATM-first too (unspecified middle: same as big, just less cash)
+#   Expiry afternoon + ≥ ₹50K → ITM-first (intrinsic value survives the decay
+#   burn; the old hardwired always-ATM stays for smaller accounts)
+_ITM_MAX = 3
+_OTM_MAX = 5
+_SMALL_ACCOUNT = 25_000
+_BIG_ACCOUNT   = 50_000
+_MIN_PREMIUM   = 20.0   # dead-strike floor for OTM walks
+
+
+def _affordable_strike(ltp: float, option: str, expiry_pm: bool = False) -> tuple[int, str | None, float]:
     """
-    Return (strike, instrument_key, price) of best tradeable strike.
-
-    Priority:
-      1. ATM if price >= ₹50 and capital affordable
-      2. ITM (1-4 steps) if ATM < ₹50 — cheap-ATM day, ITM has intrinsic value
-      3. OTM (1-4 steps) if ATM > capital — price too high, go cheaper
-
-    Returns (atm, None, 0.0) if no suitable strike found.
+    Return (strike, instrument_key, price) of the best tradeable strike for
+    the current wallet. Returns (atm, None, 0.0) if nothing suitable.
     """
     atm      = round(ltp / 50) * 50
     itm_step = -50 if option == "CE" else 50   # ITM: lower for CE, higher for PE
     otm_step = -itm_step                        # OTM: opposite direction
+    cap      = capital_service.get_tradable_capital()   # live → broker margin truth
 
     def _get_price(strike: int) -> tuple[str | None, float]:
         key = option_chain_service.get_key(strike, option)
@@ -67,22 +76,51 @@ def _affordable_strike(ltp: float, option: str) -> tuple[int, str | None, float]
             )
         return key, price
 
+    def _ok(price: float, floor: float = 0.0) -> bool:
+        return price > floor and capital_service.sizing(price)["lots"] > 0
+
+    # ── Expiry afternoon, well-funded → ITM for intrinsic value ──────────────
+    if expiry_pm:
+        if cap >= _BIG_ACCOUNT:
+            for n in range(1, _ITM_MAX + 1):
+                strike     = atm + n * itm_step
+                key, price = _get_price(strike)
+                if key and _ok(price):
+                    return strike, key, price
+        key, price = _get_price(atm)   # smaller account / no ITM fill → ATM as before
+        return (atm, key, price) if key and price else (atm, None, 0.0)
+
+    # ── Small account → OTM-first, nearest out, ATM as fallback ─────────────
+    if cap <= _SMALL_ACCOUNT:
+        for n in range(1, _OTM_MAX + 1):
+            strike     = atm + n * otm_step
+            key, price = _get_price(strike)
+            if key and _ok(price, floor=_MIN_PREMIUM):
+                return strike, key, price
+        key, price = _get_price(atm)
+        if key and _ok(price):
+            return atm, key, price
+        return atm, None, 0.0
+
+    # ── Normal/big account: ATM-first ────────────────────────────────────────
     atm_key, atm_price = _get_price(atm)
 
-    # ATM < ₹50 → cheap-ATM day, try ITM for intrinsic value
+    # ATM < ₹50 → cheap-ATM day, ITM (≤3 levels) for intrinsic value
     if 0 < atm_price < 50:
-        for n in range(1, 5):
+        for n in range(1, _ITM_MAX + 1):
             strike      = atm + n * itm_step
             key, price  = _get_price(strike)
-            if key and price >= 50 and capital_service.sizing(price)["lots"] > 0:
+            if key and price >= 50 and _ok(price):
                 return strike, key, price
         return atm, None, 0.0   # even ITM < ₹50, market too cheap — skip
 
-    # Normal path: ATM first, OTM if ATM unaffordable
-    for n in range(5):
+    # ATM first, then OTM (≤5 levels) if ATM unaffordable
+    if atm_key and _ok(atm_price):
+        return atm, atm_key, atm_price
+    for n in range(1, _OTM_MAX + 1):
         strike     = atm + n * otm_step
         key, price = _get_price(strike)
-        if key and price and capital_service.sizing(price)["lots"] > 0:
+        if key and _ok(price, floor=_MIN_PREMIUM):
             return strike, key, price
     return atm, None, 0.0
 
@@ -795,16 +833,11 @@ class OverallAnalysisPanel(Static):
 
         expiry_pm = capital_service.is_expiry_afternoon()
 
-        # Entry strike selection:
-        #   Expiry afternoon → always ATM (binary bet, no OTM/ITM search)
-        #   Normal           → ATM first, ITM if ATM cheap, OTM if ATM expensive
+        # Entry strike selection — capital-aware (see _affordable_strike):
+        #   ≤25K → OTM-first;  ≥50K → ATM-first (ITM/OTM bounded 3/5);
+        #   expiry afternoon + ≥50K → ITM for intrinsic, else ATM
         if atm and option != "—":
-            if expiry_pm:
-                entry_strike = atm
-                entry_key    = key
-                entry_price  = cur_price
-            else:
-                entry_strike, entry_key, entry_price = _affordable_strike(ltp, option)
+            entry_strike, entry_key, entry_price = _affordable_strike(ltp, option, expiry_pm=expiry_pm)
         else:
             entry_strike, entry_key, entry_price = atm, None, 0.0
         entry_live = feed_store.get(entry_key) if entry_key else None
@@ -1322,14 +1355,13 @@ class OverallAnalysisPanel(Static):
                                   _log_blocked_entry("Risk block — 0 lots (SL too wide)", option, ltp, total, entry_type)
                                   entry_type = None
                               else:
-                                _itm = False
-                                _strike_note = "[EXPIRY ATM]" if expiry_pm else ""
-                                if not expiry_pm:
-                                    _itm = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
-                                    _strike_note = (
-                                        f" ITM{entry_strike}" if (_itm and entry_strike != atm) else
-                                        f" OTM{entry_strike}" if entry_strike != atm else ""
-                                    )
+                                _itm = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
+                                _strike_note = (
+                                    f" ITM{entry_strike}" if (_itm and entry_strike != atm) else
+                                    f" OTM{entry_strike}" if entry_strike != atm else ""
+                                )
+                                if expiry_pm:
+                                    _strike_note = f"[EXPIRY{_strike_note or ' ATM'}]"
                                 reason = (
                                     f"{entry_type} | SMA{sma_score:+d} Flow{flow_score:+d}"
                                     f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{_strike_note}"

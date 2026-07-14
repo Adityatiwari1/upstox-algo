@@ -62,6 +62,18 @@ async def run_forever() -> None:
                 log.info("auth_guardian: token healthy again")
             consecutive_failures = 0
             alerted = False
+            # Live mode: piggyback a broker-margin refresh on the same 10-min
+            # heartbeat — sizing must track the account's REAL available funds
+            # (funds API is in maintenance 00:00-05:30 IST; quiet window covers it)
+            try:
+                from uptox.services import trading_mode
+                if trading_mode.is_live() and not _in_quiet_window():
+                    from uptox.services import order_service, capital_service
+                    funds = await order_service.get_funds()
+                    if funds and funds.get("available_margin") is not None:
+                        capital_service.set_broker_margin(float(funds["available_margin"]))
+            except Exception as e:
+                log.error("auth_guardian: funds refresh failed: %s", e)
             continue
         if valid is None:
             continue   # network blip — don't force a re-login on a timeout

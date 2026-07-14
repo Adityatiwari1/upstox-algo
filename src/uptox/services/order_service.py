@@ -229,6 +229,24 @@ async def get_charges(instrument_token: str, qty: int, price: float,
         return None
 
 
+async def get_funds() -> dict | None:
+    """Broker's live equity funds/margin (available_margin, used_margin, ...).
+    Note: Upstox funds service is DOWN 00:00-05:30 IST daily (maintenance) —
+    callers must treat None as 'unknown', never as zero. Post 2025-07-19 the
+    equity object carries combined equity+commodity funds."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(
+                "https://api.upstox.com/v2/user/get-funds-and-margin",
+                params={"segment": "SEC"},
+                headers=_headers(),
+            )
+        return ((r.json().get("data") or {}).get("equity")) or None
+    except Exception as exc:
+        log.error("FUNDS LOOKUP ERROR: %s", exc)
+        return None
+
+
 async def get_positions() -> list[dict]:
     """Broker's live intraday positions — ground truth for reconciliation.
     Returns [] on failure."""

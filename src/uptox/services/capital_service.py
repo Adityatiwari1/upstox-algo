@@ -1,6 +1,7 @@
 """Capital management — position sizing, risk rules, daily limits."""
 import json
 import logging
+import time as _time
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -12,6 +13,14 @@ _CAPITAL_FILE = Path("logs/capital.json")
 _base_capital: float  = 10_000.0
 _capital: float       = 10_000.0
 _risk_reward: float   = 2.0
+
+# Broker's real available margin — refreshed by auth_guardian / trade closes.
+# In LIVE mode this is the truth for sizing/affordability: the paper capital
+# number drifts from reality (manual payins, other holdings, blocked margin) —
+# smoke test 2026-07-13 got an RMS reject the paper number never saw coming.
+_broker_margin: float | None = None
+_broker_margin_ts: float = 0.0
+_BROKER_MARGIN_TTL = 900.0   # stale after 15 min → fall back to paper capital
 
 # ── Daily limits (configurable) ───────────────────────────────────────────────
 _daily_loss_limit_pct: float = 5.0    # % of capital → block new trades
@@ -36,6 +45,29 @@ def get_daily_loss_limit_rs() -> float:
 def get_per_trade_loss_rs() -> float:
     """Per-trade loss limit in ₹ = daily_limit_rs / max_trades."""
     return round(get_daily_loss_limit_rs() / max(_max_trades_per_day, 1), 2)
+
+
+def set_broker_margin(available: float) -> None:
+    """Record the broker's live available margin (from the funds API)."""
+    global _broker_margin, _broker_margin_ts
+    _broker_margin    = float(available)
+    _broker_margin_ts = _time.monotonic()
+    if abs(_broker_margin - _capital) > max(500.0, _capital * 0.05):
+        log.warning(
+            "Broker margin ₹%.0f differs from paper capital ₹%.0f — live sizing uses broker",
+            _broker_margin, _capital,
+        )
+
+
+def get_tradable_capital() -> float:
+    """Capital that sizing/affordability may actually spend.
+    LIVE mode with a fresh broker-margin reading → the broker's number.
+    Paper mode, or stale/missing reading → the paper capital."""
+    from uptox.services import trading_mode
+    if (trading_mode.is_live() and _broker_margin is not None
+            and (_time.monotonic() - _broker_margin_ts) < _BROKER_MARGIN_TTL):
+        return _broker_margin
+    return _capital
 
 
 def set_capital(c: float) -> None:
@@ -152,7 +184,7 @@ def sizing(buy_price: float) -> dict:
     if not buy_price:
         return {"lots": 0, "lot_cost": 0.0, "invested": 0.0}
     lot_cost = round(buy_price * NIFTY_LOT_SIZE, 2)
-    lots     = int(_capital / lot_cost)
+    lots     = int(get_tradable_capital() / lot_cost)
     return {"lots": lots, "lot_cost": lot_cost, "invested": round(lots * lot_cost, 2)}
 
 
@@ -177,8 +209,9 @@ def sizing_with_risk(buy_price: float, sl_price: float) -> dict:
     if not buy_price or buy_price <= 0:
         return _zero_sizing()
 
+    cap           = get_tradable_capital()
     lot_cost      = round(buy_price * NIFTY_LOT_SIZE, 2)
-    affordable    = int(_capital / lot_cost)   # hard affordability ceiling
+    affordable    = int(cap / lot_cost)   # hard affordability ceiling
 
     if affordable == 0:
         return _zero_sizing()
@@ -186,14 +219,14 @@ def sizing_with_risk(buy_price: float, sl_price: float) -> dict:
     sl_risk_per_lot = round((buy_price - sl_price) * NIFTY_LOT_SIZE, 2) if sl_price and sl_price < buy_price else lot_cost * 0.30
 
     # ── Tier rules ────────────────────────────────────────────────────────
-    if _capital >= _GROWTH_TIER_CAPITAL:
-        max_risk_rs = _capital * _GROWTH_TIER_RISK
+    if cap >= _GROWTH_TIER_CAPITAL:
+        max_risk_rs = cap * _GROWTH_TIER_RISK
     else:
         # Per-trade loss limit (derived from daily limit / max_trades)
         max_risk_rs = get_per_trade_loss_rs()
     risk_lots = int(max_risk_rs / sl_risk_per_lot) if sl_risk_per_lot > 0 else affordable
 
-    if _capital < 25_000:
+    if cap < 25_000:
         lots      = min(affordable, max(1, risk_lots), 1)
         capped_by = "small_account_1lot"
     else:
@@ -202,7 +235,7 @@ def sizing_with_risk(buy_price: float, sl_price: float) -> dict:
 
     invested  = round(lots * lot_cost, 2)
     risk_rs   = round(lots * sl_risk_per_lot, 2)
-    risk_pct  = round(risk_rs / _capital * 100, 2) if _capital else 0.0
+    risk_pct  = round(risk_rs / cap * 100, 2) if cap else 0.0
 
     return {
         "lots":       lots,
@@ -324,9 +357,10 @@ def sizing_expiry(buy_price: float) -> dict:
     """
     if not buy_price or buy_price <= 0:
         return _zero_sizing()
+    cap        = get_tradable_capital()
     lot_cost   = round(buy_price * NIFTY_LOT_SIZE, 2)
-    affordable = max(1, int(_capital / lot_cost))
-    max_alloc  = _capital * _EXPIRY_ALLOC_PCT
+    affordable = max(1, int(cap / lot_cost))
+    max_alloc  = cap * _EXPIRY_ALLOC_PCT
     alloc_lots = max(1, int(max_alloc / lot_cost))
     lots       = min(affordable, alloc_lots, _EXPIRY_MAX_LOTS)
     invested   = round(lots * lot_cost, 2)
@@ -335,7 +369,7 @@ def sizing_expiry(buy_price: float) -> dict:
         "lot_cost":  lot_cost,
         "invested":  invested,
         "risk_rs":   invested,        # worst case = full premium
-        "risk_pct":  round(invested / _capital * 100, 2) if _capital else 0.0,
+        "risk_pct":  round(invested / cap * 100, 2) if cap else 0.0,
         "capped_by": "expiry_10pct",
     }
 
