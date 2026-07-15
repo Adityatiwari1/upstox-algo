@@ -125,6 +125,47 @@ def _affordable_strike(ltp: float, option: str, expiry_pm: bool = False) -> tupl
     return atm, None, 0.0
 
 
+# 15-min range breakout (user 2026-07-15): range = last 3 CLOSED 5-min bars,
+# armed only when TIGHT, entry at ±7pt beyond it. Thresholds are FIXED Nifty
+# points by user preference (2026-07-15) — ATR-scaled caps wobbled all day
+# and mislabeled the Jul-15 crash. Review the constants weekly, not per-tick.
+_RB_DEPART = 7.0
+_RB_TIGHT  = 20.0   # 3-bar box wider than this = trend, not compression
+_CONSOL_RANGE_PTS = 30.0   # 6-bar/30-min consolidation-block threshold
+
+# FOCUS MODE (user 2026-07-15): trade ONLY level-anchored setups — every
+# entry here fires off a price level visible on the 5-min chart (range box,
+# opening range, swing S/R, PDH/PDL). Indicator-driven entries (sustained,
+# retest, momentum, reentry) still evaluate and LOG when they would have
+# fired (audit prices what focus skipped) but cannot open a trade.
+# Widen or empty this set to re-enable; empty set = all entries allowed.
+_FOCUS_ENTRIES = {
+    "range_break", "sr_retest",              # 5-min ranges + swing S/R
+    "orb",                                   # opening range
+    "pdh_momentum", "pdl_momentum",          # 09:20 first-candle break
+    "pdh_break", "pdl_break",                # prev-day high/low breaks
+    "pdl_reclaim", "pdh_loss",               # prev-day level reclaims
+}
+
+
+def _range_break(ltp: float) -> tuple[str | None, float, float]:
+    """Returns (side, hi, lo): side "CE"/"PE" when ltp has escaped a tight
+    3-bar range by _RB_DEPART, else None. Closed bars only — the breakout
+    tick is never part of its own range."""
+    bars = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=3)
+    if len(bars) < 3:
+        return None, 0.0, 0.0
+    hi = max(b[1] for b in bars)
+    lo = min(b[2] for b in bars)
+    if hi - lo > _RB_TIGHT:
+        return None, hi, lo
+    if ltp > hi + _RB_DEPART:
+        return "CE", hi, lo
+    if ltp < lo - _RB_DEPART:
+        return "PE", hi, lo
+    return None, hi, lo
+
+
 _swing_cache: tuple[int, list[tuple[str, float]]] = (-1, [])
 
 
@@ -330,6 +371,7 @@ class OverallAnalysisPanel(Static):
     _rc_frozen:    bool  = False  # True once the 15-min base is locked from bar data
     _rc_done_ce:   bool  = False  # one reclaim trade per side per day
     _rc_done_pe:   bool  = False
+    _rb_last: tuple = (0.0, 0.0)  # last 15-min range traded — no re-fire on same range
     _RC_BASE_SECS: int   = 900   # 15 min basing before a base-break counts
     _RC_EXPIRE_SECS: int = 5400  # stale after 90 min without a base break
     _RC_FAIL_PTS:  float = 15.0  # falling back through the level by this = failed reclaim
@@ -829,23 +871,25 @@ class OverallAnalysisPanel(Static):
                     # market is choppy/ranging — score can be high but there's no clean trend.
                     _congest = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=6)
                     if len(_congest) >= 4:
-                        from uptox.services import atr_service as _atr_svc
-                        _atr_m5   = _atr_svc.get_atr(NIFTY, TimeFrame.M5) or 30.0
                         _c_hi     = max(b[1] for b in _congest)
                         _c_lo     = min(b[2] for b in _congest)
                         _c_range  = _c_hi - _c_lo
                         # One-way grind is trend, not chop — a small range only
                         # means consolidation when price went nowhere inside it.
-                        # Gap mornings inflate ATR so a steady +45pt climb read
-                        # as "consolidating" (2026-07-10: blocked 09:50-10:25,
-                        # entry finally at the top). Efficiency = net move/range.
+                        # Efficiency = net move/range. Fixed-point threshold by
+                        # user preference (was 1.5×ATR, wobbled 24-60pt all day).
                         _c_net = abs(_congest[-1][3] - _congest[0][0])
                         _c_eff = (_c_net / _c_range) if _c_range > 0 else 0.0
-                        if _c_range < _atr_m5 * 1.5 and _c_eff < 0.6:
-                            no_trade_reason = (
-                                f"Consolidating — {_c_range:.0f}pt range in 30min "
-                                f"(need >{_atr_m5 * 1.5:.0f}, drift {_c_eff:.0%})"
-                            )
+                        if _c_range < _CONSOL_RANGE_PTS and _c_eff < 0.6:
+                            # A live 15-min range BREAK in the entry's direction
+                            # is the exit from consolidation, not part of it —
+                            # blocking here would veto the range_break entry
+                            _rb_side, _, _ = _range_break(live_ltp)
+                            if _rb_side != option:
+                                no_trade_reason = (
+                                    f"Consolidating — {_c_range:.0f}pt range in 30min "
+                                    f"(need >{_CONSOL_RANGE_PTS:.0f}, drift {_c_eff:.0%})"
+                                )
         # Bank Nifty conflict is advisory only — shown as warning but does NOT block entry
 
         tradeable = no_trade_reason is None
@@ -984,6 +1028,20 @@ class OverallAnalysisPanel(Static):
                             self._pdx_pe_done = True
                         log.info("%s entry: level %.1f holding @ %.1f flow=%+d",
                                  entry_type, _ml, live_ltp, flow_score)
+
+                # ── 15-min range breakout (tight 3-bar range, ±7pt escape) ────
+                if not entry_type and entry_key and entry_price:
+                    _rb_side, _rb_hi, _rb_lo = _range_break(live_ltp)
+                    _rb_flow = (option == "CE" and flow_score >= 0) or (option == "PE" and flow_score <= 0)
+                    if (_rb_side == option and _rb_flow
+                            and self._rb_last != (_rb_hi, _rb_lo)):
+                        entry_type = "range_break"
+                        self._rb_last = (_rb_hi, _rb_lo)
+                        log.info(
+                            "Range break: %s escaped 15min range %.1f-%.1f @ %.1f (+%.0fpt depart) flow=%+d",
+                            option, _rb_lo, _rb_hi, live_ltp,
+                            abs(live_ltp - (_rb_hi if option == "CE" else _rb_lo)), flow_score,
+                        )
 
                 # ── PDL-reclaim / PDH-loss base-break entry ───────────────────
                 # Basing window done + price breaks OUT of the base range in the
@@ -1294,6 +1352,15 @@ class OverallAnalysisPanel(Static):
                                 option, sma_score, self._consec_sma_bars, oi_sc,
                                 ce_iv_rising, pe_iv_rising,
                             )
+
+                    # Focus mode: non-whitelisted triggers log their would-be
+                    # fire (audit prices what focus skipped) but never trade
+                    if entry_type and _FOCUS_ENTRIES and entry_type not in _FOCUS_ENTRIES:
+                        _log_blocked_entry(f"Focus mode — {entry_type} disabled",
+                                           option, ltp, total, entry_type)
+                        log.info("Focus mode: skipped %s %s @ %.1f (score %+d)",
+                                 entry_type, option, ltp, total)
+                        entry_type = None
 
                     if entry_type:
                         # sr_retest / reclaim entries already validated at their
