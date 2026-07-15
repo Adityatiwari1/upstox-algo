@@ -16,9 +16,20 @@ from zoneinfo import ZoneInfo
 _IST = ZoneInfo("Asia/Kolkata")
 
 PREMARKET_START = dt_time(9,  0)
-TRADE_START     = dt_time(9, 30)
+TRADE_START     = dt_time(9, 20)   # normal days: first-candle known, PDH/PDL
+                                   # momentum entries live (user 2026-07-15)
+TRADE_START_EXPIRY = dt_time(9, 30)  # expiry: opening gamma chaos — sit out 09:15-09:30
 TRADE_END       = dt_time(15, 25)
 FEED_END        = dt_time(15, 35)
+
+
+def trade_start_today() -> dt_time:
+    """09:20 normally; 09:30 on expiry day."""
+    try:
+        from uptox.services.capital_service import is_expiry_day
+        return TRADE_START_EXPIRY if is_expiry_day() else TRADE_START
+    except Exception:
+        return TRADE_START_EXPIRY   # unknown expiry state → conservative start
 
 
 # ── Holiday lookup ────────────────────────────────────────────────────────────
@@ -61,19 +72,19 @@ def is_feed_active() -> bool:
 
 
 def is_trade_window() -> bool:
-    """True if order execution is allowed (09:30–15:25 IST on a trading day)."""
+    """True if order execution is allowed (09:20 normal / 09:30 expiry → 15:25 IST)."""
     now = datetime.now(_IST)
     if not is_trading_day(now.date()):
         return False
-    return TRADE_START <= now.time() <= TRADE_END
+    return trade_start_today() <= now.time() <= TRADE_END
 
 
 def is_premarket() -> bool:
-    """True during pre-market analysis window (09:00–09:29 IST)."""
+    """True during pre-market analysis window (09:00 until today's trade start)."""
     now = datetime.now(_IST)
     if not is_trading_day(now.date()):
         return False
-    return PREMARKET_START <= now.time() < TRADE_START
+    return PREMARKET_START <= now.time() < trade_start_today()
 
 
 def market_status() -> str:

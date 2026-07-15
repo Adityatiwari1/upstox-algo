@@ -334,6 +334,15 @@ class OverallAnalysisPanel(Static):
     _RC_EXPIRE_SECS: int = 5400  # stale after 90 min without a base break
     _RC_FAIL_PTS:  float = 15.0  # falling back through the level by this = failed reclaim
 
+    # ── PDH/PDL first-candle momentum (user pattern 2026-07-15): open inside
+    #    prev-day range, strong first 5-min candle closing near PDH/PDL, next
+    #    candle crosses the level → tends to run 15+pt. Detected pre-window
+    #    (09:20-09:30), entered at 09:30 if the break still holds. ─────────────
+    _c1:            tuple | None = None   # first 5-min candle (o,h,l,c)
+    _c1_date:       str   = ""
+    _pdx_mom_side:  str   = ""    # "CE"/"PE" once the cross is seen, "" = none
+    _pdx_mom_level: float = 0.0
+
     # ── Opening Range Breakout (09:15–09:30 window) ───────────────────────────
     _orb_high:     float = 0.0
     _orb_low:      float = float("inf")
@@ -653,6 +662,35 @@ class OverallAnalysisPanel(Static):
                     log.info("PDH loss armed: opened %.0f > PDH %.0f, now %.0f — basing clock started",
                              self._session_open, _pdo["high"], live_ltp)
 
+        # ── PDH/PDL first-candle momentum detection (pre-window, 09:20-09:30) ──
+        if _pdo and self._session_open and live_ltp:
+            _hm = (_now_ist.hour, _now_ist.minute)
+            _today_s = _now_ist.strftime("%Y-%m-%d")
+            if self._c1_date != _today_s:
+                # capture the 09:15 bar only while bar 2 is forming — a late
+                # app start must not mistake a mid-day bar for candle 1
+                if (9, 20) <= _hm < (9, 25):
+                    _c1b = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=1)
+                    if _c1b:
+                        self._c1, self._c1_date = _c1b[-1], _today_s
+                        self._pdx_mom_side = ""
+            elif self._c1 is not None and not self._pdx_mom_side and (9, 20) <= _hm < (9, 31):
+                _body   = self._c1[3] - self._c1[0]
+                _inside = _pdo["low"] < self._session_open < _pdo["high"]
+                if _inside and live_ltp > _pdo["high"] and \
+                        0 <= _pdo["high"] - self._c1[3] <= 25.0 and _body >= 10.0:
+                    self._pdx_mom_side, self._pdx_mom_level = "CE", _pdo["high"]
+                    log.info("PDH momentum armed: c1 close %.1f (body %+.1f) near PDH %.1f, crossed @ %.1f",
+                             self._c1[3], _body, _pdo["high"], live_ltp)
+                elif _inside and live_ltp < _pdo["low"] and \
+                        0 <= self._c1[3] - _pdo["low"] <= 25.0 and _body <= -10.0:
+                    self._pdx_mom_side, self._pdx_mom_level = "PE", _pdo["low"]
+                    log.info("PDL momentum armed: c1 close %.1f (body %+.1f) near PDL %.1f, crossed @ %.1f",
+                             self._c1[3], _body, _pdo["low"], live_ltp)
+            if self._pdx_mom_side and _hm >= (9, 46):
+                log.info("PD%s momentum expired unused", "H" if self._pdx_mom_side == "CE" else "L")
+                self._pdx_mom_side = ""
+
         no_trade_reason = None
         if bot_control.is_paused():
             no_trade_reason = "Paused via Telegram (/resume to re-enable)"
@@ -661,9 +699,9 @@ class OverallAnalysisPanel(Static):
         elif not sma_ready:
             no_trade_reason = "SMA loading..."
         elif is_premarket():
-            no_trade_reason = "Pre-market — trading starts 09:30"
+            no_trade_reason = "Pre-market — trading starts 09:20 (09:30 on expiry)"
         elif not is_trade_window():
-            no_trade_reason = "Outside trading window (09:30–15:25)"
+            no_trade_reason = "Outside trading window (09:20/09:30–15:25)"
         elif option == "—":
             no_trade_reason = "Trend too weak"
         # Extreme gap (≥150pt): the move already happened overnight — entering
@@ -922,6 +960,30 @@ class OverallAnalysisPanel(Static):
                             "Re-entry triggered: %s %s @ %.1f  potential=%.0f%%  vel=%.0f%%",
                             option, entry_key, entry_price, potential * 100, exp_move * 100,
                         )
+
+                # ── PDH/PDL first-candle momentum entry (break holding) ───────
+                # Window now opens 09:20 on normal days, so this fires on the
+                # cross tick itself; the ≤30pt cap only skips already-spent
+                # bursts (or expiry days, where the window stays 09:30).
+                if (not entry_type and self._pdx_mom_side == option
+                        and entry_key and entry_price):
+                    _ml = self._pdx_mom_level
+                    _holding = (
+                        (option == "CE" and _ml < live_ltp <= _ml + 30.0)
+                        or (option == "PE" and _ml - 30.0 <= live_ltp < _ml)
+                    )
+                    _mflow = (option == "CE" and flow_score >= 0) or (option == "PE" and flow_score <= 0)
+                    if _holding and _mflow:
+                        entry_type = "pdh_momentum" if option == "CE" else "pdl_momentum"
+                        self._pdx_mom_side = ""
+                        # consumes the once-per-day PDH/PDL break slot too —
+                        # same level, one trade per side per day
+                        if option == "CE":
+                            self._pdx_ce_done = True
+                        else:
+                            self._pdx_pe_done = True
+                        log.info("%s entry: level %.1f holding @ %.1f flow=%+d",
+                                 entry_type, _ml, live_ltp, flow_score)
 
                 # ── PDL-reclaim / PDH-loss base-break entry ───────────────────
                 # Basing window done + price breaks OUT of the base range in the
