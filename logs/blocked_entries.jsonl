@@ -1155,3 +1155,37 @@
 {"ts": "2026-07-14T15:04:54+05:30", "option": "PE", "ltp": 24060.3, "score": -4, "entry_type": null, "reason": "Cooldown after PE loss — 5min left"}
 {"ts": "2026-07-14T15:11:08+05:30", "option": "PE", "ltp": 24064.0, "score": -3, "entry_type": null, "reason": "Bounce active +39pts from low — wait for red bar"}
 {"ts": "2026-07-14T15:18:04+05:30", "option": "PE", "ltp": 24040.4, "score": -3, "entry_type": "retest", "reason": "Support: Swing Low (0pt below)"}
+{"ts": "2026-07-15T09:30:01+05:30", "option": "CE", "ltp": 24198.1, "score": 5, "entry_type": "pdh_break", "reason": "Resistance: Round 24200 (2pt above)"}
+{"ts": "2026-07-15T09:49:48+05:30", "option": "CE", "ltp": 24192.7, "score": 3, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-15T09:55:01+05:30", "option": "CE", "ltp": 24200.5, "score": 3, "entry_type": null, "reason": "Consolidating — 30pt range in 30min (need >41, drift 27%)"}
+{"ts": "2026-07-15T09:55:31+05:30", "option": "CE", "ltp": 24201.3, "score": 3, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-15T10:00:31+05:30", "option": "CE", "ltp": 24183.1, "score": 3, "entry_type": null, "reason": "Consolidating — 34pt range in 30min (need >40, drift 34%)"}
+{"ts": "2026-07-15T10:05:38+05:30", "option": "CE", "ltp": 24187.9, "score": 3, "entry_type": null, "reason": "Consolidating — 34pt range in 30min (need >40, drift 38%)"}
+{"ts": "2026-07-15T10:10:39+05:30", "option": "CE", "ltp": 24194.5, "score": 3, "entry_type": null, "reason": "Consolidating — 34pt range in 30min (need >39, drift 5%)"}
+{"ts": "2026-07-15T10:15:40+05:30", "option": "CE", "ltp": 24204.5, "score": 3, "entry_type": null, "reason": "Consolidating — 34pt range in 30min (need >39, drift 20%)"}
+{"ts": "2026-07-15T10:35:29+05:30", "option": "CE", "ltp": 24203.0, "score": 5, "entry_type": "sustained", "reason": "Resistance: Swing High (15pt above)"}
+{"ts": "2026-07-15T10:36:46+05:30", "option": "CE", "ltp": 24199.1, "score": 5, "entry_type": "sustained", "reason": "Resistance: Round 24200 (1pt above)"}
+{"ts": "2026-07-15T10:37:54+05:30", "option": "CE", "ltp": 24194.8, "score": 5, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-15T10:41:13+05:30", "option": "CE", "ltp": 24200.5, "score": 5, "entry_type": "sustained", "reason": "Resistance: Swing High (17pt above)"}
+{"ts": "2026-07-15T10:46:14+05:30", "option": "CE", "ltp": 24207.7, "score": 3, "entry_type": "momentum", "reason": "Resistance: Swing High (10pt above)"}
+{"ts": "2026-07-15T10:46:54+05:30", "option": "CE", "ltp": 24199.8, "score": 3, "entry_type": "momentum", "reason": "Resistance: Round 24200 (0pt above)"}
+{"ts": "2026-07-15T11:01:38+05:30", "option": "CE", "ltp": 24192.4, "score": 4, "entry_type": null, "reason": "Retreat active -28pts from high — wait for green bar"}
+{"ts": "2026-07-15T11:55:01+05:30", "option": "PE", "ltp": 24180.2, "score": -3, "entry_type": null, "reason": "Bounce active +98pts from low — wait for red bar"}
+{"ts": "2026-07-15T12:02:41+05:30", "option": "PE", "ltp": 24181.7, "score": -3, "entry_type": null, "reason": "Bounce active +99pts from low — wait for red bar"}
+{"ts": "2026-07-15T12:27:23+05:30", "option": "PE", "ltp": 24178.2, "score": -3, "entry_type": null, "reason": "Consolidating — 19pt range in 30min (need >24, drift 52%)"}
+{"ts": "2026-07-15T12:52:11+05:30", "option": "PE", "ltp": 24151.2, "score": -5, "entry_type": "momentum", "reason": "Support: Pivot R1 (20pt below)"}
+{"ts": "2026-07-15T12:54:33+05:30", "option": "PE", "ltp": 24129.9, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T12:54:53+05:30", "option": "PE", "ltp": 24125.2, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24125 (15min left)"}
+{"ts": "2026-07-15T12:56:06+05:30", "option": "PE", "ltp": 24090.2, "score": -3, "entry_type": null, "reason": "Cooldown — 4min after last exit"}
+{"ts": "2026-07-15T13:00:06+05:30", "option": "PE", "ltp": 24040.2, "score": -3, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-15T13:00:11+05:30", "option": "PE", "ltp": 24047.2, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24045 (15min left)"}
+{"ts": "2026-07-15T13:05:07+05:30", "option": "PE", "ltp": 24069.2, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-15T13:05:13+05:30", "option": "PE", "ltp": 24068.8, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24045 (10min left)"}
+{"ts": "2026-07-15T13:10:13+05:30", "option": "PE", "ltp": 24049.5, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24045 (5min left)"}
+{"ts": "2026-07-15T13:10:32+05:30", "option": "PE", "ltp": 24045.2, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-15T13:15:55+05:30", "option": "PE", "ltp": 24063.4, "score": -5, "entry_type": null, "reason": "Cooldown after PE loss — 15min left"}
+{"ts": "2026-07-15T13:16:09+05:30", "option": "PE", "ltp": 24058.8, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T13:20:55+05:30", "option": "PE", "ltp": 24080.7, "score": -3, "entry_type": null, "reason": "Cooldown after PE loss — 10min left"}
+{"ts": "2026-07-15T13:21:55+05:30", "option": "PE", "ltp": 24082.2, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-15T13:25:55+05:30", "option": "PE", "ltp": 24072.0, "score": -5, "entry_type": null, "reason": "Cooldown after PE loss — 5min left"}
+{"ts": "2026-07-15T13:27:14+05:30", "option": "PE", "ltp": 24069.7, "score": -5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
