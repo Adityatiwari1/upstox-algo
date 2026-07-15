@@ -46,6 +46,10 @@ _active:          bool  = False
 _stopped_out:     bool  = False
 _last_trail_log_ts:    float = 0.0   # throttle for the periodic [trail-sl] status log
 _last_logged_floor:    float = 0.0
+_entry_ts:        float = 0.0
+_fast_move:       bool  = False  # ≥5pt gain in first 3min → TRENDING lock for life
+_FAST_GAIN_PTS    = 5.0
+_FAST_WINDOW_SECS = 180.0
 _expiry_afternoon: bool  = False   # per-tick multiple SL active on expiry day
 _expiry_day:       bool  = False   # bar-close 35% trail instead of phase system above
 
@@ -174,9 +178,11 @@ def set_entry(
     _post_target_anchor = 0.0
     _post_target_range  = 0.0
 
-    global _last_trail_log_ts, _last_logged_floor
+    global _last_trail_log_ts, _last_logged_floor, _entry_ts, _fast_move
     _last_trail_log_ts = 0.0
     _last_logged_floor = _sl_floor
+    _entry_ts  = time.time()
+    _fast_move = False
 
     log.info(
         "Trail SL: %s %s @ %.1f  SL=%.1f  tgt=%.1f",
@@ -244,7 +250,20 @@ def update(instrument_key: str, ltp: float) -> bool:
     # Absolute profit lock — protects a fraction of peak gain regardless of
     # how far away the target is (see _LOCK_TABLE above; regime-dependent)
     peak_gain = _peak - _entry_price
-    lock_cfg = _LOCK_TABLE.get(_regime, _LOCK_TABLE["NORMAL"])
+
+    # Velocity upgrade (2026-07-15): the regime label is frozen at entry from
+    # BACKWARD-looking ATR — it called the Jul-15 crash "CONSOLIDATING" and the
+    # tight lock amputated crash winners in 14-26 seconds (+1.8/+3.4 kept of
+    # +5.9/+8.1 peaks). A trade gaining ≥5pt inside its first 3 minutes IS the
+    # regime changing: give it the TRENDING lock (arm at 10, keep 40%) for the
+    # rest of its life. Slow grinders keep the regime's own tight lock.
+    global _fast_move
+    if (not _fast_move and peak_gain >= _FAST_GAIN_PTS
+            and (time.time() - _entry_ts) <= _FAST_WINDOW_SECS):
+        _fast_move = True
+        log.info("Velocity upgrade: +%.1fpt in %.0fs → TRENDING lock for this trade",
+                 peak_gain, time.time() - _entry_ts)
+    lock_cfg = _LOCK_TABLE["TRENDING"] if _fast_move else _LOCK_TABLE.get(_regime, _LOCK_TABLE["NORMAL"])
     if peak_gain >= lock_cfg["min_pts"]:
         frac = lock_cfg["big_frac"] if peak_gain >= lock_cfg["big_pts"] else lock_cfg["keep_frac"]
         lock_floor = round(_entry_price + peak_gain * frac, 1)
@@ -331,7 +350,8 @@ def set_sl(price: float) -> bool:
 
 def exit_trade() -> None:
     global _active, _stopped_out, _phase, _expiry_afternoon, _expiry_day
-    global _post_target_anchor, _post_target_range
+    global _post_target_anchor, _post_target_range, _fast_move
+    _fast_move          = False
     _active             = False
     _stopped_out        = False
     _phase              = 0
