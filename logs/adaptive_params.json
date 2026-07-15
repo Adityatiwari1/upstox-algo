@@ -1,7 +1,7 @@
 {
   "params": {
     "min_score": 2,
-    "trail_atr_baseline": 20.0,
+    "trail_atr_baseline": 17.5,
     "bk_min_dist": 12.0,
     "bk_timeout": 300,
     "sr_tolerance": 25.0,
@@ -27,6 +27,12 @@
       "old": 20.0,
       "new": 25.0,
       "reason": "S/R blocks saved avg -16pt/30min over 40 blocks — restore toward default"
+    },
+    {
+      "param": "trail_atr_baseline",
+      "old": 20.0,
+      "new": 17.5,
+      "reason": "Left-on-table only 3% over 5d — trail may be too loose"
     }
   ]
 }

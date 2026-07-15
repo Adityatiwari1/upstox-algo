@@ -1189,3 +1189,32 @@
 {"ts": "2026-07-15T13:21:55+05:30", "option": "PE", "ltp": 24082.2, "score": -5, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
 {"ts": "2026-07-15T13:25:55+05:30", "option": "PE", "ltp": 24072.0, "score": -5, "entry_type": null, "reason": "Cooldown after PE loss — 5min left"}
 {"ts": "2026-07-15T13:27:14+05:30", "option": "PE", "ltp": 24069.7, "score": -5, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-15T13:32:15+05:30", "option": "PE", "ltp": 24071.7, "score": -5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-15T13:34:53+05:30", "option": "PE", "ltp": 24059.9, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24060 (15min left)"}
+{"ts": "2026-07-15T13:37:16+05:30", "option": "PE", "ltp": 24062.8, "score": -5, "entry_type": null, "reason": "IV rank high (76%) — options expensive"}
+{"ts": "2026-07-15T13:39:54+05:30", "option": "PE", "ltp": 24064.0, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24060 (10min left)"}
+{"ts": "2026-07-15T13:43:26+05:30", "option": "PE", "ltp": 24055.5, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T13:44:54+05:30", "option": "PE", "ltp": 24060.0, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24060 (5min left)"}
+{"ts": "2026-07-15T13:49:49+05:30", "option": "PE", "ltp": 24067.2, "score": -3, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-15T13:49:54+05:30", "option": "PE", "ltp": 24068.8, "score": -3, "entry_type": null, "reason": "Consolidating — 41pt range in 30min (need >44, drift 19%)"}
+{"ts": "2026-07-15T13:54:55+05:30", "option": "PE", "ltp": 24052.1, "score": -5, "entry_type": null, "reason": "Consolidating — 36pt range in 30min (need >44, drift 45%)"}
+{"ts": "2026-07-15T13:55:15+05:30", "option": "PE", "ltp": 24049.4, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T13:59:55+05:30", "option": "PE", "ltp": 24078.4, "score": -3, "entry_type": null, "reason": "Consolidating — 34pt range in 30min (need >45, drift 59%)"}
+{"ts": "2026-07-15T14:00:44+05:30", "option": "PE", "ltp": 24082.3, "score": -5, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-15T14:04:56+05:30", "option": "PE", "ltp": 24075.2, "score": -5, "entry_type": null, "reason": "Consolidating — 35pt range in 30min (need >46, drift 9%)"}
+{"ts": "2026-07-15T14:05:45+05:30", "option": "PE", "ltp": 24077.8, "score": -5, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T14:09:57+05:30", "option": "PE", "ltp": 24089.4, "score": -4, "entry_type": null, "reason": "Consolidating — 39pt range in 30min (need >45, drift 40%)"}
+{"ts": "2026-07-15T14:10:46+05:30", "option": "PE", "ltp": 24083.9, "score": -2, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-15T14:17:12+05:30", "option": "PE", "ltp": 24090.1, "score": -3, "entry_type": null, "reason": "IV rank high (77%) — options expensive"}
+{"ts": "2026-07-15T14:22:12+05:30", "option": "PE", "ltp": 24081.8, "score": -2, "entry_type": null, "reason": "IV rank high (72%) — options expensive"}
+{"ts": "2026-07-15T14:29:05+05:30", "option": "PE", "ltp": 24077.1, "score": -4, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-15T14:35:04+05:30", "option": "PE", "ltp": 24075.7, "score": -4, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T14:36:23+05:30", "option": "CE", "ltp": 24089.2, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 24% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-15T14:44:13+05:30", "option": "CE", "ltp": 24094.6, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 28% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-15T14:48:11+05:30", "option": "PE", "ltp": 24084.2, "score": -2, "entry_type": null, "reason": "IV rank high (73%) — options expensive"}
+{"ts": "2026-07-15T14:50:35+05:30", "option": "CE", "ltp": 24085.9, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 26% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-15T14:53:23+05:30", "option": "PE", "ltp": 24079.8, "score": -2, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
+{"ts": "2026-07-15T14:58:32+05:30", "option": "PE", "ltp": 24076.4, "score": -2, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
+{"ts": "2026-07-15T15:00:22+05:30", "option": "PE", "ltp": 24068.6, "score": -3, "entry_type": "retest", "reason": "Support: Swing Low (24pt below)"}
+{"ts": "2026-07-15T15:05:50+05:30", "option": "PE", "ltp": 24071.0, "score": -2, "entry_type": null, "reason": "IV rank high (74%) — options expensive"}
+{"ts": "2026-07-15T15:12:24+05:30", "option": "PE", "ltp": 24078.7, "score": -4, "entry_type": null, "reason": "IV rank high (71%) — options expensive"}
