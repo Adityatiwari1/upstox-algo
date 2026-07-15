@@ -42,7 +42,11 @@ def get_open_trade() -> dict | None:
 def get_capital_info() -> dict:
     cap = _read_json(_CAPITAL_FILE, {})
     base = float(cap.get("base", 10_000.0))
-    realised = sum(float(t.get("pnl_rs", 0.0)) for t in get_all_trades())
+    # Net of real broker charges where priced — matches capital_service.sync_from_history
+    realised = sum(
+        float(t["pnl_rs_net"]) if t.get("pnl_rs_net") is not None else float(t.get("pnl_rs", 0.0))
+        for t in get_all_trades()
+    )
     return {
         "base":                round(base, 2),
         "current":             round(base + realised, 2),
@@ -59,6 +63,7 @@ def get_stats(trades: list[dict] | None = None) -> dict:
         return {
             "total": 0, "wins": 0, "losses": 0, "win_rate": 0.0,
             "total_pnl_pts": 0.0, "total_pnl_rs": 0.0,
+            "total_cost_rs": 0.0, "total_pnl_rs_net": 0.0,
             "avg_win": 0.0, "avg_loss": 0.0,
             "best": 0.0, "worst": 0.0, "expectancy": 0.0, "avg_rr": 0.0,
         }
@@ -69,13 +74,17 @@ def get_stats(trades: list[dict] | None = None) -> dict:
     wr     = len(wins) / len(closed)
     expect = wr * avg_w - (1 - wr) * avg_l
     avg_rr = round(avg_w / avg_l, 2) if avg_l else 0.0
+    total_rs   = sum(t["pnl_rs"] for t in closed)
+    total_cost = sum(t.get("cost_rs") or 0.0 for t in closed)
     return {
         "total":         len(closed),
         "wins":          len(wins),
         "losses":        len(losses),
         "win_rate":      round(wr * 100, 1),
         "total_pnl_pts": round(sum(t["pnl_pts"] for t in closed), 1),
-        "total_pnl_rs":  round(sum(t["pnl_rs"]  for t in closed), 0),
+        "total_pnl_rs":  round(total_rs, 0),
+        "total_cost_rs":    round(total_cost, 0),
+        "total_pnl_rs_net": round(total_rs - total_cost, 0),
         "avg_win":       round(avg_w, 1),
         "avg_loss":      round(-avg_l, 1),
         "best":          round(max((t["pnl_pts"] for t in closed), default=0.0), 1),
@@ -90,7 +99,7 @@ def get_today_stats() -> dict:
     today_trades = [t for t in get_all_trades() if t.get("date") == today]
     s   = get_stats(today_trades)
     cap = get_capital_info()
-    pnl_pct = round(s["total_pnl_rs"] / cap["current"] * 100, 2) if cap["current"] else 0.0
+    pnl_pct = round(s["total_pnl_rs_net"] / cap["current"] * 100, 2) if cap["current"] else 0.0
     return {**s, "date": today, "pnl_pct_today": pnl_pct}
 
 
