@@ -72,6 +72,18 @@ _LOCK_TABLE = {
 }
 _regime: str = "NORMAL"
 
+# ATR breathing room for velocity-upgraded trades (2026-07-16): the fast PE
+# peaked +11.3pt and the TRENDING lock (floor entry+40% of gain) was clipped
+# by a 6.9pt option flutter — a 9pt spot bounce on an ATR-13 day — 2 minutes
+# before spot ran another 35pt in the trade's direction (+4.4 kept of a move
+# worth ~+19). A pullback smaller than 0.75×ATR is noise, not reversal, so a
+# fast mover's lock floor never sits closer to peak than that; the keep-min
+# fraction still banks at least 25% of peak gain (guards the 2026-07-08
+# trail-back-to-scratch failure on wide-ATR days). Slow grinders unaffected.
+_BREATHE_ATR_FRAC = 0.75
+_BREATHE_MIN_KEEP = 0.25
+_atr_pts: float = 0.0
+
 # Expiry afternoon per-tick step SL — locks in at price multiples (intrabar spike protection)
 _EXPIRY_STEPS = [
     (5.0, 3.5),   # 5× entry → SL at 3.5×
@@ -148,16 +160,18 @@ def set_entry(
     expiry_afternoon: bool = False,
     expiry_day: bool      = False,
     regime: str            = "NORMAL",
+    atr_pts: float         = 0.0,
 ) -> None:
     """Milestone-based trailing SL, checked every tick.
     On expiry_afternoon: also applies per-tick multiple SL.
     On expiry_day: bar-close 35% trail used instead of the milestone system above.
     regime: "TRENDING" | "NORMAL" | "CONSOLIDATING" — from atr_service.get_regime(),
-    picks which profit-lock table (_LOCK_TABLE) governs this trade."""
+    picks which profit-lock table (_LOCK_TABLE) governs this trade.
+    atr_pts: spot ATR at entry — sizes the breathing-room cap for fast movers."""
     global _entry_price, _initial_sl, _initial_risk, _target, _side, _option_key
     global _peak, _trail_sl, _sl_floor, _phase
     global _post_target_anchor, _post_target_range
-    global _active, _stopped_out, _expiry_afternoon, _expiry_day, _regime
+    global _active, _stopped_out, _expiry_afternoon, _expiry_day, _regime, _atr_pts
 
     _entry_price      = price
     _initial_sl       = initial_sl if initial_sl else round(price * 0.91, 1)
@@ -171,6 +185,7 @@ def set_entry(
     _expiry_afternoon = expiry_afternoon
     _expiry_day       = expiry_day
     _regime           = regime if regime in _LOCK_TABLE else "NORMAL"
+    _atr_pts          = atr_pts
 
     _initial_risk = round(price - _initial_sl, 1)
     _sl_floor     = _initial_sl
@@ -267,6 +282,12 @@ def update(instrument_key: str, ltp: float) -> bool:
     if peak_gain >= lock_cfg["min_pts"]:
         frac = lock_cfg["big_frac"] if peak_gain >= lock_cfg["big_pts"] else lock_cfg["keep_frac"]
         lock_floor = round(_entry_price + peak_gain * frac, 1)
+        # Fast movers get ATR breathing room (see _BREATHE_* above): floor no
+        # closer to peak than 0.75×ATR, but never banking <25% of peak gain.
+        if _fast_move and _atr_pts > 0:
+            breathe  = round(_peak - _BREATHE_ATR_FRAC * _atr_pts, 1)
+            keep_min = round(_entry_price + _BREATHE_MIN_KEEP * peak_gain, 1)
+            lock_floor = max(min(lock_floor, breathe), keep_min)
         if lock_floor > _sl_floor:
             _sl_floor = lock_floor
             log.info("Profit lock (%s): peak_gain=%.1f  floor → %.1f", _regime, peak_gain, _sl_floor)

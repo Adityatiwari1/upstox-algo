@@ -137,6 +137,7 @@ def _load() -> None:
                             expiry_afternoon=is_expiry_afternoon(),
                             expiry_day=is_expiry_day(),
                             regime=data.get("regime", "NORMAL"),
+                            atr_pts=float(data.get("atr_at_entry", 0) or 0),
                         )
                         if peak_saved or floor_saved:
                             trailing_sl_service.restore_state(
@@ -301,6 +302,7 @@ def open_trade(
         expiry_afternoon=ea,
         expiry_day=is_expiry_day(),
         regime=regime,
+        atr_pts=atr_at_entry,
     )
     log.info(
         "Paper OPEN%s: %s %s @ %.1f  SL=%.1f  TGT=%.1f  lots=%d",

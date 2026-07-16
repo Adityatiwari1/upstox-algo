@@ -199,6 +199,10 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
                 from uptox.api.feed_client import subscribe
                 asyncio.create_task(subscribe(keys))
 
+    # ── Shadow book (focus-benched entries tracked at real prices) ───────────
+    from uptox.services import shadow_book
+    shadow_book.on_tick(instrument_key, tick.ltp)
+
     # ── Open trade tick processing ────────────────────────────────────────────
     ot = trade_book.get_open_trade()
     if ot and ot.get("option_key") == instrument_key:

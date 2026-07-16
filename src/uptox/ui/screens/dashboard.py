@@ -1360,6 +1360,8 @@ class OverallAnalysisPanel(Static):
                                            option, ltp, total, entry_type)
                         log.info("Focus mode: skipped %s %s @ %.1f (score %+d)",
                                  entry_type, option, ltp, total)
+                        from uptox.services import shadow_book
+                        shadow_book.try_open(entry_type, option, ltp, total)
                         entry_type = None
 
                     if entry_type:
