@@ -17,7 +17,9 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 PERIODS = (10, 20, 50, 100, 200)
-_MAX = max(PERIODS)
+# 450 M5 bars = 5 trading days + today — lux_sr's S/R window (user
+# 2026-07-17); SMAs only ever read the last max(PERIODS)=200 of these.
+_MAX = 450
 
 IST = ZoneInfo("Asia/Kolkata")
 

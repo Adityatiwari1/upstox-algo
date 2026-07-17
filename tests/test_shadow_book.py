@@ -54,6 +54,19 @@ def test_no_shadow_while_real_trade_open():
     assert sb._shadow is None
 
 
+def test_freak_tick_ignored_real_jump_confirmed():
+    _wire(100.0)
+    sb.try_open("sustained", "CE", 24100.0, 5)
+    sb.on_tick(KEY, 170.0)                   # isolated +70% spike: skipped
+    assert sb._shadow["peak"] == 100.0
+    sb.on_tick(KEY, 101.0)                   # back in band: normal processing
+    assert sb._shadow["last_price"] == 101.0
+    sb.on_tick(KEY, 130.0)                   # jump again...
+    sb.on_tick(KEY, 131.0)                   # ...confirmed by next tick
+    assert sb._shadow["peak"] == 131.0
+    sb._shadow = None
+
+
 def test_session_close_on_any_tick():
     _wire(100.0, session_close=(0, 0))
     sb.try_open("sustained", "PE", 24100.0, -5)
@@ -67,5 +80,6 @@ if __name__ == "__main__":
     test_profit_lock_exit()
     test_hard_stop_and_cooldown()
     test_no_shadow_while_real_trade_open()
+    test_freak_tick_ignored_real_jump_confirmed()
     test_session_close_on_any_tick()
     print("OK")

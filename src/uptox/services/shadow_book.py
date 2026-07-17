@@ -103,6 +103,16 @@ def on_tick(instrument_key: str, ltp: float) -> None:
     if instrument_key != _shadow["option_key"]:
         return
 
+    # Freak-tick damper: ignore one isolated >15% jump — a real repricing
+    # shows up on the next tick too. 2026-07-17 shadow peaked +70.6pt on a
+    # spike the main feed's filter would have dropped, inflating the lock
+    # floor and the recorded exit.
+    prev = _shadow["last_price"]
+    if prev and abs(ltp - prev) / prev > 0.15 and not _shadow.get("suspect_seen"):
+        _shadow["suspect_seen"] = True
+        return
+    _shadow["suspect_seen"] = False
+
     _shadow["last_price"]   = ltp
     _shadow["last_tick_ts"] = time.time()
     if ltp > _shadow["peak"]:

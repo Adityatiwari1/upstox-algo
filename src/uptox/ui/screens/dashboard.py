@@ -130,8 +130,12 @@ def _affordable_strike(ltp: float, option: str, expiry_pm: bool = False) -> tupl
 # points by user preference (2026-07-15) — ATR-scaled caps wobbled all day
 # and mislabeled the Jul-15 crash. Review the constants weekly, not per-tick.
 _RB_DEPART = 7.0
-_RB_TIGHT  = 20.0   # 3-bar box wider than this = trend, not compression
-_CONSOL_RANGE_PTS = 30.0   # 6-bar/30-min consolidation-block threshold
+# Both thresholds meet at 25 (2026-07-17): with arm ≤20 and clearance >30,
+# a 20-30pt range could neither arm range_break nor clear the consolidation
+# block — Jul-17's midday grind sat at 22-29pt for hours (13 blocks) while
+# Nifty ground +220 for the day.
+_RB_TIGHT  = 25.0   # 3-bar box wider than this = trend, not compression
+_CONSOL_RANGE_PTS = 25.0   # 6-bar/30-min consolidation-block threshold
 
 # FOCUS MODE (user 2026-07-15): trade ONLY level-anchored setups — every
 # entry here fires off a price level visible on the 5-min chart (range box,
@@ -145,6 +149,7 @@ _FOCUS_ENTRIES = {
     "pdh_momentum", "pdl_momentum",          # 09:20 first-candle break
     "pdh_break", "pdl_break",                # prev-day high/low breaks
     "pdl_reclaim", "pdh_loss",               # prev-day level reclaims
+    "lux_break", "lux_bounce", "lux_retest", # LuxAlgo 10/10 pivot S/R events
 }
 
 
@@ -166,42 +171,16 @@ def _range_break(ltp: float) -> tuple[str | None, float, float]:
     return None, hi, lo
 
 
-_swing_cache: tuple[int, list[tuple[str, float]]] = (-1, [])
-
-
-def _swing_levels(n_bars: int = 36) -> list[tuple[str, float]]:
+def _swing_levels() -> list[tuple[str, float]]:
     """
-    Recent 5-min swing highs/lows — fractal pivots (bar extreme vs 2 bars on
-    each side) over the last ~3 hours. These are the intraday S/R levels
-    traders actually watch; adding them to _near_sr means their BREAKS become
-    entries through the existing fresh-break logic (S/R clears → flow
-    confirms → fire; flow contradicts → retest watch).
-    Returns the 2 most recent swing highs and lows, deduped by value.
-    Result cached per 5-min slot — pivots only change on bar close, and this
-    runs in the GUI thread on every entry check.
+    Intraday swing S/R for the _near_sr blocking check. Since 2026-07-17
+    these come from lux_sr's 10/10-wing confirmed pivots (LuxAlgo port) —
+    one S/R definition shared by blocking and the lux break/bounce/retest
+    entries. Wider wings than the old 2/2 fractals: fewer, stronger levels,
+    confirmed ~50min after the extreme (non-repainting).
     """
-    global _swing_cache
-    import time as _time
-    _slot = int(_time.time() // 300)
-    if _swing_cache[0] == _slot:
-        return _swing_cache[1]
-    bars = sma_service.get_last_candles(NIFTY, TimeFrame.M5, n=n_bars)
-    if len(bars) < 5:
-        return []
-    highs = [b[1] for b in bars]
-    lows  = [b[2] for b in bars]
-    sh: list[float] = []
-    sl: list[float] = []
-    for i in range(2, len(bars) - 2):
-        if highs[i] == max(highs[i - 2:i + 3]) and highs[i] not in sh:
-            sh.append(highs[i])
-        if lows[i] == min(lows[i - 2:i + 3]) and lows[i] not in sl:
-            sl.append(lows[i])
-    out = ([("Swing High", v) for v in sh[-2:]]
-           + [("Swing Low", v) for v in sl[-2:]])
-    if out:   # don't cache the warm-up empty result — candles may still be loading
-        _swing_cache = (_slot, out)
-    return out
+    from uptox.services import lux_sr
+    return lux_sr.get_block_levels()
 
 
 def _near_sr(ltp: float, option: str, sma_score: int = 0) -> tuple[str | None, float]:
@@ -267,6 +246,17 @@ def _near_sr(ltp: float, option: str, sma_score: int = 0) -> tuple[str | None, f
         if option == "PE" and dist >= 0:
             return f"Support: {label} ({abs(dist):.0f}pt below)", lvl
     return None, 0.0
+
+
+def _sane_tick(prev: float, ltp: float, max_jump: float = 40.0) -> bool:
+    """
+    Nifty never moves >40pt between dashboard refreshes (~1s) — even the
+    2026-07-15 crash's fastest 5-min leg averaged <0.3pt/s. A print jumping
+    further than that from the previous refresh is a freak tick and must not
+    set session extremes; a real lurch keeps printing there and passes on
+    the next refresh. No prev (first tick / restart) = accept.
+    """
+    return not prev or abs(ltp - prev) <= max_jump
 
 
 _blocked_log_ts: dict[str, float] = {}
@@ -341,6 +331,7 @@ class OverallAnalysisPanel(Static):
     # ── intraday high/low (reset daily, used for bounce/retreat filter) ────────
     _session_low:  float = float("inf")
     _session_high: float = 0.0
+    _last_seen_ltp: float = 0.0   # previous refresh's ltp — freak-tick check for extremes
     _session_date: str   = ""
     _session_open: float = 0.0   # first live tick of the day (approx. open; restart mid-day = restart price)
 
@@ -437,11 +428,22 @@ class OverallAnalysisPanel(Static):
                         self._session_low  = min(b[2] for b in _tb)
         # Pre-9:15 ticks excluded — pre-open freak prints (24,614 print seen
         # 2026-07-03 09:00, 240pt off) poisoned session high and the gap calc.
+        # Intraday freaks filtered too: a ~24,367 print ~60pt above market on
+        # 2026-07-17 ~14:15 stuck _session_high 60pt high and the retreat gate
+        # blocked CE against the phantom high through the day's best rally. A
+        # real lurch keeps printing there, so only the isolated freak is lost.
         if live_ltp and _mkt_open_now:
             if not self._session_open:
                 self._session_open = live_ltp
-            if live_ltp < self._session_low:  self._session_low  = live_ltp
-            if live_ltp > self._session_high: self._session_high = live_ltp
+            if _sane_tick(self._last_seen_ltp, live_ltp):
+                if live_ltp < self._session_low:  self._session_low  = live_ltp
+                if live_ltp > self._session_high: self._session_high = live_ltp
+            self._last_seen_ltp = live_ltp
+
+        # Lux S/R: recompute pivot levels + bar events on each 5-min close
+        # (slot-gated inside; also feeds _swing_levels for the S/R blocks)
+        from uptox.services import lux_sr
+        lux_sr.update()
 
         # ── Opening Range Breakout range tracking (09:15–09:30) ──────────────
         if _today != self._orb_date:
@@ -1353,6 +1355,15 @@ class OverallAnalysisPanel(Static):
                                 ce_iv_rising, pe_iv_rising,
                             )
 
+                    # Lux S/R events (break / bounce / retest at 10/10-wing
+                    # pivot levels) — level-anchored, so focus-whitelisted
+                    if not entry_type:
+                        _lux_et = lux_sr.check_entry(option)
+                        if _lux_et:
+                            entry_type = _lux_et
+                            log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
+                                     _lux_et, option, ltp, total)
+
                     # Focus mode: non-whitelisted triggers log their would-be
                     # fire (audit prices what focus skipped) but never trade
                     if entry_type and _FOCUS_ENTRIES and entry_type not in _FOCUS_ENTRIES:
@@ -1365,9 +1376,10 @@ class OverallAnalysisPanel(Static):
                         entry_type = None
 
                     if entry_type:
-                        # sr_retest / reclaim entries already validated at their
-                        # own level — skip the normal S/R proximity check
-                        if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss"):
+                        # sr_retest / reclaim / lux entries already validated at
+                        # their own level — skip the normal S/R proximity check
+                        if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss",
+                                          "lux_break", "lux_bounce", "lux_retest"):
                             sr_block, _broken_level = None, 0.0
                         else:
                             sr_block, _broken_level = _near_sr(ltp, option, sma_score)

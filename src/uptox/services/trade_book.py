@@ -599,7 +599,13 @@ def check_time_exit() -> str | None:
         return None
     elapsed_min = (time.time() - entry_ts) / 60.0
     pnl = _open_trade.get("pnl_pts", 0.0)
-    if elapsed_min <= 10.0 and pnl <= -10.0:
+    # MAE threshold scales with the day's noise: a flat -10 fires at 0.35×ATR
+    # on an ATR-29 day — ordinary wide-day wiggle, not direction failure
+    # (2026-07-17 orb CE: -10 on a 16pt spot dip, market then ran +120pt).
+    # 0.5×spot-ATR ≈ the same move in option points at ~0.5 delta; never
+    # looser than the initial SL behind it, never tighter than the proven 10.
+    mae_pts = max(10.0, 0.5 * _open_trade.get("atr_at_entry", 0.0))
+    if elapsed_min <= 10.0 and pnl <= -mae_pts:
         return "mae_exit_10min"
     if elapsed_min >= 25.0 and pnl < 5.0:
         from uptox.services import trailing_sl_service

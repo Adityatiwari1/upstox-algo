@@ -72,14 +72,15 @@ _LOCK_TABLE = {
 }
 _regime: str = "NORMAL"
 
-# ATR breathing room for velocity-upgraded trades (2026-07-16): the fast PE
-# peaked +11.3pt and the TRENDING lock (floor entry+40% of gain) was clipped
-# by a 6.9pt option flutter — a 9pt spot bounce on an ATR-13 day — 2 minutes
-# before spot ran another 35pt in the trade's direction (+4.4 kept of a move
-# worth ~+19). A pullback smaller than 0.75×ATR is noise, not reversal, so a
-# fast mover's lock floor never sits closer to peak than that; the keep-min
-# fraction still banks at least 25% of peak gain (guards the 2026-07-08
-# trail-back-to-scratch failure on wide-ATR days). Slow grinders unaffected.
+# ATR breathing room (2026-07-16, widened to all trades 2026-07-17): the
+# Jul-16 fast PE peaked +11.3pt and the TRENDING lock (floor entry+40% of
+# gain) was clipped by a 6.9pt option flutter — a 9pt spot bounce on an
+# ATR-13 day — 2 minutes before spot ran another 35pt its way (+4.4 kept of
+# ~+19). Jul-17's SLOW grinder repeated it: 50% NORMAL lock kept +5.3 of an
+# eventual +34 on an ATR-26 day. A pullback smaller than 0.75×ATR is noise,
+# not reversal, so no trade's lock floor sits closer to peak than that; the
+# keep-min fraction still banks at least 25% of peak gain (guards the
+# 2026-07-08 trail-back-to-scratch failure on wide-ATR days).
 _BREATHE_ATR_FRAC = 0.75
 _BREATHE_MIN_KEEP = 0.25
 _atr_pts: float = 0.0
@@ -282,9 +283,11 @@ def update(instrument_key: str, ltp: float) -> bool:
     if peak_gain >= lock_cfg["min_pts"]:
         frac = lock_cfg["big_frac"] if peak_gain >= lock_cfg["big_pts"] else lock_cfg["keep_frac"]
         lock_floor = round(_entry_price + peak_gain * frac, 1)
-        # Fast movers get ATR breathing room (see _BREATHE_* above): floor no
-        # closer to peak than 0.75×ATR, but never banking <25% of peak gain.
-        if _fast_move and _atr_pts > 0:
+        # ATR breathing room (see _BREATHE_* above): floor no closer to peak
+        # than 0.75×ATR, but never banking <25% of peak gain. Applies to every
+        # trade, not just velocity-upgraded ones — 2026-07-17 slow grinder
+        # kept 5.3 of a +34 runner because the 50% lock had no ATR awareness.
+        if _atr_pts > 0:
             breathe  = round(_peak - _BREATHE_ATR_FRAC * _atr_pts, 1)
             keep_min = round(_entry_price + _BREATHE_MIN_KEEP * peak_gain, 1)
             lock_floor = max(min(lock_floor, breathe), keep_min)
