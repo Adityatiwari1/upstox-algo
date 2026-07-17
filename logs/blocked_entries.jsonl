@@ -1272,3 +1272,52 @@
 {"ts": "2026-07-16T15:09:47+05:30", "option": "PE", "ltp": 24073.2, "score": -3, "entry_type": null, "reason": "IV rank high (70%) — options expensive"}
 {"ts": "2026-07-16T15:13:05+05:30", "option": "PE", "ltp": 24075.2, "score": -5, "entry_type": null, "reason": "Premium decay risk — IV rank 29% after 14:30 (theta kills low-IV options in last hour)"}
 {"ts": "2026-07-16T15:18:08+05:30", "option": "PE", "ltp": 24063.6, "score": -5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-17T09:44:23+05:30", "option": "CE", "ltp": 24225.0, "score": 3, "entry_type": null, "reason": "Post-win chase guard — CE again only if move continues past 24227 (15min left)"}
+{"ts": "2026-07-17T09:45:17+05:30", "option": "CE", "ltp": 24241.8, "score": 3, "entry_type": null, "reason": "Cooldown — 4min after last exit"}
+{"ts": "2026-07-17T09:49:23+05:30", "option": "CE", "ltp": 24239.2, "score": 3, "entry_type": null, "reason": "Post-win chase guard — CE again only if move continues past 24227 (10min left)"}
+{"ts": "2026-07-17T09:54:24+05:30", "option": "CE", "ltp": 24234.6, "score": 5, "entry_type": null, "reason": "Post-win chase guard — CE again only if move continues past 24227 (5min left)"}
+{"ts": "2026-07-17T09:56:20+05:30", "option": "CE", "ltp": 24224.8, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 15min left"}
+{"ts": "2026-07-17T10:01:21+05:30", "option": "CE", "ltp": 24223.7, "score": 5, "entry_type": null, "reason": "Cooldown after CE loss — 10min left"}
+{"ts": "2026-07-17T10:06:22+05:30", "option": "CE", "ltp": 24224.3, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 5min left"}
+{"ts": "2026-07-17T10:11:28+05:30", "option": "CE", "ltp": 24231.7, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T10:16:28+05:30", "option": "CE", "ltp": 24245.6, "score": 5, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-17T10:21:46+05:30", "option": "CE", "ltp": 24268.5, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T10:26:47+05:30", "option": "CE", "ltp": 24264.3, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-17T10:36:00+05:30", "option": "CE", "ltp": 24273.2, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T10:41:14+05:30", "option": "CE", "ltp": 24269.0, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T10:45:09+05:30", "option": "CE", "ltp": 24257.5, "score": 3, "entry_type": null, "reason": "Retreat active -31pts from high — wait for green bar"}
+{"ts": "2026-07-17T10:50:13+05:30", "option": "CE", "ltp": 24251.2, "score": 3, "entry_type": null, "reason": "Retreat active -37pts from high — wait for green bar"}
+{"ts": "2026-07-17T11:05:14+05:30", "option": "CE", "ltp": 24258.2, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T11:19:39+05:30", "option": "CE", "ltp": 24241.9, "score": 2, "entry_type": null, "reason": "Retreat active -46pts from high — wait for green bar"}
+{"ts": "2026-07-17T11:40:00+05:30", "option": "CE", "ltp": 24257.4, "score": 4, "entry_type": null, "reason": "Consolidating — 29pt range in 30min (need >30, drift 51%)"}
+{"ts": "2026-07-17T11:55:08+05:30", "option": "CE", "ltp": 24279.8, "score": 3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-17T12:00:09+05:30", "option": "CE", "ltp": 24275.6, "score": 5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-17T12:05:19+05:30", "option": "CE", "ltp": 24276.0, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T12:08:23+05:30", "option": "CE", "ltp": 24262.8, "score": 4, "entry_type": null, "reason": "Retreat active -25pts from high — wait for green bar"}
+{"ts": "2026-07-17T12:10:00+05:30", "option": "CE", "ltp": 24273.9, "score": 3, "entry_type": null, "reason": "Consolidating — 29pt range in 30min (need >30, drift 58%)"}
+{"ts": "2026-07-17T12:15:01+05:30", "option": "CE", "ltp": 24277.2, "score": 3, "entry_type": null, "reason": "Consolidating — 22pt range in 30min (need >30, drift 42%)"}
+{"ts": "2026-07-17T12:20:01+05:30", "option": "CE", "ltp": 24275.0, "score": 3, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >30, drift 32%)"}
+{"ts": "2026-07-17T12:25:02+05:30", "option": "CE", "ltp": 24281.8, "score": 3, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >30, drift 12%)"}
+{"ts": "2026-07-17T12:30:03+05:30", "option": "CE", "ltp": 24276.2, "score": 3, "entry_type": null, "reason": "Consolidating — 26pt range in 30min (need >30, drift 1%)"}
+{"ts": "2026-07-17T12:35:03+05:30", "option": "CE", "ltp": 24283.0, "score": 3, "entry_type": null, "reason": "Consolidating — 26pt range in 30min (need >30, drift 24%)"}
+{"ts": "2026-07-17T12:40:06+05:30", "option": "CE", "ltp": 24274.5, "score": 3, "entry_type": null, "reason": "Consolidating — 19pt range in 30min (need >30, drift 19%)"}
+{"ts": "2026-07-17T12:45:09+05:30", "option": "CE", "ltp": 24279.4, "score": 3, "entry_type": null, "reason": "Consolidating — 27pt range in 30min (need >30, drift 2%)"}
+{"ts": "2026-07-17T13:15:05+05:30", "option": "CE", "ltp": 24282.0, "score": 4, "entry_type": null, "reason": "Consolidating — 27pt range in 30min (need >30, drift 21%)"}
+{"ts": "2026-07-17T13:41:22+05:30", "option": "PE", "ltp": 24250.8, "score": -3, "entry_type": null, "reason": "Consolidating — 29pt range in 30min (need >30, drift 28%)"}
+{"ts": "2026-07-17T14:05:00+05:30", "option": "PE", "ltp": 24251.0, "score": -3, "entry_type": null, "reason": "Bounce active +144pts from low — wait for red bar"}
+{"ts": "2026-07-17T14:10:00+05:30", "option": "PE", "ltp": 24253.2, "score": -3, "entry_type": null, "reason": "Bounce active +146pts from low — wait for red bar"}
+{"ts": "2026-07-17T14:13:52+05:30", "option": "CE", "ltp": 24275.7, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T14:18:53+05:30", "option": "CE", "ltp": 24337.5, "score": 5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-17T14:23:53+05:30", "option": "CE", "ltp": 24294.7, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-17T14:28:53+05:30", "option": "CE", "ltp": 24311.7, "score": 5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-17T14:30:00+05:30", "option": "CE", "ltp": 24288.2, "score": 3, "entry_type": null, "reason": "Retreat active -79pts from high — wait for green bar"}
+{"ts": "2026-07-17T14:35:04+05:30", "option": "CE", "ltp": 24299.0, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T14:40:10+05:30", "option": "CE", "ltp": 24301.2, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T14:45:11+05:30", "option": "CE", "ltp": 24320.4, "score": 3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-17T14:50:15+05:30", "option": "CE", "ltp": 24324.5, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T14:55:15+05:30", "option": "CE", "ltp": 24321.0, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T15:00:00+05:30", "option": "CE", "ltp": 24312.9, "score": 3, "entry_type": null, "reason": "Retreat active -54pts from high — wait for green bar"}
+{"ts": "2026-07-17T15:05:11+05:30", "option": "CE", "ltp": 24326.2, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-17T15:10:11+05:30", "option": "CE", "ltp": 24334.8, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-17T15:15:00+05:30", "option": "CE", "ltp": 24329.1, "score": 3, "entry_type": null, "reason": "Consolidating — 27pt range in 30min (need >30, drift 43%)"}
+{"ts": "2026-07-17T15:20:01+05:30", "option": "CE", "ltp": 24328.5, "score": 3, "entry_type": null, "reason": "Consolidating — 27pt range in 30min (need >30, drift 19%)"}

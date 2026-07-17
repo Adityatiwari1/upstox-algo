@@ -1,7 +1,7 @@
 {
   "params": {
     "min_score": 2,
-    "trail_atr_baseline": 15.0,
+    "trail_atr_baseline": 12.5,
     "bk_min_dist": 12.0,
     "bk_timeout": 300,
     "sr_tolerance": 25.0,
@@ -44,6 +44,12 @@
       "param": "trail_atr_baseline",
       "old": 17.5,
       "new": 15.0,
+      "reason": "Left-on-table only 3% over 5d — trail may be too loose"
+    },
+    {
+      "param": "trail_atr_baseline",
+      "old": 15.0,
+      "new": 12.5,
       "reason": "Left-on-table only 3% over 5d — trail may be too loose"
     }
   ]
