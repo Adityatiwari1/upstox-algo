@@ -324,3 +324,10 @@ def get_last_candles(instrument_key: str, tf: TimeFrame, n: int = 3) -> list[Can
     """Return last n closed OHLCV bars (oldest first)."""
     q = _candles.get((instrument_key, tf))
     return list(q)[-n:] if q else []
+
+
+def get_forming_bar(instrument_key: str, tf: TimeFrame) -> Candle | None:
+    """Currently-forming (not yet closed) OHLC bar, live to the latest tick.
+    None if no tick has arrived for this bar yet."""
+    lb = _live_bar.get((instrument_key, tf))
+    return (lb[1], lb[2], lb[3], lb[4]) if lb else None

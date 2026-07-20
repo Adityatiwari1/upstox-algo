@@ -440,10 +440,13 @@ class OverallAnalysisPanel(Static):
                 if live_ltp > self._session_high: self._session_high = live_ltp
             self._last_seen_ltp = live_ltp
 
-        # Lux S/R: recompute pivot levels + bar events on each 5-min close
-        # (slot-gated inside; also feeds _swing_levels for the S/R blocks)
+        # Lux S/R: recompute pivot levels + break/retest events on each
+        # 5-min close (slot-gated inside; also feeds _swing_levels for the
+        # S/R blocks); bounce checked every tick against the faster-
+        # confirming level so entry doesn't wait for the bar to close.
         from uptox.services import lux_sr
         lux_sr.update()
+        lux_sr.check_live_bounce()
 
         # ── Opening Range Breakout range tracking (09:15–09:30) ──────────────
         if _today != self._orb_date:
