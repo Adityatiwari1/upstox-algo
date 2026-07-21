@@ -94,7 +94,9 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
         if bar_slot != _last_bar_slot and _last_bar_slot != -1:
             global _bar_closes_seen, _limit_warned_today
             from uptox.services.data_recorder import record_bar
-            record_bar()
+            _bar_row = record_bar()
+            from uptox.quant.runner import _get_runner
+            _get_runner().on_bar(_bar_row)
             # Advance trailing SL phase on bar close — not per tick — to avoid noise shakeouts
             ot = trade_book.get_open_trade()
             if ot:

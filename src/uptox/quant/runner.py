@@ -43,3 +43,13 @@ class QuantRunner:
             self.history = self.history[-_HISTORY_MAX:]
         for engine in self.engines.values():
             engine.on_snapshot(row, self.history)
+
+
+_runner: QuantRunner | None = None
+
+
+def _get_runner() -> QuantRunner:
+    global _runner
+    if _runner is None:
+        _runner = QuantRunner()
+    return _runner
