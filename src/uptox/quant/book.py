@@ -22,8 +22,13 @@ def append_event(path: Path, row: dict) -> None:
 def read_events(path: Path) -> list[dict]:
     if not path.exists():
         return []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as e:
+        log.warning("quant.book: could not read %s: %s", path, e)
+        return []
     rows = []
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in lines:
         line = line.strip()
         if not line:
             continue

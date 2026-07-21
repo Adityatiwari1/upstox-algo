@@ -67,3 +67,16 @@ def test_stats_computes_win_rate_and_expectancy():
     assert s["total_pnl_pts"] == 13.0
     assert s["total_pnl_rs"] == 8450.0
     assert round(s["expectancy_pts"], 2) == round(13.0 / 3, 2)
+
+
+def test_read_events_oserror_returns_empty_list():
+    from pathlib import Path as _P
+    p = _tmp_path()
+    p.write_text('{"event": "open", "id": "a1"}\n', encoding="utf-8")
+    original_read_text = _P.read_text
+    _P.read_text = lambda self, *a, **kw: (_ for _ in ()).throw(OSError("simulated read failure"))
+    try:
+        rows = book.read_events(p)
+    finally:
+        _P.read_text = original_read_text
+    assert rows == []

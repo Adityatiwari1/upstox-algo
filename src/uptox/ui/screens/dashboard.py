@@ -966,7 +966,10 @@ class OverallAnalysisPanel(Static):
                     _fl     = feed_store.get(_fk) if _fk else None
                     _fp     = _fl.ltp if (_fl and _fl.ltp) else ot_flip.get(
                         "current_price", ot_flip["entry_price"])
-                    trade_book.close_trade(_fp, "direction_change")
+                    _closed_flip = trade_book.close_trade(_fp, "direction_change")
+                    if _closed_flip:
+                        from uptox.services.telegram_service import notify_trade_close
+                        notify_trade_close(_closed_flip)
                 self._watch = "IDLE"
                 self._bk_max_dist = 0.0
                 self._sr_retest_mode = False
@@ -1563,7 +1566,10 @@ class OverallAnalysisPanel(Static):
                     exit_p    = exit_live.ltp if (exit_live and exit_live.ltp) else ot_exit.get(
                         "current_price", ot_exit["entry_price"])
                     log.info("Signal reversal against %s (score %+d) — closing", _held, total)
-                    trade_book.close_trade(exit_p, "signal_flip")
+                    _closed_rev = trade_book.close_trade(exit_p, "signal_flip")
+                    if _closed_rev:
+                        from uptox.services.telegram_service import notify_trade_close
+                        notify_trade_close(_closed_rev)
 
         self._last_option = option if tradeable else self._last_option
 
