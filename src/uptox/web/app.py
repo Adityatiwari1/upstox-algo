@@ -9,13 +9,13 @@ or:
 """
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from uptox.services import notification_settings as ns
-from uptox.web import data
+from uptox.web import data, quant_data
 from uptox.web.schemas import (
     CapitalInfo,
     DailyBreakdownItem,
@@ -166,6 +166,21 @@ def api_capital():
 def api_stats():
     """Aggregate stats (win rate, expectancy, avg RR, etc.) across all closed trades."""
     return data.get_stats()
+
+
+_QuantStrategy = Literal["directional", "options_dynamics"]
+
+
+@app.get("/api/quant/{strategy_id}/trades", summary="Quant strategy trade history", tags=["quant"])
+def api_quant_trades(strategy_id: _QuantStrategy):
+    """Closed trades for one quant strategy, newest first."""
+    return quant_data.get_trades(strategy_id)
+
+
+@app.get("/api/quant/{strategy_id}/stats", summary="Quant strategy stats", tags=["quant"])
+def api_quant_stats(strategy_id: _QuantStrategy):
+    """Win rate, expectancy, total P&L for one quant strategy."""
+    return quant_data.get_stats(strategy_id)
 
 
 # ── Notification settings ───────────────────────────────────────────────────
