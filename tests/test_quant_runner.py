@@ -22,23 +22,16 @@ def _runner():
     return r
 
 
-def test_has_both_engines():
+def test_has_only_options_dynamics_engine():
+    # directional paused 2026-07-21 (negative backtest expectancy) -- see runner.py
     r = _runner()
-    assert set(r.engines.keys()) == {"directional", "options_dynamics"}
+    assert set(r.engines.keys()) == {"options_dynamics"}
 
 
 def test_on_bar_appends_to_history():
     r = _runner()
     r.on_bar(_row(24200, 0))
     assert len(r.history) == 1
-
-
-def test_on_bar_can_trigger_directional_engine():
-    r = _runner()
-    r.on_bar(_row(24190, 2))
-    r.on_bar(_row(24200, 2))  # score+2, uptick -> directional CE signal
-    assert r.engines["directional"].position is not None
-    assert r.engines["directional"].position["option"] == "CE"
 
 
 def test_on_bar_can_trigger_options_dynamics_engine():

@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from uptox.quant.directional_strategy import DirectionalStrategy
 from uptox.quant.engine import QuantEngine
+
+# from uptox.quant.directional_strategy import DirectionalStrategy
 from uptox.quant.options_dynamics_strategy import OptionsDynamicsStrategy
 from uptox.quant.quant_trading_mode import QuantTradingMode
 
@@ -20,14 +21,15 @@ class QuantRunner:
 
     def __init__(self) -> None:
         self.history: list[dict] = []
-        directional = DirectionalStrategy()
         options_dyn = OptionsDynamicsStrategy()
         self.engines: dict[str, QuantEngine] = {
-            "directional": QuantEngine(
-                directional,
-                Path("logs/quant_directional_trades.jsonl"),
-                QuantTradingMode("directional"),
-            ),
+            # directional: negative expectancy on backtest (2026-07-21, -Rs8.38/trade
+            # over 20 days) -- paused, watching options_dynamics only until reworked.
+            # "directional": QuantEngine(
+            #     DirectionalStrategy(),
+            #     Path("logs/quant_directional_trades.jsonl"),
+            #     QuantTradingMode("directional"),
+            # ),
             "options_dynamics": QuantEngine(
                 options_dyn,
                 Path("logs/quant_options_trades.jsonl"),
