@@ -32,6 +32,19 @@ RR            = 2.0
 SESSION_CLOSE = (15, 20)
 
 
+def _bar_time(snapshot: dict) -> datetime:
+    """The bar's own time, not wall-clock — keeps backtest replay reproducible
+    regardless of when it's run. Falls back to wall-clock only if the
+    snapshot has no "ts" (live snapshots from data_recorder.py always do)."""
+    ts = snapshot.get("ts")
+    if ts:
+        try:
+            return datetime.fromisoformat(ts)
+        except ValueError:
+            pass
+    return datetime.now(_IST)
+
+
 def _size_lots(capital: float, entry: float, sl: float, lot_size: int = LOT_SIZE) -> int:
     risk_per_lot = (entry - sl) * lot_size
     if risk_per_lot <= 0 or capital <= 0:
@@ -80,17 +93,17 @@ class QuantEngine:
         if lots <= 0:
             return
 
-        now = datetime.now(_IST)
-        pos_id = f"{signal.strategy_id}-{now.strftime('%H%M%S%f')}"
+        bar_time = _bar_time(snapshot)
+        pos_id = f"{signal.strategy_id}-{bar_time.strftime('%H%M%S%f')}"
         self.position = {
-            "id": pos_id, "date": now.strftime("%Y-%m-%d"),
+            "id": pos_id, "date": bar_time.strftime("%Y-%m-%d"),
             "strategy_id": signal.strategy_id, "option": signal.option,
             "entry_price": entry, "spot_entry": snapshot.get("nifty", 0.0),
             "reason": signal.reason, "lots": lots, "sl": sl, "target": target,
             "peak": entry,
         }
         book.append_event(self.book_path, {
-            "event": "open", "ts": now.isoformat(), "id": pos_id,
+            "event": "open", "ts": datetime.now(_IST).isoformat(), "id": pos_id,
             "date": self.position["date"], "strategy_id": signal.strategy_id,
             "option": signal.option, "entry_price": entry,
             "spot_entry": self.position["spot_entry"], "reason": signal.reason,
@@ -117,8 +130,8 @@ class QuantEngine:
         if ltp > pos["peak"]:
             pos["peak"] = ltp
 
-        now = datetime.now(_IST)
-        if (now.hour, now.minute) >= SESSION_CLOSE:
+        bar_time = _bar_time(snapshot)
+        if (bar_time.hour, bar_time.minute) >= SESSION_CLOSE:
             self._close(ltp, "session_close")
             return
         if ltp >= pos["target"]:

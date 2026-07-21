@@ -67,3 +67,17 @@ def test_replay_empty_files_returns_zero_trades():
     result = replay(_AlwaysCEOnFirstBar(), [_write_jsonl([])])
     assert result["total"] == 0
     assert result["trades"] == []
+
+
+def test_directional_strategy_replay_matches_pinned_snapshot():
+    """Regression guard for the real strategy/engine behavior on one real
+    recorded day, independent of wall-clock (session-close now derives from
+    each row's own "ts", not datetime.now()). Numbers pinned from an actual
+    run — update only if a deliberate strategy/engine change intends to
+    move them."""
+    from uptox.quant.directional_strategy import DirectionalStrategy
+
+    day_path = sorted(Path("logs/market_data").glob("*.jsonl"))[0]
+    result = replay(DirectionalStrategy(), [day_path])
+    assert result["total"] == 10
+    assert result["total_pnl_rs"] == 13.0

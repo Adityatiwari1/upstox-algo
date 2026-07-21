@@ -152,6 +152,15 @@ def test_live_mode_calls_order_service_on_open_and_close():
         option_chain_service.get_key = orig_get_key
 
 
+def test_session_close_flattens_using_bar_ts_not_wall_clock():
+    eng, path, mode = _engine()
+    eng.on_snapshot({"ts": "2026-07-20T14:00:00+05:30", "nifty": 24200, "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
+    eng.on_snapshot({"ts": "2026-07-20T15:25:00+05:30", "nifty": 24200, "ce_ltp": 152.0, "pe_ltp": 80.0}, [])
+    assert eng.position is None
+    rows = book.read_events(path)
+    assert rows[-1]["exit_reason"] == "session_close"
+
+
 class _RaisesOnGenerate(Strategy):
     strategy_id = "test_engine"
 
