@@ -40,10 +40,13 @@ _NIFTY    = "NSE_INDEX|Nifty 50"
 _BANK     = "NSE_INDEX|Nifty Bank"
 
 
-def record_bar() -> None:
+def record_bar() -> dict | None:
     """
     Snapshot current market state and append one row to today's JSONL file.
-    Called once per 5-min bar close from tick_handler.
+    Called once per 5-min bar close from tick_handler. Returns the row it
+    wrote so live callers (the quant runner) can consume the identical
+    snapshot instead of re-deriving it — or None if the bar was skipped
+    (no price yet) or an error occurred.
     """
     try:
         from uptox.services import feed_store, option_chain_service, sma_service
@@ -57,7 +60,7 @@ def record_bar() -> None:
         bank_ltp  = (bank.ltp  if bank  else 0.0) or 0.0
 
         if not nifty_ltp:
-            return  # no price — skip this bar
+            return None  # no price — skip this bar
 
         atm = round(nifty_ltp / 50) * 50
 
@@ -118,5 +121,8 @@ def record_bar() -> None:
         with fname.open("a", encoding="utf-8") as f:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
+        return row
+
     except Exception as e:
         log.error("data_recorder.record_bar error: %s", e)
+        return None
