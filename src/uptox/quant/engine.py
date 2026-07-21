@@ -105,6 +105,9 @@ class QuantEngine:
             key = option_chain_service.get_key(atm, signal.option)
             if key:
                 order_service.schedule_entry_with_sl(key, lots * LOT_SIZE, entry, sl)
+            else:
+                log.warning("[quant:%s] live mode but option_chain_service.get_key(%s, %s) returned no key — no broker order placed",
+                            signal.strategy_id, atm, signal.option)
 
     def _check_exit(self, snapshot: dict) -> None:
         pos = self.position
@@ -151,3 +154,6 @@ class QuantEngine:
             key = option_chain_service.get_key(atm, pos["option"])
             if key:
                 order_service.schedule_exit(key, pos["lots"] * LOT_SIZE, exit_price)
+            else:
+                log.warning("[quant:%s] live mode but option_chain_service.get_key(%s, %s) returned no key — no broker order placed",
+                            pos["strategy_id"], atm, pos["option"])

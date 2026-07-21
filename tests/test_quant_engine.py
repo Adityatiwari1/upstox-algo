@@ -8,7 +8,7 @@ from pathlib import Path
 
 from uptox.quant.strategy import Signal, Strategy
 from uptox.quant.quant_trading_mode import QuantTradingMode
-from uptox.quant.engine import QuantEngine
+from uptox.quant.engine import QuantEngine, LOT_SIZE
 from uptox.quant import book
 
 
@@ -97,13 +97,59 @@ def test_zero_capital_skips_open_lots_zero():
 def test_paper_mode_never_calls_order_service():
     from uptox.services import order_service
     calls = []
-    order_service.schedule_entry_with_sl = lambda *a, **kw: calls.append(("entry", a, kw))
-    order_service.schedule_exit = lambda *a, **kw: calls.append(("exit", a, kw))
-    eng, path, mode = _engine()
-    assert mode.is_paper()
-    eng.on_snapshot({"nifty": 24200, "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
-    eng.on_snapshot({"nifty": 24200, "ce_ltp": 139.9, "pe_ltp": 80.0}, [])  # stop out
-    assert calls == [], f"order_service must never be called in paper mode, got: {calls}"
+    orig_entry, orig_exit = order_service.schedule_entry_with_sl, order_service.schedule_exit
+    try:
+        order_service.schedule_entry_with_sl = lambda *a, **kw: calls.append(("entry", a, kw))
+        order_service.schedule_exit = lambda *a, **kw: calls.append(("exit", a, kw))
+        eng, path, mode = _engine()
+        assert mode.is_paper()
+        eng.on_snapshot({"nifty": 24200, "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
+        eng.on_snapshot({"nifty": 24200, "ce_ltp": 139.9, "pe_ltp": 80.0}, [])  # stop out
+        assert calls == [], f"order_service must never be called in paper mode, got: {calls}"
+    finally:
+        order_service.schedule_entry_with_sl = orig_entry
+        order_service.schedule_exit = orig_exit
+
+
+def test_live_mode_calls_order_service_on_open_and_close():
+    from uptox.services import order_service, option_chain_service
+    calls = []
+    orig_entry = order_service.schedule_entry_with_sl
+    orig_exit = order_service.schedule_exit
+    orig_get_key = option_chain_service.get_key
+    try:
+        order_service.schedule_entry_with_sl = lambda *a, **kw: calls.append(("entry", a, kw))
+        order_service.schedule_exit = lambda *a, **kw: calls.append(("exit", a, kw))
+        option_chain_service.get_key = lambda atm, option: "NSE_FO|test_live"
+
+        eng, path, mode = _engine()
+        mode._mode = "live"
+        assert mode.is_live()
+
+        eng.on_snapshot({"nifty": 24200, "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
+        entry_price = eng.position["entry_price"]
+        sl = eng.position["sl"]
+        lots = eng.position["lots"]
+
+        eng.on_snapshot({"nifty": 24200, "ce_ltp": 139.9, "pe_ltp": 80.0}, [])  # stop out
+        assert eng.position is None
+
+        entry_calls = [c for c in calls if c[0] == "entry"]
+        exit_calls = [c for c in calls if c[0] == "exit"]
+        assert len(entry_calls) == 1, f"expected exactly one entry call, got: {entry_calls}"
+        assert len(exit_calls) == 1, f"expected exactly one exit call, got: {exit_calls}"
+
+        _, entry_args, _ = entry_calls[0]
+        assert entry_args == ("NSE_FO|test_live", lots * LOT_SIZE, entry_price, sl), \
+            f"entry call args mismatch: {entry_args}"
+
+        _, exit_args, _ = exit_calls[0]
+        assert exit_args == ("NSE_FO|test_live", lots * LOT_SIZE, 139.9), \
+            f"exit call args mismatch: {exit_args}"
+    finally:
+        order_service.schedule_entry_with_sl = orig_entry
+        order_service.schedule_exit = orig_exit
+        option_chain_service.get_key = orig_get_key
 
 
 class _RaisesOnGenerate(Strategy):
