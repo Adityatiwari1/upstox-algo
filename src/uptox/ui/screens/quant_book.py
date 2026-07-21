@@ -1,4 +1,3 @@
-# src/uptox/ui/screens/quant_book.py
 """Quant Book screen — tab per strategy (Directional | Options Dynamics),
 each showing running stats + trade history, so focus mode and both quant
 strategies can be compared side by side. Mirrors trade_book.py's
@@ -8,8 +7,6 @@ from textual.containers import ScrollableContainer
 from textual.widget import Widget
 from textual.widgets import Static, TabbedContent, TabPane, DataTable, Label
 from uptox.web import quant_data
-
-_OUTCOME_COLOR = {"WIN": "green", "LOSS": "red"}
 
 
 class _StrategyStatsPanel(Static):
@@ -80,6 +77,8 @@ class QuantBookScreen(ScrollableContainer):
     QuantBookScreen { height: 1fr; }
     QuantBookScreen TabbedContent { height: 1fr; }
     QuantBookScreen TabPane { height: 1fr; overflow-y: auto; overflow-x: auto; padding: 0; }
+    _StrategyStatsPanel { padding: 0 1; }
+    _StrategyHistoryPanel { padding: 0 1; }
     """
 
     def compose(self) -> ComposeResult:
