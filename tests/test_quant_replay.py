@@ -56,6 +56,11 @@ def test_replay_reads_multiple_files_in_order():
     # a fresh position-less strategy call — file 1's single row triggers no signal
     # since it IS bar 1, position opens; file 2 continues the same running history)
     assert result["total"] >= 1
+    # Strengthen: pin specific trade outcome that only occurs if day1 is processed before day2.
+    # Day1's 150.0 must be bar 1 (entry_price), then day2's 171.0 must hit target at 170.
+    # If files were reversed, day2's 155.0 would be bar 1, and 150.0 wouldn't close the position.
+    assert result["trades"][0]["entry_price"] == 150.0, "position must open on day1's row (bar 1 of combined history) if files are read in the given order"
+    assert result["trades"][0]["exit_reason"] == "target"
 
 
 def test_replay_empty_files_returns_zero_trades():
