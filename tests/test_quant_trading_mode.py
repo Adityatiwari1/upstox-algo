@@ -19,7 +19,9 @@ def test_defaults_to_paper():
 
 
 def test_set_mode_persists_and_loads():
-    tmp = Path(tempfile.mkstemp(suffix=".json")[1])
+    fd, path = tempfile.mkstemp(suffix=".json")
+    os.close(fd)  # mkstemp creates and opens; close the fd so unlink works
+    tmp = Path(path)
     m = QuantTradingMode("test_b")
     m._file = tmp
     m.set_mode("live")
@@ -42,9 +44,13 @@ def test_invalid_mode_raises():
 
 def test_two_instances_are_independent():
     a = QuantTradingMode("test_d1")
-    a._file = Path(tempfile.mkstemp(suffix=".json")[1])
+    fd, path = tempfile.mkstemp(suffix=".json")
+    os.close(fd)  # mkstemp creates and opens; close the fd so unlink works
+    a._file = Path(path)
     b = QuantTradingMode("test_d2")
-    b._file = Path(tempfile.mkstemp(suffix=".json")[1])
+    fd, path = tempfile.mkstemp(suffix=".json")
+    os.close(fd)  # mkstemp creates and opens; close the fd so unlink works
+    b._file = Path(path)
     a.set_mode("live")
     assert a.is_live()
     assert b.is_paper()  # unaffected by a
