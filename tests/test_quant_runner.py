@@ -7,8 +7,8 @@ from uptox.quant.runner import QuantRunner
 
 
 def _row(nifty, sma_score, ce_ltp=150.0, pe_ltp=80.0, ce_oi_chg=0, pe_oi_chg=0, pcr=1.0,
-         ce_iv=12.0, pe_iv=12.0):
-    return {"nifty": nifty, "sma_score": sma_score, "ce_ltp": ce_ltp, "pe_ltp": pe_ltp,
+         ce_iv=12.0, pe_iv=12.0, ts="2026-07-20T10:00:00+05:30"):
+    return {"ts": ts, "nifty": nifty, "sma_score": sma_score, "ce_ltp": ce_ltp, "pe_ltp": pe_ltp,
             "ce_oi_chg": ce_oi_chg, "pe_oi_chg": pe_oi_chg, "pcr": pcr,
             "ce_iv": ce_iv, "pe_iv": pe_iv}
 

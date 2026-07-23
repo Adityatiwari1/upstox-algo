@@ -74,10 +74,18 @@ def test_directional_strategy_replay_matches_pinned_snapshot():
     recorded day, independent of wall-clock (session-close now derives from
     each row's own "ts", not datetime.now()). Numbers pinned from an actual
     run — update only if a deliberate strategy/engine change intends to
-    move them."""
+    move them.
+
+    Re-pinned 2026-07-23 after the atm_rolled force-close fix: 9 of 11
+    trades on this day now close via atm_rolled, most at ~0 pnl — Nifty
+    crosses a 50pt ATM boundary on 5-min bars far more often than expected,
+    and data_recorder only ever records the current-ATM CE/PE, so most
+    positions never get the chance to run through their real SL/target
+    lifecycle in backtest. This is the honest number, not the old
+    (fabricated, cross-strike) one — see engine.py's atm_rolled comment."""
     from uptox.quant.directional_strategy import DirectionalStrategy
 
     day_path = sorted(Path("logs/market_data").glob("*.jsonl"))[0]
     result = replay(DirectionalStrategy(), [day_path])
-    assert result["total"] == 10
-    assert result["total_pnl_rs"] == 13.0
+    assert result["total"] == 11
+    assert result["total_pnl_rs"] == -487.0

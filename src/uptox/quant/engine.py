@@ -30,6 +30,7 @@ LOCK_BIG_PTS  = 15.0
 LOCK_BIG_KEEP = 0.60
 RR            = 2.0
 SESSION_CLOSE = (15, 20)
+MARKET_OPEN   = (9, 15)  # F&O has no pre-open auction -- nothing before this is a real tradable price
 
 
 def _bar_time(snapshot: dict) -> datetime:
@@ -84,6 +85,10 @@ class QuantEngine:
             self._check_exit(snapshot)
 
     def _open(self, signal: Signal, snapshot: dict) -> None:
+        bar_time = _bar_time(snapshot)
+        if (bar_time.hour, bar_time.minute) < MARKET_OPEN:
+            return  # F&O isn't open yet -- this snapshot's prices aren't real
+
         entry = snapshot.get("ce_ltp") if signal.option == "CE" else snapshot.get("pe_ltp")
         if not entry or entry <= 0:
             return
@@ -93,14 +98,14 @@ class QuantEngine:
         if lots <= 0:
             return
 
-        bar_time = _bar_time(snapshot)
         pos_id = f"{signal.strategy_id}-{bar_time.strftime('%H%M%S%f')}"
         self.position = {
             "id": pos_id, "date": bar_time.strftime("%Y-%m-%d"),
             "strategy_id": signal.strategy_id, "option": signal.option,
             "entry_price": entry, "spot_entry": snapshot.get("nifty", 0.0),
+            "entry_strike": snapshot.get("atm"),
             "reason": signal.reason, "lots": lots, "sl": sl, "target": target,
-            "peak": entry,
+            "peak": entry, "last_valid_ltp": entry,
         }
         book.append_event(self.book_path, {
             "event": "open", "ts": datetime.now(_IST).isoformat(), "id": pos_id,
@@ -124,9 +129,24 @@ class QuantEngine:
 
     def _check_exit(self, snapshot: dict) -> None:
         pos = self.position
+
+        # data_recorder only ever records the CURRENT-ATM CE/PE -- once the
+        # strike we're actually holding stops being ATM, this bar's
+        # ce_ltp/pe_ltp is a different contract's price. Force-close at the
+        # last price we know is genuinely the held contract's rather than
+        # mis-marking the position to an unrelated strike (2026-07-23 bug:
+        # a 24150 CE was marked to the new 23900 ATM CE's price, recording
+        # a fake +114.2pt "target hit").
+        cur_atm = snapshot.get("atm")
+        entry_strike = pos.get("entry_strike")
+        if cur_atm is not None and entry_strike is not None and cur_atm != entry_strike:
+            self._close(pos["last_valid_ltp"], "atm_rolled")
+            return
+
         ltp = snapshot.get("ce_ltp") if pos["option"] == "CE" else snapshot.get("pe_ltp")
         if not ltp or ltp <= 0:
             return
+        pos["last_valid_ltp"] = ltp
         if ltp > pos["peak"]:
             pos["peak"] = ltp
 

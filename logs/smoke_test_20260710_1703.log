@@ -1,3 +1,0 @@
-2026-07-10 11:33:54,165 INFO    smoke_test: log file: logs/smoke_test_20260710_1703.log
-2026-07-10 11:33:54,166 WARNING smoke_test: outside the calm 10:00-15:00 IST window — proceed only if intentional
-2026-07-10 11:33:54,363 INFO    httpx: HTTP Request: GET https://api.upstox.com/v2/option/chain?instrument_key=NSE_INDEX%7CNifty+50&expiry_date=2026-07-16 "HTTP/1.1 200 OK"
