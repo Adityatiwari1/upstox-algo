@@ -1415,25 +1415,59 @@ class OverallAnalysisPanel(Static):
                                 ce_iv_rising, pe_iv_rising,
                             )
 
-                    # Lux S/R events (break / bounce / retest at 10/10-wing
-                    # pivot levels) — level-anchored, so focus-whitelisted
-                    if not entry_type:
-                        _lux_et = lux_sr.check_entry(option)
-                        if _lux_et:
-                            entry_type = _lux_et
-                            log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
-                                     _lux_et, option, ltp, total)
+                    # Entry candidate scoring (2026-07-23): the legacy watch
+                    # machine above (reentry through sustained) already
+                    # self-serializes -- only one of ITS checks can ever fire
+                    # per tick. lux_sr and consolidation_range are the two
+                    # genuinely independent checks that were short-circuited
+                    # against each other and each other's legacy result --
+                    # both now always run, and whichever subset fires gets
+                    # scored instead of whichever was checked first. See
+                    # docs/superpowers/specs/2026-07-23-entry-candidate-scoring-design.md
+                    legacy_entry_type = entry_type
+                    entry_type = None  # reset so both checks below always run this tick
 
-                    # Consolidation range break/breakdown (2026-07-23) — added
-                    # straight to _FOCUS_ENTRIES at the user's explicit call,
-                    # skipping the shadow-observation period every other entry
-                    # type here went through first.
-                    if not entry_type:
-                        _consol_et = consolidation_range.check_entry(option)
-                        if _consol_et:
-                            entry_type = _consol_et
-                            log.info("Consolidation range entry: %s %s @ %.1f (score %+d)",
-                                     _consol_et, option, ltp, total)
+                    _lux_et = lux_sr.check_entry(option)
+                    if _lux_et:
+                        log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
+                                 _lux_et, option, ltp, total)
+
+                    _consol_et = consolidation_range.check_entry(option)
+                    if _consol_et:
+                        log.info("Consolidation range entry: %s %s @ %.1f (score %+d)",
+                                 _consol_et, option, ltp, total)
+
+                    candidates: list[dict] = []
+                    if legacy_entry_type:
+                        candidates.append({
+                            "entry_type": legacy_entry_type, "option": option,
+                            "trigger_level": ltp,  # already self-validated internally
+                        })
+                    if _lux_et:
+                        candidates.append({
+                            "entry_type": _lux_et, "option": option,
+                            "trigger_level": lux_sr._event[2] if lux_sr._event else ltp,
+                        })
+                    if _consol_et:
+                        candidates.append({
+                            "entry_type": _consol_et, "option": option,
+                            "trigger_level": consolidation_range._event[2] if consolidation_range._event else ltp,
+                        })
+
+                    if len(candidates) > 1:
+                        from uptox.services import atr_service
+                        _atr_pts = atr_service.get_atr(NIFTY, TimeFrame.M5) or 30.0
+                        entry_type = _pick_best_candidate(
+                            candidates, ltp, _atr_pts,
+                            delta=entry_live.delta if entry_live else None,
+                            iv=entry_live.iv if entry_live else 0.0,
+                            repeat_count=trade_book.same_direction_streak(option),
+                        )
+                        if entry_type and len(candidates) > 1:
+                            log.info("Entry candidate scoring: %d candidates, picked %s",
+                                     len(candidates), entry_type)
+                    elif candidates:
+                        entry_type = candidates[0]["entry_type"]
 
                     # Focus mode: non-whitelisted triggers log their would-be
                     # fire (audit prices what focus skipped) but never trade
