@@ -1374,3 +1374,93 @@
 {"ts": "2026-07-20T15:15:00+05:30", "option": "CE", "ltp": 24240.2, "score": 4, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >25, drift 5%)"}
 {"ts": "2026-07-20T15:16:45+05:30", "option": "CE", "ltp": 24240.2, "score": 4, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
 {"ts": "2026-07-20T15:21:45+05:30", "option": "CE", "ltp": 24237.8, "score": 4, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >25, drift 8%)"}
+{"ts": "2026-07-21T09:46:05+05:30", "option": "CE", "ltp": 24224.5, "score": 2, "entry_type": null, "reason": "SMA vs Flow divergence"}
+{"ts": "2026-07-21T09:51:07+05:30", "option": "CE", "ltp": 24232.3, "score": 2, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-21T09:52:09+05:30", "option": "PE", "ltp": 24227.7, "score": -2, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24222 (14min left)"}
+{"ts": "2026-07-21T09:57:12+05:30", "option": "PE", "ltp": 24228.0, "score": -2, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24222 (8min left)"}
+{"ts": "2026-07-21T10:02:12+05:30", "option": "PE", "ltp": 24222.8, "score": -2, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24222 (3min left)"}
+{"ts": "2026-07-21T10:05:41+05:30", "option": "PE", "ltp": 24220.6, "score": -2, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 25%)"}
+{"ts": "2026-07-21T10:10:41+05:30", "option": "PE", "ltp": 24224.2, "score": -2, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 1%)"}
+{"ts": "2026-07-21T10:16:05+05:30", "option": "PE", "ltp": 24211.8, "score": -3, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-21T10:28:27+05:30", "option": "PE", "ltp": 24192.2, "score": -3, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-21T10:38:58+05:30", "option": "PE", "ltp": 24179.8, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24178 (15min left)"}
+{"ts": "2026-07-21T10:43:59+05:30", "option": "PE", "ltp": 24187.8, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24178 (10min left)"}
+{"ts": "2026-07-21T10:49:01+05:30", "option": "PE", "ltp": 24179.5, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24178 (5min left)"}
+{"ts": "2026-07-21T10:53:57+05:30", "option": "PE", "ltp": 24169.9, "score": -5, "entry_type": "orb", "reason": "Support: Swing High/Low (2pt below)"}
+{"ts": "2026-07-21T10:53:58+05:30", "option": "PE", "ltp": 24170.4, "score": -3, "entry_type": "lux_break", "reason": "S/R intact: 24167 not broken (3pt away)"}
+{"ts": "2026-07-21T10:53:59+05:30", "option": "PE", "ltp": 24170.2, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-21T11:05:01+05:30", "option": "PE", "ltp": 24192.0, "score": -3, "entry_type": null, "reason": "Bounce active +28pts from low — wait for red bar"}
+{"ts": "2026-07-21T11:22:14+05:30", "option": "PE", "ltp": 24174.3, "score": -4, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-21T11:27:16+05:30", "option": "PE", "ltp": 24174.2, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-21T11:43:56+05:30", "option": "PE", "ltp": 24161.7, "score": -5, "entry_type": "range_break", "reason": "Support: Pivot S1 (1pt below)"}
+{"ts": "2026-07-21T11:44:01+05:30", "option": "PE", "ltp": 24161.8, "score": -5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-21T11:46:48+05:30", "option": "PE", "ltp": 24165.0, "score": -3, "entry_type": null, "reason": "Cooldown — 5min after last exit"}
+{"ts": "2026-07-21T11:59:33+05:30", "option": "PE", "ltp": 24171.1, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-21T12:20:00+05:30", "option": "PE", "ltp": 24173.0, "score": -4, "entry_type": null, "reason": "Consolidating — 22pt range in 30min (need >25, drift 35%)"}
+{"ts": "2026-07-21T12:25:01+05:30", "option": "PE", "ltp": 24174.5, "score": -4, "entry_type": null, "reason": "Consolidating — 21pt range in 30min (need >25, drift 42%)"}
+{"ts": "2026-07-21T12:34:05+05:30", "option": "CE", "ltp": 24185.0, "score": 3, "entry_type": null, "reason": "Consolidating — 15pt range in 30min (need >25, drift 18%)"}
+{"ts": "2026-07-21T12:39:06+05:30", "option": "CE", "ltp": 24189.5, "score": 3, "entry_type": null, "reason": "Consolidating — 17pt range in 30min (need >25, drift 2%)"}
+{"ts": "2026-07-21T12:42:23+05:30", "option": "PE", "ltp": 24174.0, "score": -4, "entry_type": null, "reason": "Consolidating — 21pt range in 30min (need >25, drift 21%)"}
+{"ts": "2026-07-21T12:47:24+05:30", "option": "PE", "ltp": 24172.8, "score": -4, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >25, drift 5%)"}
+{"ts": "2026-07-21T12:52:25+05:30", "option": "PE", "ltp": 24165.9, "score": -4, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >25, drift 8%)"}
+{"ts": "2026-07-21T12:58:47+05:30", "option": "PE", "ltp": 24155.8, "score": -3, "entry_type": "range_break", "reason": "Support: PDL (20pt below)"}
+{"ts": "2026-07-21T13:00:00+05:30", "option": "PE", "ltp": 24152.3, "score": -5, "entry_type": "reentry", "reason": "Focus mode — reentry disabled"}
+{"ts": "2026-07-21T13:00:01+05:30", "option": "PE", "ltp": 24152.5, "score": -5, "entry_type": "lux_bounce", "reason": "S/R intact: 24136 not broken (17pt away)"}
+{"ts": "2026-07-21T13:05:00+05:30", "option": "PE", "ltp": 24142.7, "score": -5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-21T13:10:00+05:30", "option": "PE", "ltp": 24152.5, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-21T13:15:01+05:30", "option": "PE", "ltp": 24151.6, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-21T13:20:01+05:30", "option": "PE", "ltp": 24154.7, "score": -5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-21T14:01:37+05:30", "option": "CE", "ltp": 24175.1, "score": 3, "entry_type": null, "reason": "Retreat active -87pts from high — wait for green bar"}
+{"ts": "2026-07-21T14:17:47+05:30", "option": "PE", "ltp": 24158.3, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24160 (15min left)"}
+{"ts": "2026-07-21T14:20:04+05:30", "option": "CE", "ltp": 24175.8, "score": 3, "entry_type": null, "reason": "Cooldown — 3min after last exit"}
+{"ts": "2026-07-21T14:26:28+05:30", "option": "PE", "ltp": 24174.0, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24160 (6min left)"}
+{"ts": "2026-07-21T14:32:01+05:30", "option": "PE", "ltp": 24174.3, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24160 (1min left)"}
+{"ts": "2026-07-22T10:05:01+05:30", "option": "PE", "ltp": 24027.0, "score": -5, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 5%)"}
+{"ts": "2026-07-22T10:05:51+05:30", "option": "PE", "ltp": 24031.2, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24027 (15min left)"}
+{"ts": "2026-07-22T10:10:51+05:30", "option": "PE", "ltp": 24046.1, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24027 (10min left)"}
+{"ts": "2026-07-22T10:15:52+05:30", "option": "PE", "ltp": 24030.8, "score": -5, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 24027 (5min left)"}
+{"ts": "2026-07-22T10:28:29+05:30", "option": "PE", "ltp": 23994.8, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23994 (15min left)"}
+{"ts": "2026-07-22T10:33:29+05:30", "option": "PE", "ltp": 24003.2, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23994 (10min left)"}
+{"ts": "2026-07-22T10:38:29+05:30", "option": "PE", "ltp": 23996.5, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23994 (5min left)"}
+{"ts": "2026-07-22T10:43:30+05:30", "option": "PE", "ltp": 23991.7, "score": -3, "entry_type": "lux_bounce", "reason": "Win target hit (2 wins, ₹+2795) — protecting profits"}
+{"ts": "2026-07-22T10:43:47+05:30", "option": "PE", "ltp": 23992.8, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-22T10:48:47+05:30", "option": "PE", "ltp": 24011.2, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T10:53:56+05:30", "option": "PE", "ltp": 24017.8, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-22T10:55:08+05:30", "option": "PE", "ltp": 24020.2, "score": -4, "entry_type": null, "reason": "Bounce active +45pts from low — wait for red bar"}
+{"ts": "2026-07-22T11:00:08+05:30", "option": "PE", "ltp": 24025.5, "score": -4, "entry_type": null, "reason": "Bounce active +51pts from low — wait for red bar"}
+{"ts": "2026-07-22T11:20:01+05:30", "option": "PE", "ltp": 24027.5, "score": -3, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >25, drift 53%)"}
+{"ts": "2026-07-22T11:25:01+05:30", "option": "PE", "ltp": 24039.5, "score": -3, "entry_type": null, "reason": "Bounce active +65pts from low — wait for red bar"}
+{"ts": "2026-07-22T11:30:01+05:30", "option": "PE", "ltp": 24042.8, "score": -3, "entry_type": null, "reason": "Bounce active +68pts from low — wait for red bar"}
+{"ts": "2026-07-22T11:59:17+05:30", "option": "PE", "ltp": 24026.5, "score": -3, "entry_type": null, "reason": "Consolidating — 21pt range in 30min (need >25, drift 46%)"}
+{"ts": "2026-07-22T12:19:01+05:30", "option": "PE", "ltp": 23988.5, "score": -3, "entry_type": "lux_retest", "reason": "Win target hit (2 wins, ₹+2795) — protecting profits"}
+{"ts": "2026-07-22T12:20:07+05:30", "option": "PE", "ltp": 23975.5, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-22T12:25:07+05:30", "option": "PE", "ltp": 23990.5, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T12:30:08+05:30", "option": "PE", "ltp": 23978.6, "score": -5, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T12:35:08+05:30", "option": "PE", "ltp": 23973.7, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T12:40:09+05:30", "option": "PE", "ltp": 23964.2, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T12:45:10+05:30", "option": "PE", "ltp": 23983.6, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T12:50:00+05:30", "option": "PE", "ltp": 24004.5, "score": -4, "entry_type": null, "reason": "Bounce active +43pts from low — wait for red bar"}
+{"ts": "2026-07-22T12:55:02+05:30", "option": "PE", "ltp": 24005.9, "score": -4, "entry_type": null, "reason": "Bounce active +44pts from low — wait for red bar"}
+{"ts": "2026-07-22T13:10:00+05:30", "option": "PE", "ltp": 23988.8, "score": -3, "entry_type": "lux_bounce", "reason": "Win target hit (2 wins, ₹+2795) — protecting profits"}
+{"ts": "2026-07-22T13:12:10+05:30", "option": "PE", "ltp": 23977.8, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T13:17:11+05:30", "option": "PE", "ltp": 23982.1, "score": -3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-22T13:26:46+05:30", "option": "PE", "ltp": 23974.6, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-22T14:15:00+05:30", "option": "PE", "ltp": 23975.2, "score": -3, "entry_type": "lux_break", "reason": "Win target hit (2 wins, ₹+2795) — protecting profits"}
+{"ts": "2026-07-22T14:20:05+05:30", "option": "PE", "ltp": 23985.1, "score": -4, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 4%)"}
+{"ts": "2026-07-22T14:25:08+05:30", "option": "PE", "ltp": 23981.0, "score": -4, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 2%)"}
+{"ts": "2026-07-22T14:30:09+05:30", "option": "PE", "ltp": 23973.7, "score": -5, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 24%)"}
+{"ts": "2026-07-22T14:31:05+05:30", "option": "PE", "ltp": 23969.7, "score": -3, "entry_type": null, "reason": "Premium decay risk — IV rank 25% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T14:35:11+05:30", "option": "PE", "ltp": 23984.5, "score": -4, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 1%)"}
+{"ts": "2026-07-22T14:36:08+05:30", "option": "PE", "ltp": 23988.4, "score": -4, "entry_type": null, "reason": "Premium decay risk — IV rank 22% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T14:41:27+05:30", "option": "PE", "ltp": 23981.0, "score": -4, "entry_type": null, "reason": "Premium decay risk — IV rank 24% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T14:45:42+05:30", "option": "PE", "ltp": 23977.5, "score": -4, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 4%)"}
+{"ts": "2026-07-22T14:46:28+05:30", "option": "PE", "ltp": 23978.5, "score": -4, "entry_type": null, "reason": "Premium decay risk — IV rank 25% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T14:50:42+05:30", "option": "PE", "ltp": 23981.4, "score": -4, "entry_type": null, "reason": "Consolidating — 24pt range in 30min (need >25, drift 21%)"}
+{"ts": "2026-07-22T15:06:12+05:30", "option": "CE", "ltp": 24005.4, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 4% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T15:12:58+05:30", "option": "CE", "ltp": 24004.2, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 24% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T15:15:00+05:30", "option": "CE", "ltp": 24021.2, "score": 3, "entry_type": "lux_bounce", "reason": "Win target hit (2 wins, ₹+2795) — protecting profits"}
+{"ts": "2026-07-22T15:17:58+05:30", "option": "CE", "ltp": 24019.6, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 16% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-22T15:20:02+05:30", "option": "CE", "ltp": 24016.5, "score": 3, "entry_type": "lux_break", "reason": "Win target hit (2 wins, ₹+2795) — protecting profits"}
+{"ts": "2026-07-23T09:27:35+05:30", "option": "PE", "ltp": 23928.5, "score": -3, "entry_type": null, "reason": "Bounce active +51pts from low — wait for red bar"}
+{"ts": "2026-07-23T09:31:57+05:30", "option": "PE", "ltp": 23910.8, "score": -5, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-23T09:36:58+05:30", "option": "PE", "ltp": 23896.0, "score": -5, "entry_type": "retest", "reason": "Focus mode — retest disabled"}

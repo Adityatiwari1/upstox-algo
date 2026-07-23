@@ -1,0 +1,2 @@
+{"event": "open", "ts": "2026-07-23T09:00:13.678667+05:30", "id": "options_dynamics-090013677071", "date": "2026-07-23", "strategy_id": "options_dynamics", "option": "CE", "entry_price": 86.5, "spot_entry": 24169.55, "reason": "oi_bullish_pcr_low", "lots": 1, "sl": 76.5, "target": 106.5}
+{"event": "close", "ts": "2026-07-23T09:05:00.137922+05:30", "id": "options_dynamics-090013677071", "exit_price": 200.8, "exit_reason": "target", "pnl_pts": 114.2, "pnl_rs": 7423.0, "peak_pts": 114.2}
