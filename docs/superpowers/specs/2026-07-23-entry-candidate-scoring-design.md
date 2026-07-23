@@ -13,12 +13,30 @@ code order, not by trade quality. This surfaced concretely on 2026-07-23: a
 `consol_breakdown` signal and the existing `lux_break` signal both would have
 fired around the same window, and only code order decided which traded.
 
-Replace fixed-order short-circuiting with candidate scoring: evaluate every
-detector every tick (state advances exactly as today — breakout watches still
-arm/expire, SMA bar counters still increment), collect every entry type that
-actually fires into a candidate list, and when 2 or more fire on the same
-tick, pick the one with the best combination of freshness (distance from its
-own trigger level) and risk/reward, instead of whichever was checked first.
+Replace fixed-order short-circuiting with candidate scoring — but scoped much
+narrower than first described. Reading the actual code (not just the
+conceptual model) during planning showed that `reentry`, `pdh_momentum`,
+`range_break`, `pdl_reclaim`/`pdh_loss`, `orb`, `pdh_break`/`pdl_break`,
+`sr_retest`, `retest`, `momentum`, and even `sustained` all live inside one
+~500-line stateful watch machine (`self._watch`, `self._orb_watching`,
+`self._pdx_watching`, `self._sr_retest_mode`, nested if/elif/else branches)
+that already self-serializes them — only one of them can ever produce a
+result on a given tick, by construction, today. Untangling that machine to
+make each sub-check independently competitive would be a large, risky rewrite
+of the most delicate part of the live trading engine, for a collision that
+was never actually possible between those sub-checks in the first place.
+
+The two checks that ARE genuinely independent and already short-circuited
+against each other are `lux_sr.check_entry` and
+`consolidation_range.check_entry` — both run unconditionally after the whole
+watch machine, both gated only by `if not entry_type:`. That's exactly the
+2026-07-23 collision (`lux_break` vs `consol_breakdown`). Scope: leave the
+entire watch machine (including `sustained`) untouched internally — treat
+whatever single result it produces as one candidate, scored at zero distance
+from its trigger (it already self-validated its own departure/confirmation
+before deciding, so it's fairly treated as "fresh"). Remove the short-circuit
+only between that one legacy result, `lux_sr`, and `consolidation_range`, and
+score among those.
 
 ## Non-goals
 
@@ -40,17 +58,22 @@ own trigger level) and risk/reward, instead of whichever was checked first.
 tick arrives
     │
     ▼
-every detector evaluates, unconditionally (state mutation happens
-regardless of whether an earlier detector already matched):
-    sustained  →  candidate?
-    retest     →  candidate?
-    momentum   →  candidate?
-    reentry    →  candidate?
-    lux_sr.check_entry(option)              → candidate?
-    consolidation_range.check_entry(option) → candidate?
+entire legacy watch machine runs EXACTLY as today, untouched internally
+(reentry, pdh_momentum, range_break, pdl_reclaim/pdh_loss, orb,
+pdh_break/pdl_break, sr_retest, retest, momentum, sustained — all still
+self-serialize via self._watch/self._orb_watching/self._pdx_watching/
+self._sr_retest_mode exactly as today)
     │
     ▼
-candidates: list[Candidate]   (0, 1, or several)
+legacy_entry_type = entry_type   (whatever the machine decided, or None)
+entry_type reset to None so the next two checks still run this tick
+    │
+    ▼
+lux_sr.check_entry(option)              → always runs now (was short-circuited)
+consolidation_range.check_entry(option) → always runs now (was short-circuited)
+    │
+    ▼
+candidates: list[Candidate]   (0, 1, 2, or 3 — legacy + lux + consol)
     │
     ├─ 0 candidates  → entry_type = None (today's no-signal case, unchanged)
     ├─ 1 candidate   → entry_type = that one (today's normal case, unchanged)
@@ -64,37 +87,41 @@ entry_type flows into the EXISTING pipeline, untouched:
 
 ## Components
 
-All changes live in `src/uptox/ui/screens/dashboard.py`; no new files.
+All changes live in `src/uptox/ui/screens/dashboard.py`; no new files, and
+no changes to `lux_sr.py` or `consolidation_range.py` (their `_event[2]`
+module attribute — already `(slot, event_name, level)` — is read directly
+for the trigger level, same cross-module-introspection pattern this file
+already uses for `trailing_sl_service.get_status()`; no new return value
+needed from either module).
 
 **`Candidate` shape** (a plain dict, not a new class — matches this file's
 existing convention of passing dicts/tuples rather than dataclasses):
 `{"entry_type": str, "option": "CE"|"PE", "trigger_level": float}`.
 
-**Detector blocks stop short-circuiting.** Each of the six blocks currently
-reads `if not entry_type: <check>; if match: entry_type = match`. Each
-becomes `<check>` (always runs, unconditionally — same internal logic and
-state mutation as today) `; if match: candidates.append({...})`. The
-`if not entry_type:` guard is removed from these six blocks specifically;
-every other gate/block in the file (whitelist, S/R proximity, daily limits,
-sizing) is untouched and still runs exactly once, after selection.
+**Only two `if not entry_type:` guards are removed** — the ones around
+`lux_sr.check_entry` and `consolidation_range.check_entry`. The entire
+legacy watch machine (reentry through sustained) is untouched, runs exactly
+as today, and its result (if any) is captured once, at the end, into
+`legacy_entry_type` before `entry_type` is reset to `None` so the two
+module checks still run regardless of what the legacy machine decided.
 
-**Trigger-level reference per entry type** (needed for the freshness term):
+**Trigger-level reference per candidate:**
 
-| Entry type | `trigger_level` source |
+| Candidate source | `trigger_level` |
 |---|---|
-| `range_break`, `orb`, `pdh_*`, `pdl_*`, `sr_retest` | the specific level each already computes (box edge / opening range / prev-day level) |
-| `lux_break`, `lux_bounce`, `lux_retest` | the level `lux_sr.check_entry` fired against (already returned via `_event`'s level field) |
-| `consol_break`, `consol_breakdown` | the box edge `consolidation_range.check_entry` fired against |
-| `retest`, `momentum` | the breakout watch's armed high/low |
-| `reentry` | the prior stop-loss price that armed the reentry window |
-| `sustained` | none — see below |
+| Legacy watch machine's result (whatever it is) | `ltp` itself — distance term is `0` |
+| `lux_break`/`lux_bounce`/`lux_retest` | `lux_sr._event[2]` (the level it fired against) |
+| `consol_break`/`consol_breakdown` | `consolidation_range._event[2]` (the box edge it fired against) |
 
-**`sustained` has no natural level.** It's a trend-confirmation signal (SMA
-score maxed for 4+ bars), not a level-break — forcing a level onto it would
-be arbitrary. Its freshness term is fixed at `0` (best-case, no penalty) so
-it's judged on R:R alone, competing fairly with level-anchored candidates
-rather than being structurally disadvantaged for something that doesn't
-apply to it.
+**The legacy result scores at zero distance from its trigger — not because
+it lacks a level, but because it already validated its own departure/
+confirmation internally before deciding** (its own departure thresholds,
+retest-bar counts, or sustained's 4-bar confirmation already did that job).
+Re-deriving which of its ~10 possible entry types fired and reaching into
+each one's specific internal level variable would require touching the
+watch machine's internals — exactly what this design avoids. Treating it
+as "fresh" is honest: by the time it reports a result, it has already
+earned it under its own rules.
 
 **`_pick_best_candidate(candidates: list[dict], ltp: float, atr: float) ->
 dict | None`** — new pure-ish function (calls `capital_service.levels()`,
@@ -114,7 +141,7 @@ def _pick_best_candidate(candidates, ltp, atr, delta=None, iv=0.0):
         rr = reward / risk
         if rr < 1.0:  # matches existing "Achieved RR" floor already tracked in Performance panel
             continue
-        distance = abs(ltp - c["trigger_level"]) if c["entry_type"] != "sustained" else 0.0
+        distance = abs(ltp - c["trigger_level"])  # 0 for the legacy candidate (trigger_level == ltp)
         score = rr - (distance / atr if atr else distance)
         scored.append((score, c))
     if not scored:
@@ -159,9 +186,10 @@ candidate lists and a stubbed `capital_service.levels`:
 - Empty candidate list — returns `None`.
 - All candidates fail the R:R floor — returns `None` (no trade), not a
   crash.
-- `sustained` candidate alongside a level-anchored one — confirm the
-  zero-distance treatment doesn't unfairly advantage or disadvantage it
-  relative to a fairly-scored level-anchored candidate.
+- Legacy-result candidate (trigger_level == ltp, distance 0) alongside a
+  `lux_sr`/`consolidation_range` candidate with a real trigger level —
+  confirm the zero-distance treatment doesn't unfairly advantage or
+  disadvantage it relative to a fairly-scored level-anchored candidate.
 
 ## Open item for later (explicitly out of scope now)
 
