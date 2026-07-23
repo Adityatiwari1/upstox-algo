@@ -1,0 +1,43 @@
+{
+  "trade_open": {
+    "enabled": true
+  },
+  "trade_close": {
+    "enabled": true
+  },
+  "partial_exit": {
+    "enabled": true
+  },
+  "trade_update": {
+    "enabled": true,
+    "interval_min": 15.0
+  },
+  "market_update": {
+    "enabled": true,
+    "interval_min": 60
+  },
+  "daily_report": {
+    "enabled": true
+  },
+  "weekly_report": {
+    "enabled": true,
+    "weekday": "saturday",
+    "time": "11:00"
+  },
+  "monthly_report": {
+    "enabled": true
+  },
+  "monthly_pdf": {
+    "enabled": true
+  },
+  "daily_limit_hit": {
+    "enabled": true
+  },
+  "approaching_limit": {
+    "enabled": true,
+    "threshold_pct": 75.0
+  },
+  "feed_status": {
+    "enabled": true
+  }
+}
