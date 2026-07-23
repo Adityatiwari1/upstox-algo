@@ -448,6 +448,13 @@ class OverallAnalysisPanel(Static):
         lux_sr.update()
         lux_sr.check_live_bounce()
 
+        # Consolidation range: wider/slower complement to range_break's
+        # 3-bar window (2026-07-23) -- same bar-close + every-tick pattern
+        # as lux_sr above.
+        from uptox.services import consolidation_range
+        consolidation_range.update()
+        consolidation_range.check_live(live_ltp)
+
         # ── Opening Range Breakout range tracking (09:15–09:30) ──────────────
         if _today != self._orb_date:
             self._orb_date    = _today
@@ -1370,6 +1377,19 @@ class OverallAnalysisPanel(Static):
                             log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
                                      _lux_et, option, ltp, total)
 
+                    # Consolidation range break/breakdown (2026-07-23) — new,
+                    # unproven signal type. Deliberately NOT in _FOCUS_ENTRIES
+                    # yet: it flows through the same non-whitelisted path
+                    # below and gets shadow-tracked (real prices, no real
+                    # trade) until it's earned a place in the whitelist,
+                    # same discipline every other entry type went through.
+                    if not entry_type:
+                        _consol_et = consolidation_range.check_entry(option)
+                        if _consol_et:
+                            entry_type = _consol_et
+                            log.info("Consolidation range entry: %s %s @ %.1f (score %+d)",
+                                     _consol_et, option, ltp, total)
+
                     # Focus mode: non-whitelisted triggers log their would-be
                     # fire (audit prices what focus skipped) but never trade
                     if entry_type and _FOCUS_ENTRIES and entry_type not in _FOCUS_ENTRIES:
@@ -1382,9 +1402,14 @@ class OverallAnalysisPanel(Static):
                         entry_type = None
 
                     if entry_type:
-                        # sr_retest / reclaim / lux entries already validated at
-                        # their own level — skip the normal S/R proximity check
+                        # sr_retest / reclaim / lux / consol entries already
+                        # validated at their own level — skip the normal S/R
+                        # proximity check (consol_break/breakdown are dead
+                        # code here until whitelisted below, but belong in
+                        # this list now so promoting them later needs no
+                        # second edit)
                         if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss",
+                                          "consol_break", "consol_breakdown",
                                           "lux_break", "lux_bounce", "lux_retest"):
                             sr_block, _broken_level = None, 0.0
                         else:
