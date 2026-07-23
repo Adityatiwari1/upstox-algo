@@ -1,0 +1,6 @@
+{"event": "open", "ts": "2026-07-23T11:52:21.258072+05:30", "id": "sh-115221", "date": "2026-07-23", "entry_type": "sustained", "option": "PE", "strike": 23950, "option_key": "NSE_FO|63938", "entry_price": 135.6, "spot_entry": 23938.1, "score": -5}
+{"event": "close", "ts": "2026-07-23T12:00:30.175424+05:30", "id": "sh-115221", "exit_price": 125.4, "exit_reason": "stop", "pnl_pts": -10.2, "peak_pts": 5.8, "held_secs": 489}
+{"event": "open", "ts": "2026-07-23T12:30:29.257062+05:30", "id": "sh-123029", "date": "2026-07-23", "entry_type": "sustained", "option": "PE", "strike": 23900, "option_key": "NSE_FO|63936", "entry_price": 131.0, "spot_entry": 23910.2, "score": -5}
+{"event": "close", "ts": "2026-07-23T12:31:28.969348+05:30", "id": "sh-123029", "exit_price": 139.3, "exit_reason": "profit_lock", "pnl_pts": 8.3, "peak_pts": 15.7, "held_secs": 60}
+{"event": "open", "ts": "2026-07-23T12:36:29.257168+05:30", "id": "sh-123629", "date": "2026-07-23", "entry_type": "momentum", "option": "PE", "strike": 23900, "option_key": "NSE_FO|63936", "entry_price": 146.1, "spot_entry": 23884.7, "score": -5}
+{"event": "close", "ts": "2026-07-23T12:41:34.216728+05:30", "id": "sh-123629", "exit_price": 150.6, "exit_reason": "profit_lock", "pnl_pts": 4.5, "peak_pts": 9.2, "held_secs": 305}
