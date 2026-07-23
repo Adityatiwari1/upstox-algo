@@ -1420,19 +1420,46 @@ class OverallAnalysisPanel(Static):
                     # self-serializes -- only one of ITS checks can ever fire
                     # per tick. lux_sr and consolidation_range are the two
                     # genuinely independent checks that were short-circuited
-                    # against each other and each other's legacy result --
-                    # both now always run, and whichever subset fires gets
-                    # scored instead of whichever was checked first. See
-                    # docs/superpowers/specs/2026-07-23-entry-candidate-scoring-design.md
+                    # against each other and each other's legacy result.
+                    #
+                    # check_entry() on either module marks its level as
+                    # traded-for-the-day the instant it matches, regardless
+                    # of whether the caller acts on it -- so candidates are
+                    # built by PEEKING at _event/_ENTRY_MAP/_traded directly
+                    # (read-only, no mutation) instead of calling
+                    # check_entry() up front. Only the actual scoring
+                    # winner's check_entry() is called for real, below,
+                    # which both re-verifies and marks it traded. A
+                    # candidate that loses the scoring never gets marked,
+                    # so its level stays available for a later genuine
+                    # occurrence instead of being burned for a trade that
+                    # never happened.
+                    # See docs/superpowers/specs/2026-07-23-entry-candidate-scoring-design.md
                     legacy_entry_type = entry_type
-                    entry_type = None  # reset so both checks below always run this tick
+                    entry_type = None  # reset so both peeks below always run this tick
 
-                    _lux_et = lux_sr.check_entry(option)
+                    from datetime import date as _date
+                    _cur_slot = int(time.time() // 300)
+                    _today_str = _date.today().isoformat()
+
+                    def _peek_entry(module, opt):
+                        ev = module._event
+                        if ev is None or ev[0] != _cur_slot:
+                            return None
+                        et = module._ENTRY_MAP.get((opt, ev[1]))
+                        if et is None:
+                            return None
+                        traded = module._traded if module._traded_date == _today_str else {}
+                        if traded.get(opt) == ev[2]:
+                            return None
+                        return et
+
+                    _lux_et = _peek_entry(lux_sr, option)
                     if _lux_et:
                         log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
                                  _lux_et, option, ltp, total)
 
-                    _consol_et = consolidation_range.check_entry(option)
+                    _consol_et = _peek_entry(consolidation_range, option)
                     if _consol_et:
                         log.info("Consolidation range entry: %s %s @ %.1f (score %+d)",
                                  _consol_et, option, ltp, total)
@@ -1468,6 +1495,14 @@ class OverallAnalysisPanel(Static):
                                      len(candidates), entry_type)
                     elif candidates:
                         entry_type = candidates[0]["entry_type"]
+
+                    # Consume the winner's one-trade-per-level slot for real
+                    # now that scoring has decided. A losing lux/consol
+                    # candidate is never marked traded (see comment above).
+                    if _lux_et and entry_type == _lux_et:
+                        lux_sr.check_entry(option)
+                    if _consol_et and entry_type == _consol_et:
+                        consolidation_range.check_entry(option)
 
                     # Focus mode: non-whitelisted triggers log their would-be
                     # fire (audit prices what focus skipped) but never trade
