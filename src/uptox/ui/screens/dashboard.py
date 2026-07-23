@@ -150,6 +150,9 @@ _FOCUS_ENTRIES = {
     "pdh_break", "pdl_break",                # prev-day high/low breaks
     "pdl_reclaim", "pdh_loss",               # prev-day level reclaims
     "lux_break", "lux_bounce", "lux_retest", # LuxAlgo 10/10 pivot S/R events
+    "consol_break", "consol_breakdown",      # wide consolidation box break (user
+                                              # 2026-07-23, promoted without a shadow
+                                              # observation period at user's explicit call)
 }
 
 
@@ -1377,12 +1380,10 @@ class OverallAnalysisPanel(Static):
                             log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
                                      _lux_et, option, ltp, total)
 
-                    # Consolidation range break/breakdown (2026-07-23) — new,
-                    # unproven signal type. Deliberately NOT in _FOCUS_ENTRIES
-                    # yet: it flows through the same non-whitelisted path
-                    # below and gets shadow-tracked (real prices, no real
-                    # trade) until it's earned a place in the whitelist,
-                    # same discipline every other entry type went through.
+                    # Consolidation range break/breakdown (2026-07-23) — added
+                    # straight to _FOCUS_ENTRIES at the user's explicit call,
+                    # skipping the shadow-observation period every other entry
+                    # type here went through first.
                     if not entry_type:
                         _consol_et = consolidation_range.check_entry(option)
                         if _consol_et:
