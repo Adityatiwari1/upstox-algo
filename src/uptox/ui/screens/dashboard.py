@@ -251,6 +251,50 @@ def _near_sr(ltp: float, option: str, sma_score: int = 0) -> tuple[str | None, f
     return None, 0.0
 
 
+def _pick_best_candidate(
+    candidates: list[dict], ltp: float, atr: float,
+    delta: float | None = None, iv: float = 0.0, repeat_count: int = 0,
+) -> str | None:
+    """When 2+ entry types fire on the same tick (2026-07-23: lux_break vs
+    consol_breakdown), pick the best by combining freshness (distance from
+    the candidate's own trigger level -- a break that's already run far
+    past its level is a worse entry than one that just crossed it) with
+    risk/reward (via the same capital_service.levels() call the downstream
+    sizing step already makes). The legacy watch machine's own result (if
+    any) is passed in with trigger_level == ltp, scoring at zero distance --
+    it already validated its own departure/confirmation internally before
+    deciding, so it's fairly judged on R:R alone, same as every other
+    candidate here.
+
+    See docs/superpowers/specs/2026-07-23-entry-candidate-scoring-design.md.
+    """
+    if not candidates:
+        return None
+    scored: list[tuple[float, str]] = []
+    for c in candidates:
+        try:
+            lvl = capital_service.levels(ltp, delta, iv=iv, repeat_count=repeat_count)
+        except Exception as e:
+            log.warning("Entry candidate scoring: levels() failed for %s, dropping candidate: %s",
+                        c["entry_type"], e)
+            continue
+        sl, target = lvl["sl"], lvl["target"]
+        risk = abs(ltp - sl)
+        reward = abs(target - ltp)
+        if risk <= 0:
+            continue
+        rr = reward / risk
+        if rr < 1.0:
+            continue
+        distance = abs(ltp - c["trigger_level"])
+        score = rr - (distance / atr if atr else distance)
+        scored.append((score, c["entry_type"]))
+    if not scored:
+        return None
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return scored[0][1]
+
+
 def _sane_tick(prev: float, ltp: float, max_jump: float = 40.0) -> bool:
     """
     Nifty never moves >40pt between dashboard refreshes (~1s) — even the
