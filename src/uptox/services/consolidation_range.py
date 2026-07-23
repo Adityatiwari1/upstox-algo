@@ -4,12 +4,13 @@ Consolidation Range breakout/breakdown — ported from the user's Pine Script
 
 Complements range_break (dashboard.py): that one watches a 3-bar (15min)
 window with a 25pt tightness cap and a 7pt departure — fast, but only
-holds onto a *short, narrow* coil. This one watches a 10-bar (50min)
+holds onto a *short, narrow* coil. This one watches a 7-bar (35min)
 window with a %-of-price tightness cap and requires the range to stay
-tight for at least 8 of those bars before the box counts as "confirmed" —
-built for a *slower, wider* consolidation that a 3-bar window can't stay
-inside long enough to confirm (2026-07-23: a ~35min/~35pt chop the
-existing range_break never armed against, then the eventual lux_break
+tight for at least 10 of those bars before the box counts as "confirmed"
+(user-tuned 2026-07-23, from the Pine script's own 10-bar/0.5%/8-bar
+defaults) — built for a *slower, wider* consolidation that a 3-bar window
+can't stay inside long enough to confirm (2026-07-23: a ~35min/~35pt chop
+the existing range_break never armed against, then the eventual lux_break
 entry only fired once the level's 50min pivot-confirmation lag cleared,
 capturing far less of the move than a live consolidation-box break would
 have).
@@ -38,9 +39,9 @@ import time
 
 log = logging.getLogger(__name__)
 
-LOOKBACK        = 10     # bars used to measure box tightness (Pine default)
-RANGE_THRESH_PCT = 0.5   # max (high-low)/low % over the lookback to count as tight
-MIN_BARS        = 8      # box must hold tight this many bars before it's "confirmed"
+LOOKBACK        = 7      # bars used to measure box tightness (user-tuned 2026-07-23)
+RANGE_THRESH_PCT = 0.2   # max (high-low)/low % over the lookback to count as tight
+MIN_BARS        = 10     # box must hold tight this many bars before it's "confirmed"
 DEPARTURE_PTS   = 15.0   # clearance beyond the box edge to confirm a real break
 
 NIFTY = "NSE_INDEX|Nifty 50"
