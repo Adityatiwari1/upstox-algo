@@ -1644,12 +1644,18 @@ class OverallAnalysisPanel(Static):
                 entry_type = None
 
             if entry_type:
-                # sr_retest / reclaim / lux / consol entries already
-                # validated at their own level — skip the normal S/R
-                # proximity check
+                # Level-anchored entries already validated at their own level
+                # — skip the normal S/R proximity check. ORB/PDH/PDL/range
+                # breaks added 2026-07-24: they only fire after breaking a
+                # real level AND departing 15pt, which is stronger proof than
+                # the wall-check they were dying on (11 historical vetoes:
+                # "orb — SMA50 11pt above", "pdh_break — Round 24200 2pt
+                # above"… while lux traded the same moves exempt).
                 if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss",
                                   "consol_break", "consol_breakdown",
-                                  "lux_break", "lux_bounce", "lux_retest"):
+                                  "lux_break", "lux_bounce", "lux_retest",
+                                  "orb", "pdh_break", "pdl_break",
+                                  "pdh_momentum", "pdl_momentum", "range_break"):
                     sr_block, _broken_level = None, 0.0
                 else:
                     sr_block, _broken_level = _near_sr(ltp, option, sma_score)
