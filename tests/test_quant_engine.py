@@ -12,6 +12,8 @@ otherwise make them depend on real wall-clock time."""
 import tempfile
 from pathlib import Path
 
+from datetime import datetime as _dt
+
 from uptox.quant.strategy import Signal, Strategy
 from uptox.quant.quant_trading_mode import QuantTradingMode
 from uptox.quant.engine import QuantEngine, LOT_SIZE
@@ -136,12 +138,14 @@ def test_live_mode_calls_order_service_on_open_and_close():
         mode._mode = "live"
         assert mode.is_live()
 
-        eng.on_snapshot({"ts": _TS1, "nifty": 24200, "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
+        eng.on_snapshot({"ts": _TS1, "nifty": 24200, "atm": 24200,
+                          "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
         entry_price = eng.position["entry_price"]
         sl = eng.position["sl"]
         lots = eng.position["lots"]
-
-        eng.on_snapshot({"ts": _TS2, "nifty": 24200, "ce_ltp": 139.9, "pe_ltp": 80.0}, [])  # stop out
+        # get_key patched + atm present -> position is pinned; exits come from ticks
+        assert eng.position["option_key"] == "NSE_FO|test_live"
+        eng.on_tick("NSE_FO|test_live", 139.9, now=_dt.fromisoformat(_TS2))  # stop out via tick
         assert eng.position is None
 
         entry_calls = [c for c in calls if c[0] == "entry"]
@@ -224,6 +228,49 @@ def test_atm_roll_force_closes_at_last_known_matching_price():
     rows = book.read_events(path)
     assert rows[-1]["exit_reason"] == "atm_rolled"
     assert rows[-1]["exit_price"] == 92.0  # last price seen for the ACTUAL held strike
+
+
+def test_pinned_position_ignores_snapshot_exits_ticks_own_them():
+    from uptox.services import option_chain_service
+    orig_get_key = option_chain_service.get_key
+    try:
+        option_chain_service.get_key = lambda atm, opt: "NSE_FO|pin_test"
+        eng, path, mode = _engine()
+        eng.on_snapshot({"ts": _TS1, "nifty": 24200, "atm": 24200,
+                          "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
+        assert eng.position["option_key"] == "NSE_FO|pin_test"
+        # crashing bar price AND rolled ATM: snapshot path must not touch it
+        eng.on_snapshot({"ts": _TS2, "nifty": 23900, "atm": 23900,
+                          "ce_ltp": 90.0, "pe_ltp": 80.0}, [])
+        assert eng.position is not None
+        # ticks for a different instrument: ignored
+        eng.on_tick("NSE_FO|other", 100.0, now=_dt.fromisoformat(_TS2))
+        assert eng.position is not None
+        # tick for the pinned contract stops it out at tick resolution
+        eng.on_tick("NSE_FO|pin_test", 139.9, now=_dt.fromisoformat(_TS2))
+        assert eng.position is None
+        rows = book.read_events(path)
+        assert rows[-1]["exit_reason"] == "stop"
+        assert rows[-1]["exit_price"] == 139.9
+    finally:
+        option_chain_service.get_key = orig_get_key
+
+
+def test_tick_freak_damper_ignores_isolated_spike():
+    from uptox.services import option_chain_service
+    orig_get_key = option_chain_service.get_key
+    try:
+        option_chain_service.get_key = lambda atm, opt: "NSE_FO|freak_test"
+        eng, path, mode = _engine()
+        eng.on_snapshot({"ts": _TS1, "nifty": 24200, "atm": 24200,
+                          "ce_ltp": 150.0, "pe_ltp": 80.0}, [])
+        eng.on_tick("NSE_FO|freak_test", 90.0, now=_dt.fromisoformat(_TS2))   # -40% isolated spike: ignored once
+        assert eng.position is not None
+        eng.on_tick("NSE_FO|freak_test", 151.0, now=_dt.fromisoformat(_TS3))  # normal tick resumes
+        assert eng.position is not None
+        assert eng.position["peak"] == 151.0
+    finally:
+        option_chain_service.get_key = orig_get_key
 
 
 def test_atm_roll_guard_is_backward_compatible_with_no_atm_field():

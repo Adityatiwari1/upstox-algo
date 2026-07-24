@@ -205,6 +205,11 @@ async def on_tick(instrument_key: str, feed: proto.Feed) -> None:
     from uptox.services import shadow_book
     shadow_book.on_tick(instrument_key, tick.ltp)
 
+    # ── Quant books: tick-resolution exit management for pinned positions ────
+    from uptox.quant.runner import _get_runner
+    for _qeng in _get_runner().engines.values():
+        _qeng.on_tick(instrument_key, tick.ltp)
+
     # ── Open trade tick processing ────────────────────────────────────────────
     ot = trade_book.get_open_trade()
     if ot and ot.get("option_key") == instrument_key:

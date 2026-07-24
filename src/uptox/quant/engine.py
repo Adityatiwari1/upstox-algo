@@ -25,9 +25,9 @@ _IST = ZoneInfo("Asia/Kolkata")
 LOT_SIZE      = 65
 STOP_PTS      = 10.0
 LOCK_ARM_PTS  = 6.0
-LOCK_KEEP     = 0.50
-LOCK_BIG_PTS  = 15.0
-LOCK_BIG_KEEP = 0.60
+LOCK_KEEP     = 0.65   # was 0.50 — 21-day replay sweep 2026-07-24: 65/75 keeps
+LOCK_BIG_PTS  = 15.0   # expectancy Rs886 vs Rs841/trade, and the 2026-07-24 live
+LOCK_BIG_KEEP = 0.75   # trade gave back 57% of a +14.2pt peak under 50/60
 RR            = 2.0
 SESSION_CLOSE = (15, 20)
 MARKET_OPEN   = (9, 15)  # F&O has no pre-open auction -- nothing before this is a real tradable price
@@ -99,11 +99,22 @@ class QuantEngine:
             return
 
         pos_id = f"{signal.strategy_id}-{bar_time.strftime('%H%M%S%f')}"
+        # Pin the actual contract when the live option chain can resolve it —
+        # live ticks for that key then manage the exit at tick resolution
+        # (see on_tick) and keep tracking the SAME contract through ATM
+        # rolls. In backtest there is no chain, get_key returns None, and
+        # the bar-snapshot path in _check_exit manages exits as before.
+        try:
+            from uptox.services import option_chain_service
+            _pin_key = (option_chain_service.get_key(snapshot.get("atm"), signal.option)
+                        if snapshot.get("atm") else None)
+        except Exception:
+            _pin_key = None
         self.position = {
             "id": pos_id, "date": bar_time.strftime("%Y-%m-%d"),
             "strategy_id": signal.strategy_id, "option": signal.option,
             "entry_price": entry, "spot_entry": snapshot.get("nifty", 0.0),
-            "entry_strike": snapshot.get("atm"),
+            "entry_strike": snapshot.get("atm"), "option_key": _pin_key,
             "reason": signal.reason, "lots": lots, "sl": sl, "target": target,
             "peak": entry, "last_valid_ltp": entry,
         }
@@ -130,6 +141,13 @@ class QuantEngine:
     def _check_exit(self, snapshot: dict) -> None:
         pos = self.position
 
+        # A position pinned to a real contract (option_key) is exit-managed
+        # by live ticks in on_tick — this bar's rolling-ATM ce_ltp/pe_ltp
+        # may already be a different contract's price, so the snapshot path
+        # must not touch a pinned position at all.
+        if pos.get("option_key"):
+            return
+
         # data_recorder only ever records the CURRENT-ATM CE/PE -- once the
         # strike we're actually holding stops being ATM, this bar's
         # ce_ltp/pe_ltp is a different contract's price. Force-close at the
@@ -149,9 +167,34 @@ class QuantEngine:
         pos["last_valid_ltp"] = ltp
         if ltp > pos["peak"]:
             pos["peak"] = ltp
+        self._apply_exits(ltp, _bar_time(snapshot))
 
-        bar_time = _bar_time(snapshot)
-        if (bar_time.hour, bar_time.minute) >= SESSION_CLOSE:
+    def on_tick(self, instrument_key: str, ltp: float,
+                now: datetime | None = None) -> None:
+        """Tick-resolution exit management for a pinned position. Bar
+        snapshots lag exits by up to 5 minutes (the 2026-07-24 live trade
+        closed at 138.9 against its own 139.9 lock floor purely from bar
+        lag); ticks for the pinned contract fix that, and keep following
+        the SAME contract through ATM rolls. `now` is injectable for tests;
+        live callers omit it (wall clock)."""
+        pos = self.position
+        if pos is None or not ltp or pos.get("option_key") != instrument_key:
+            return
+        # Freak-tick damper (mirrors shadow_book): ignore one isolated >15%
+        # jump — a real repricing shows up on the next tick too.
+        prev = pos.get("last_valid_ltp")
+        if prev and abs(ltp - prev) / prev > 0.15 and not pos.get("suspect_seen"):
+            pos["suspect_seen"] = True
+            return
+        pos["suspect_seen"] = False
+        pos["last_valid_ltp"] = ltp
+        if ltp > pos["peak"]:
+            pos["peak"] = ltp
+        self._apply_exits(ltp, now or datetime.now(_IST))
+
+    def _apply_exits(self, ltp: float, now: datetime) -> None:
+        pos = self.position
+        if (now.hour, now.minute) >= SESSION_CLOSE:
             self._close(ltp, "session_close")
             return
         if ltp >= pos["target"]:
