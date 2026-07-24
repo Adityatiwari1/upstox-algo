@@ -1493,3 +1493,57 @@
 {"ts": "2026-07-23T15:21:55+05:30", "option": "CE", "ltp": 23871.5, "score": 3, "entry_type": null, "reason": "Paused via Telegram (/resume to re-enable)"}
 {"ts": "2026-07-23T15:22:40+05:30", "option": "PE", "ltp": 23861.9, "score": -2, "entry_type": null, "reason": "Paused via Telegram (/resume to re-enable)"}
 {"ts": "2026-07-23T15:27:28+05:30", "option": "CE", "ltp": 23888.7, "score": 3, "entry_type": null, "reason": "Paused via Telegram (/resume to re-enable)"}
+{"ts": "2026-07-24T09:20:00+05:30", "option": "PE", "ltp": 23751.0, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T09:25:00+05:30", "option": "PE", "ltp": 23732.1, "score": -5, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T09:30:02+05:30", "option": "PE", "ltp": 23702.7, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T09:35:03+05:30", "option": "PE", "ltp": 23684.7, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T09:40:03+05:30", "option": "PE", "ltp": 23670.3, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T09:46:07+05:30", "option": "PE", "ltp": 23663.0, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T09:53:04+05:30", "option": "PE", "ltp": 23640.9, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23641 (15min left)"}
+{"ts": "2026-07-24T09:58:12+05:30", "option": "PE", "ltp": 23662.2, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23641 (10min left)"}
+{"ts": "2026-07-24T09:58:16+05:30", "option": "PE", "ltp": 23663.1, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T10:03:15+05:30", "option": "PE", "ltp": 23626.5, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23641 (5min left)"}
+{"ts": "2026-07-24T10:03:27+05:30", "option": "PE", "ltp": 23621.5, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-24T10:08:28+05:30", "option": "PE", "ltp": 23625.6, "score": -3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T10:13:28+05:30", "option": "PE", "ltp": 23612.9, "score": -3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T10:18:29+05:30", "option": "PE", "ltp": 23619.0, "score": -3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T10:23:30+05:30", "option": "PE", "ltp": 23611.7, "score": -3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T10:28:30+05:30", "option": "PE", "ltp": 23619.5, "score": -3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T10:33:31+05:30", "option": "PE", "ltp": 23617.0, "score": -3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T10:35:00+05:30", "option": "PE", "ltp": 23615.1, "score": -3, "entry_type": null, "reason": "Consolidating — 23pt range in 30min (need >25, drift 45%)"}
+{"ts": "2026-07-24T10:40:03+05:30", "option": "PE", "ltp": 23636.7, "score": -5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-24T10:45:00+05:30", "option": "PE", "ltp": 23641.5, "score": -5, "entry_type": null, "reason": "Bounce active +34pts from low — wait for red bar"}
+{"ts": "2026-07-24T10:51:33+05:30", "option": "PE", "ltp": 23647.1, "score": -4, "entry_type": null, "reason": "Bounce active +40pts from low — wait for red bar"}
+{"ts": "2026-07-24T11:02:56+05:30", "option": "PE", "ltp": 23630.9, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23631 (15min left)"}
+{"ts": "2026-07-24T11:08:00+05:30", "option": "PE", "ltp": 23628.8, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23631 (10min left)"}
+{"ts": "2026-07-24T11:13:00+05:30", "option": "PE", "ltp": 23624.6, "score": -3, "entry_type": null, "reason": "Post-win chase guard — PE again only if move continues past 23631 (5min left)"}
+{"ts": "2026-07-24T12:15:47+05:30", "option": "CE", "ltp": 23705.7, "score": 4, "entry_type": null, "reason": "Retreat active -57pts from high — wait for green bar"}
+{"ts": "2026-07-24T12:28:36+05:30", "option": "CE", "ltp": 23777.5, "score": 5, "entry_type": "orb", "reason": "Resistance: Round 23800 (22pt above)"}
+{"ts": "2026-07-24T12:33:53+05:30", "option": "CE", "ltp": 23772.2, "score": 5, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T12:38:54+05:30", "option": "CE", "ltp": 23759.4, "score": 3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-24T12:43:55+05:30", "option": "CE", "ltp": 23789.8, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T12:48:56+05:30", "option": "CE", "ltp": 23801.5, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T12:53:56+05:30", "option": "CE", "ltp": 23794.2, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T12:58:56+05:30", "option": "CE", "ltp": 23798.0, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T13:03:57+05:30", "option": "CE", "ltp": 23777.8, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T13:08:57+05:30", "option": "CE", "ltp": 23764.6, "score": 3, "entry_type": "momentum", "reason": "Focus mode — momentum disabled"}
+{"ts": "2026-07-24T13:10:00+05:30", "option": "CE", "ltp": 23769.2, "score": 3, "entry_type": null, "reason": "Retreat active -39pts from high — wait for green bar"}
+{"ts": "2026-07-24T13:15:03+05:30", "option": "CE", "ltp": 23784.1, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-24T13:20:08+05:30", "option": "CE", "ltp": 23791.4, "score": 5, "entry_type": "sustained", "reason": "Focus mode — sustained disabled"}
+{"ts": "2026-07-24T13:25:09+05:30", "option": "CE", "ltp": 23790.6, "score": 5, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T13:30:09+05:30", "option": "CE", "ltp": 23788.7, "score": 3, "entry_type": "retest", "reason": "Focus mode — retest disabled"}
+{"ts": "2026-07-24T13:31:07+05:30", "option": "CE", "ltp": 23782.8, "score": 3, "entry_type": null, "reason": "Retreat active -26pts from high — wait for green bar"}
+{"ts": "2026-07-24T13:36:22+05:30", "option": "CE", "ltp": 23754.7, "score": 3, "entry_type": null, "reason": "Retreat active -54pts from high — wait for green bar"}
+{"ts": "2026-07-24T13:45:30+05:30", "option": "PE", "ltp": 23744.2, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T14:10:11+05:30", "option": "CE", "ltp": 23797.2, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 15min left"}
+{"ts": "2026-07-24T14:15:12+05:30", "option": "CE", "ltp": 23799.0, "score": 3, "entry_type": null, "reason": "Cooldown after CE loss — 10min left"}
+{"ts": "2026-07-24T14:20:18+05:30", "option": "CE", "ltp": 23787.3, "score": 4, "entry_type": null, "reason": "Cooldown after CE loss — 5min left"}
+{"ts": "2026-07-24T14:25:23+05:30", "option": "CE", "ltp": 23777.0, "score": 4, "entry_type": null, "reason": "Retreat active -46pts from high — wait for green bar"}
+{"ts": "2026-07-24T14:33:14+05:30", "option": "CE", "ltp": 23774.2, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 22% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-24T14:38:19+05:30", "option": "CE", "ltp": 23770.7, "score": 3, "entry_type": null, "reason": "Premium decay risk — IV rank 26% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-24T14:52:01+05:30", "option": "CE", "ltp": 23778.5, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 27% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-24T14:57:04+05:30", "option": "CE", "ltp": 23787.0, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 18% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-24T15:01:03+05:30", "option": "PE", "ltp": 23754.3, "score": -3, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T15:06:04+05:30", "option": "PE", "ltp": 23753.4, "score": -2, "entry_type": null, "reason": "Gap-down -187pt — PE banned (fade risk) unless ORB low 23663 breaks"}
+{"ts": "2026-07-24T15:15:21+05:30", "option": "CE", "ltp": 23780.0, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 21% after 14:30 (theta kills low-IV options in last hour)"}
+{"ts": "2026-07-24T15:21:46+05:30", "option": "CE", "ltp": 23776.6, "score": 4, "entry_type": null, "reason": "Premium decay risk — IV rank 19% after 14:30 (theta kills low-IV options in last hour)"}
