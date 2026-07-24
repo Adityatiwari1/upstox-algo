@@ -1012,10 +1012,14 @@ class OverallAnalysisPanel(Static):
         if tradeable and cur_price:
             direction_flip = (self._last_option is not None and self._last_option != option)
             if direction_flip:
-                if trade_book.has_open_trade():
+                ot_flip = trade_book.get_open_trade()
+                # Level entries can hold a side the composite disagrees with —
+                # close only when the composite flips AGAINST the held side.
+                # Aligned trades behave exactly as before (held == old side,
+                # so any flip is against it).
+                if ot_flip and ot_flip.get("option", "") != option:
                     # Exit at the HELD option's price — cur_price is the NEW
                     # direction's ATM premium, a different contract entirely
-                    ot_flip = trade_book.get_open_trade()
                     _fk     = ot_flip.get("option_key", "")
                     _fl     = feed_store.get(_fk) if _fk else None
                     _fp     = _fl.ltp if (_fl and _fl.ltp) else ot_flip.get(
@@ -1415,271 +1419,13 @@ class OverallAnalysisPanel(Static):
                                 ce_iv_rising, pe_iv_rising,
                             )
 
-                    # Entry candidate scoring (2026-07-23): the legacy watch
-                    # machine above (reentry through sustained) already
-                    # self-serializes -- only one of ITS checks can ever fire
-                    # per tick. lux_sr and consolidation_range are the two
-                    # genuinely independent checks that were short-circuited
-                    # against each other and each other's legacy result.
-                    #
-                    # check_entry() on either module marks its level as
-                    # traded-for-the-day the instant it matches, regardless
-                    # of whether the caller acts on it -- so candidates are
-                    # built by PEEKING at _event/_ENTRY_MAP/_traded directly
-                    # (read-only, no mutation) instead of calling
-                    # check_entry() up front. Only the actual scoring
-                    # winner's check_entry() is called for real, below,
-                    # which both re-verifies and marks it traded. A
-                    # candidate that loses the scoring never gets marked,
-                    # so its level stays available for a later genuine
-                    # occurrence instead of being burned for a trade that
-                    # never happened.
-                    # See docs/superpowers/specs/2026-07-23-entry-candidate-scoring-design.md
-                    legacy_entry_type = entry_type
-                    entry_type = None  # reset so both peeks below always run this tick
+                    # Entry scoring, lux/consol peeks, and trade execution all
+                    # moved OUT of this composite (tradeable) gate on
+                    # 2026-07-24 into the level-event pipeline below this
+                    # if/elif — SMA/composite is a trend label only now; the
+                    # machine's entry_type joins the pipeline as one candidate.
 
-                    from datetime import date as _date
-                    _cur_slot = int(time.time() // 300)
-                    _today_str = _date.today().isoformat()
-
-                    def _peek_entry(module, opt):
-                        ev = module._event
-                        if ev is None or ev[0] != _cur_slot:
-                            return None
-                        et = module._ENTRY_MAP.get((opt, ev[1]))
-                        if et is None:
-                            return None
-                        traded = module._traded if module._traded_date == _today_str else {}
-                        if traded.get(opt) == ev[2]:
-                            return None
-                        return et
-
-                    _lux_et = _peek_entry(lux_sr, option)
-                    if _lux_et:
-                        log.info("Lux S/R entry: %s %s @ %.1f (score %+d)",
-                                 _lux_et, option, ltp, total)
-
-                    _consol_et = _peek_entry(consolidation_range, option)
-                    if _consol_et:
-                        log.info("Consolidation range entry: %s %s @ %.1f (score %+d)",
-                                 _consol_et, option, ltp, total)
-
-                    candidates: list[dict] = []
-                    if legacy_entry_type:
-                        candidates.append({
-                            "entry_type": legacy_entry_type, "option": option,
-                            "trigger_level": ltp,  # already self-validated internally
-                        })
-                    if _lux_et:
-                        candidates.append({
-                            "entry_type": _lux_et, "option": option,
-                            "trigger_level": lux_sr._event[2] if lux_sr._event else ltp,
-                        })
-                    if _consol_et:
-                        candidates.append({
-                            "entry_type": _consol_et, "option": option,
-                            "trigger_level": consolidation_range._event[2] if consolidation_range._event else ltp,
-                        })
-
-                    if len(candidates) > 1:
-                        from uptox.services import atr_service
-                        _atr_pts = atr_service.get_atr(NIFTY, TimeFrame.M5) or 30.0
-                        entry_type = _pick_best_candidate(
-                            candidates, ltp, _atr_pts,
-                            delta=entry_live.delta if entry_live else None,
-                            iv=entry_live.iv if entry_live else 0.0,
-                            repeat_count=trade_book.same_direction_streak(option),
-                        )
-                        if entry_type and len(candidates) > 1:
-                            log.info("Entry candidate scoring: %d candidates, picked %s",
-                                     len(candidates), entry_type)
-                    elif candidates:
-                        entry_type = candidates[0]["entry_type"]
-
-                    # Consume the winner's one-trade-per-level slot for real
-                    # now that scoring has decided. A losing lux/consol
-                    # candidate is never marked traded (see comment above).
-                    if _lux_et and entry_type == _lux_et:
-                        lux_sr.check_entry(option)
-                    if _consol_et and entry_type == _consol_et:
-                        consolidation_range.check_entry(option)
-
-                    # Focus mode: non-whitelisted triggers log their would-be
-                    # fire (audit prices what focus skipped) but never trade
-                    if entry_type and _FOCUS_ENTRIES and entry_type not in _FOCUS_ENTRIES:
-                        _log_blocked_entry(f"Focus mode — {entry_type} disabled",
-                                           option, ltp, total, entry_type)
-                        log.info("Focus mode: skipped %s %s @ %.1f (score %+d)",
-                                 entry_type, option, ltp, total)
-                        from uptox.services import shadow_book
-                        shadow_book.try_open(entry_type, option, ltp, total)
-                        entry_type = None
-
-                    if entry_type:
-                        # sr_retest / reclaim / lux / consol entries already
-                        # validated at their own level — skip the normal S/R
-                        # proximity check (consol_break/breakdown are dead
-                        # code here until whitelisted below, but belong in
-                        # this list now so promoting them later needs no
-                        # second edit)
-                        if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss",
-                                          "consol_break", "consol_breakdown",
-                                          "lux_break", "lux_bounce", "lux_retest"):
-                            sr_block, _broken_level = None, 0.0
-                        else:
-                            sr_block, _broken_level = _near_sr(ltp, option, sma_score)
-                        if sr_block:
-                            watch_tag = f"  [bold red]⚠ BLOCKED — {sr_block}[/]"
-                            log.info("Entry blocked by S/R: %s @ %.1f  (%s)", option, ltp, sr_block)
-                            _log_blocked_entry(sr_block, option, ltp, total, entry_type)
-                            entry_type = None
-                            self._sr_blocked_prev = True
-                            self._sr_block_level  = _broken_level
-                            self._sr_block_option = option
-                            self._sr_block_ts     = time.time()
-                        else:
-                            # Stored block context only counts if it matches this
-                            # direction and hasn't gone stale — a block recorded for
-                            # a signal that died must not fire a fake break event
-                            # when an unrelated entry clears S/R much later.
-                            fresh_break = False
-                            _blk_ctx = (
-                                self._sr_blocked_prev
-                                and self._sr_block_option == option
-                                and (time.time() - self._sr_block_ts) <= self._SR_BLOCK_TTL
-                            )
-                            _bl = self._sr_block_level
-                            # A break means price crossed the level IN the trade's
-                            # direction. Merely drifting out of tolerance AWAY from
-                            # the wall leaves it intact between price and the move —
-                            # 2026-07-09 both -10pt losses entered PE seconds after a
-                            # support block, 15pt ABOVE the unbroken swing low.
-                            _through = _blk_ctx and (
-                                (option == "CE" and ltp > _bl) or
-                                (option == "PE" and ltp < _bl)
-                            )
-                            if _blk_ctx and not _through and abs(ltp - _bl) < self._SR_AWAY_CLEAR:
-                                watch_tag = (
-                                    f"  [bold red]⚠ BLOCKED — S/R {_bl:.0f} intact"
-                                    f" ({abs(ltp - _bl):.0f}pt away, need break or"
-                                    f" {self._SR_AWAY_CLEAR:.0f}pt clearance)[/]"
-                                )
-                                _log_blocked_entry(
-                                    f"S/R intact: {_bl:.0f} not broken ({abs(ltp - _bl):.0f}pt away)",
-                                    option, ltp, total, entry_type,
-                                )
-                                entry_type = None
-                                # keep _sr_blocked_prev armed; original ts stands so
-                                # the TTL still expires genuinely stale context
-                            else:
-                                fresh_break = _through
-                                self._sr_blocked_prev = False
-                            if entry_type and fresh_break:
-                                # On the clearing tick _near_sr returns level 0.0 —
-                                # the broken level is the one stored at block time
-                                _broken_level = _bl
-                                # Just cleared S/R — classify: flow confirms → fire; flow contradicts → retest watch
-                                _flow_bad = (
-                                    (option == "CE" and flow_score < 0) or
-                                    (option == "PE" and flow_score > 0)
-                                )
-                                if _flow_bad:
-                                    _fd = "bearish" if option == "CE" else "bullish"
-                                    watch_tag = (
-                                        f"  [bold yellow]⟳ FAKE BREAK? — flow {_fd},"
-                                        f" watching retest of {_broken_level:.0f}[/]"
-                                    )
-                                    log.info(
-                                        "Fake break → retest watch: %s @ %.1f  level=%.1f  flow=%+d",
-                                        option, ltp, _broken_level, flow_score,
-                                    )
-                                    entry_type = None
-                                    self._sr_retest_mode    = True
-                                    self._sr_retest_ts      = time.time()
-                                    self._sr_retest_level   = _broken_level
-                                    self._sr_retest_option  = option
-                                    self._sr_retest_bars    = 0
-                                    self._sr_retest_last_bar = -1
-                                else:
-                                    _confirm = "flow confirmed" if flow_score != 0 else "flow neutral"
-                                    log.info("S/R break %s: %s @ %.1f  flow=%+d",
-                                             _confirm, option, ltp, flow_score)
-
-                        if entry_type is not None and (not entry_key or not entry_price):
-                            # No suitable strike — ATM unaffordable or all strikes < ₹50 even after ITM search
-                            atm_p = cur_price or 0.0
-                            if 0 < atm_p < 50:
-                                watch_tag = f"  [bold red]⚠ SKIP — market too cheap ₹{atm_p:.1f} (ITM also < ₹50)[/]"
-                                log.info("Entry skipped: ATM %.1f < 50, no ITM strike viable", atm_p)
-                            else:
-                                watch_tag = (
-                                    f"  [bold red]⚠ NO CAPITAL — ATM ₹{atm_p:.1f} "
-                                    f"(cap ₹{capital_service.get_capital():.0f})[/]"
-                                )
-                                log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
-                            _log_blocked_entry(f"No viable strike — ATM ₹{atm_p:.1f}", option, ltp, total, entry_type)
-                            entry_type = None
-                        elif entry_type is not None:
-                            # Daily limit check before opening
-                            can_trade, block_reason = trade_book.can_trade_today()
-                            if not can_trade:
-                                watch_tag = f"  [bold red]⚠ BLOCKED — {block_reason}[/]"
-                                _log_blocked_entry(block_reason or "daily limit", option, ltp, total, entry_type)
-                                entry_type = None
-                            else:
-                              delta  = entry_live.delta if entry_live else None
-                              iv     = entry_live.iv if entry_live else 0.0
-                              lvl    = capital_service.levels(
-                                  entry_price, delta, iv=iv,
-                                  repeat_count=trade_book.same_direction_streak(option),
-                              )
-                              sz = (
-                                  capital_service.sizing_expiry(entry_price)
-                                  if expiry_pm
-                                  else capital_service.sizing_with_risk(entry_price, lvl["sl"])
-                              )
-                              if sz["lots"] == 0:
-                                  watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots (SL too wide for capital)[/]"
-                                  _log_blocked_entry("Risk block — 0 lots (SL too wide)", option, ltp, total, entry_type)
-                                  entry_type = None
-                              else:
-                                _itm = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
-                                _strike_note = (
-                                    f" ITM{entry_strike}" if (_itm and entry_strike != atm) else
-                                    f" OTM{entry_strike}" if entry_strike != atm else ""
-                                )
-                                if expiry_pm:
-                                    _strike_note = f"[EXPIRY{_strike_note or ' ATM'}]"
-                                reason = (
-                                    f"{entry_type} | SMA{sma_score:+d} Flow{flow_score:+d}"
-                                    f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{_strike_note}"
-                                    f" | {lvl['regime']} ATR={lvl['atr']:.0f}"
-                                    f" | risk=₹{sz['risk_rs']:.0f} ({sz['risk_pct']:.1f}%)"
-                                )
-                                trade_book.open_trade(
-                                    strike=entry_strike, option=option,
-                                    expiry=option_chain_service.get_expiry() or "—",
-                                    entry_price=entry_price,
-                                    lots=sz["lots"], invested=sz["invested"],
-                                    sl=lvl["sl"], target=lvl["target"],
-                                    option_key=entry_key, delta=delta, spot=ltp,
-                                    entry_reason=reason,
-                                    score=total, sma_score=sma_score, flow_score=flow_score,
-                                    atr_at_entry=lvl.get("atr", 0.0),
-                                    expiry_day=capital_service.is_expiry_day(),
-                                    regime=lvl.get("regime", "NORMAL"),
-                                )
-                                _loc = "ITM" if _itm else "OTM"
-                                log.info(
-                                    "Trade opened (%s): %s %s @ %.1f  lots=%d  risk=₹%.0f (%.1f%%)  cap=%s%s",
-                                    entry_type, option, entry_strike, entry_price,
-                                    sz["lots"], sz["risk_rs"], sz["risk_pct"], sz["capped_by"],
-                                    f"  [{_loc} from ATM {atm}]" if entry_strike != atm else "",
-                                )
-                                self._watch = "IDLE"
-                                self._why_tag = ""
-
-        elif not tradeable:
+        if not tradeable:
             if self._watch != "IDLE":
                 log.info("Breakout watch cancelled — signal dropped")
                 self._watch = "IDLE"
@@ -1710,7 +1456,355 @@ class OverallAnalysisPanel(Static):
                         from uptox.services.telegram_service import notify_trade_close
                         notify_trade_close(_closed_rev)
 
-        self._last_option = option if tradeable else self._last_option
+        # ── Level-event entry pipeline (2026-07-24) ──────────────────────────
+        # User redesign: SMA/composite score is a TREND LABEL only. Level
+        # events (lux S/R pivots, consolidation boxes) trade their OWN
+        # direction — the side of the break itself — independent of the
+        # composite gate that used to switch the whole pipeline off on a
+        # neutral or opposite score (that gate blinded the system to the
+        # 11:20→11:50 CE consol break on 2026-07-24: sma flipped to 0 at
+        # exactly 11:20 and nothing was evaluated at all).
+        #
+        # The legacy watch machine above still runs only when tradeable and
+        # its result joins as one candidate. Non-directional hard guards
+        # (paused, no data, trading window) gate this pipeline; the
+        # side-specific risk guards (gap fade ban, IV rank, spread, late-day
+        # decay, direction lock, cooldowns) are applied per candidate side in
+        # _side_block — same rules, same thresholds, same messages as the
+        # composite chain, so risk behavior is unchanged by design.
+        #
+        # check_entry() on lux/consol marks its level traded-for-the-day the
+        # instant it matches, so candidates are built by PEEKING (read-only)
+        # and only the winner's check_entry() is called for real.
+        composite_option = option
+        if (live_ltp and sma_ready
+                and not bot_control.is_paused()
+                and not is_premarket() and is_trade_window()
+                and not trade_book.has_open_trade()):
+            legacy_entry_type = entry_type if tradeable else None
+            entry_type = None
+
+            from datetime import date as _date
+            _cur_slot = int(time.time() // 300)
+            _today_str = _date.today().isoformat()
+
+            def _peek_entry(module, opt):
+                ev = module._event
+                if ev is None or ev[0] != _cur_slot:
+                    return None
+                et = module._ENTRY_MAP.get((opt, ev[1]))
+                if et is None:
+                    return None
+                traded = module._traded if module._traded_date == _today_str else {}
+                if traded.get(opt) == ev[2]:
+                    return None
+                return et
+
+            def _side_block(side):
+                # Per-side risk guards — mirrors the composite no_trade_reason
+                # chain's exact rules (dashboard lines ~808-916) so the level
+                # pipeline can't take a trade the old chain would have banned
+                # on risk grounds. Directional/SMA-derived filters (neutral
+                # score, weak conviction, SMA-vs-flow divergence, bounce/
+                # retreat, consolidating-regime) are deliberately absent:
+                # level events carry their own validation.
+                if (_gap_pts <= -150 and side == "PE"
+                        and not (self._orb_ready and live_ltp < self._orb_low)):
+                    return (f"Gap-down {_gap_pts:+.0f}pt — PE banned (fade risk)"
+                            f" unless ORB low {self._orb_low:.0f} breaks")
+                if (_gap_pts >= 150 and side == "CE"
+                        and not (self._orb_ready and live_ltp > self._orb_high)):
+                    return (f"Gap-up {_gap_pts:+.0f}pt — CE banned (fade risk)"
+                            f" unless ORB high {self._orb_high:.0f} breaks")
+                _s_key = option_chain_service.get_key(atm, side) if atm else None
+                _s_iv  = iv_rank_service.get_status(_s_key) if _s_key else {}
+                if _s_iv.get("high_iv", False) and not capital_service.is_expiry_afternoon():
+                    return f"IV rank high ({_s_iv.get('iv_rank', 0):.0f}%) — options expensive"
+                _s_tick = _tce if side == "CE" else _tpe
+                if _s_tick and _s_tick.asks and _s_tick.bids:
+                    _s_spread = _s_tick.asks[0]["price"] - _s_tick.bids[0]["price"]
+                    if _s_spread > 5:
+                        return f"Bid-ask spread {_s_spread:.1f}pts — liquidity thin"
+                if (not capital_service.is_expiry_day()
+                        and (_now_ist.hour > 14 or (_now_ist.hour == 14 and _now_ist.minute >= 30))
+                        and _s_iv.get("iv_rank", 100) < 30):
+                    return (f"Premium decay risk — IV rank {_s_iv.get('iv_rank', 0):.0f}% after 14:30"
+                            f" (theta kills low-IV options in last hour)")
+                _lk, _lk_left = trade_book.direction_locked(side, live_ltp)
+                if _lk:
+                    return (f"{side} side locked — 2 consecutive {side} losses"
+                            f" ({_lk_left:.0f}min left)")
+                _lx = trade_book.get_last_exit()
+                if _lx:
+                    _lx_ts   = _lx.get("exit_ts") or 0.0
+                    _lx_mins = (time.time() - _lx_ts) / 60.0
+                    _lx_opt  = _lx.get("option", "")
+                    _lx_loss = _lx.get("pnl_pts", 0) <= trade_book.REAL_LOSS_PTS
+                    _lx_win  = _lx.get("pnl_pts", 0) > 0
+                    if _lx_loss and _lx_opt == side and _lx_mins < 15:
+                        _lx_esp = _lx.get("spot_entry", 0.0)
+                        _resumed = (
+                            (side == "CE" and live_ltp > _lx_esp + 15) or
+                            (side == "PE" and live_ltp < _lx_esp - 15)
+                        ) if _lx_esp else False
+                        if not _resumed:
+                            return f"Cooldown after {side} loss — {15 - _lx_mins:.0f}min left"
+                    elif _lx_win and _lx_opt == side and _lx_mins < 15:
+                        _lx_xsp = _lx.get("spot_exit", 0.0)
+                        _continuing = (
+                            (side == "CE" and live_ltp > _lx_xsp + 15) or
+                            (side == "PE" and live_ltp < _lx_xsp - 15)
+                        ) if _lx_xsp else False
+                        if not _continuing:
+                            return (f"Post-win chase guard — {side} again only if move"
+                                    f" continues past {_lx_xsp:.0f} ({15 - _lx_mins:.0f}min left)")
+                        if _lx_mins < 5:
+                            return f"Cooldown — {5 - _lx_mins:.0f}min after last exit"
+                    elif _lx_mins < 5:
+                        return f"Cooldown — {5 - _lx_mins:.0f}min after last exit"
+                return None
+
+            _lvl_cands = []   # (entry_type, side, trigger_level, module)
+            for _side in ("CE", "PE"):
+                _sblk = None
+                _sblk_checked = False
+                for _mod in (lux_sr, consolidation_range):
+                    _et = _peek_entry(_mod, _side)
+                    if not _et:
+                        continue
+                    if not _sblk_checked:
+                        _sblk, _sblk_checked = _side_block(_side), True
+                    if _sblk:
+                        _log_blocked_entry(_sblk, _side, ltp, total, _et)
+                        log.info("Level entry blocked: %s %s — %s", _et, _side, _sblk)
+                        continue
+                    log.info("%s entry: %s %s @ %.1f (score %+d)",
+                             "Lux S/R" if _mod is lux_sr else "Consolidation range",
+                             _et, _side, ltp, total)
+                    _lvl_cands.append(
+                        (_et, _side, _mod._event[2] if _mod._event else ltp, _mod))
+
+            candidates: list[dict] = []
+            if legacy_entry_type:
+                candidates.append({
+                    "entry_type": legacy_entry_type, "option": composite_option,
+                    "trigger_level": ltp,  # already self-validated internally
+                })
+            for _et, _side, _lvl_price, _mod in _lvl_cands:
+                candidates.append({
+                    "entry_type": _et, "option": _side, "trigger_level": _lvl_price,
+                })
+
+            if len(candidates) > 1:
+                from uptox.services import atr_service
+                _atr_pts = atr_service.get_atr(NIFTY, TimeFrame.M5) or 30.0
+                entry_type = _pick_best_candidate(
+                    candidates, ltp, _atr_pts,
+                    delta=entry_live.delta if entry_live else None,
+                    iv=entry_live.iv if entry_live else 0.0,
+                    repeat_count=(trade_book.same_direction_streak(composite_option)
+                                  if composite_option in ("CE", "PE") else 0),
+                )
+                if entry_type:
+                    log.info("Entry candidate scoring: %d candidates, picked %s",
+                             len(candidates), entry_type)
+            elif candidates:
+                entry_type = candidates[0]["entry_type"]
+
+            if entry_type:
+                _win = next(c for c in candidates if c["entry_type"] == entry_type)
+                option = _win["option"]
+                # Composite-side strike/premium only exist when the composite
+                # picked a side — recompute for the winner's own side whenever
+                # they can't be trusted to match.
+                if option != composite_option or not tradeable:
+                    entry_strike, entry_key, entry_price = _affordable_strike(
+                        ltp, option, expiry_pm=expiry_pm)
+                    entry_live = feed_store.get(entry_key) if entry_key else None
+
+            # Consume the winner's one-trade-per-level slot for real now that
+            # scoring has decided. A losing lux/consol candidate is never
+            # marked traded — its level stays available for a later genuine
+            # occurrence instead of being burned for a trade that never
+            # happened.
+            for _et, _side, _lvl_price, _mod in _lvl_cands:
+                if entry_type == _et and option == _side:
+                    _mod.check_entry(_side)
+                    break
+
+            # Focus mode: non-whitelisted triggers log their would-be
+            # fire (audit prices what focus skipped) but never trade
+            if entry_type and _FOCUS_ENTRIES and entry_type not in _FOCUS_ENTRIES:
+                _log_blocked_entry(f"Focus mode — {entry_type} disabled",
+                                   option, ltp, total, entry_type)
+                log.info("Focus mode: skipped %s %s @ %.1f (score %+d)",
+                         entry_type, option, ltp, total)
+                from uptox.services import shadow_book
+                shadow_book.try_open(entry_type, option, ltp, total)
+                entry_type = None
+
+            if entry_type:
+                # sr_retest / reclaim / lux / consol entries already
+                # validated at their own level — skip the normal S/R
+                # proximity check
+                if entry_type in ("sr_retest", "pdl_reclaim", "pdh_loss",
+                                  "consol_break", "consol_breakdown",
+                                  "lux_break", "lux_bounce", "lux_retest"):
+                    sr_block, _broken_level = None, 0.0
+                else:
+                    sr_block, _broken_level = _near_sr(ltp, option, sma_score)
+                if sr_block:
+                    watch_tag = f"  [bold red]⚠ BLOCKED — {sr_block}[/]"
+                    log.info("Entry blocked by S/R: %s @ %.1f  (%s)", option, ltp, sr_block)
+                    _log_blocked_entry(sr_block, option, ltp, total, entry_type)
+                    entry_type = None
+                    self._sr_blocked_prev = True
+                    self._sr_block_level  = _broken_level
+                    self._sr_block_option = option
+                    self._sr_block_ts     = time.time()
+                else:
+                    # Stored block context only counts if it matches this
+                    # direction and hasn't gone stale — a block recorded for
+                    # a signal that died must not fire a fake break event
+                    # when an unrelated entry clears S/R much later.
+                    fresh_break = False
+                    _blk_ctx = (
+                        self._sr_blocked_prev
+                        and self._sr_block_option == option
+                        and (time.time() - self._sr_block_ts) <= self._SR_BLOCK_TTL
+                    )
+                    _bl = self._sr_block_level
+                    # A break means price crossed the level IN the trade's
+                    # direction. Merely drifting out of tolerance AWAY from
+                    # the wall leaves it intact between price and the move —
+                    # 2026-07-09 both -10pt losses entered PE seconds after a
+                    # support block, 15pt ABOVE the unbroken swing low.
+                    _through = _blk_ctx and (
+                        (option == "CE" and ltp > _bl) or
+                        (option == "PE" and ltp < _bl)
+                    )
+                    if _blk_ctx and not _through and abs(ltp - _bl) < self._SR_AWAY_CLEAR:
+                        watch_tag = (
+                            f"  [bold red]⚠ BLOCKED — S/R {_bl:.0f} intact"
+                            f" ({abs(ltp - _bl):.0f}pt away, need break or"
+                            f" {self._SR_AWAY_CLEAR:.0f}pt clearance)[/]"
+                        )
+                        _log_blocked_entry(
+                            f"S/R intact: {_bl:.0f} not broken ({abs(ltp - _bl):.0f}pt away)",
+                            option, ltp, total, entry_type,
+                        )
+                        entry_type = None
+                        # keep _sr_blocked_prev armed; original ts stands so
+                        # the TTL still expires genuinely stale context
+                    else:
+                        fresh_break = _through
+                        self._sr_blocked_prev = False
+                    if entry_type and fresh_break:
+                        # On the clearing tick _near_sr returns level 0.0 —
+                        # the broken level is the one stored at block time
+                        _broken_level = _bl
+                        # Just cleared S/R — classify: flow confirms → fire; flow contradicts → retest watch
+                        _flow_bad = (
+                            (option == "CE" and flow_score < 0) or
+                            (option == "PE" and flow_score > 0)
+                        )
+                        if _flow_bad:
+                            _fd = "bearish" if option == "CE" else "bullish"
+                            watch_tag = (
+                                f"  [bold yellow]⟳ FAKE BREAK? — flow {_fd},"
+                                f" watching retest of {_broken_level:.0f}[/]"
+                            )
+                            log.info(
+                                "Fake break → retest watch: %s @ %.1f  level=%.1f  flow=%+d",
+                                option, ltp, _broken_level, flow_score,
+                            )
+                            entry_type = None
+                            self._sr_retest_mode    = True
+                            self._sr_retest_ts      = time.time()
+                            self._sr_retest_level   = _broken_level
+                            self._sr_retest_option  = option
+                            self._sr_retest_bars    = 0
+                            self._sr_retest_last_bar = -1
+                        else:
+                            _confirm = "flow confirmed" if flow_score != 0 else "flow neutral"
+                            log.info("S/R break %s: %s @ %.1f  flow=%+d",
+                                     _confirm, option, ltp, flow_score)
+
+                if entry_type is not None and (not entry_key or not entry_price):
+                    # No suitable strike — ATM unaffordable or all strikes < ₹50 even after ITM search
+                    atm_p = cur_price or 0.0
+                    if 0 < atm_p < 50:
+                        watch_tag = f"  [bold red]⚠ SKIP — market too cheap ₹{atm_p:.1f} (ITM also < ₹50)[/]"
+                        log.info("Entry skipped: ATM %.1f < 50, no ITM strike viable", atm_p)
+                    else:
+                        watch_tag = (
+                            f"  [bold red]⚠ NO CAPITAL — ATM ₹{atm_p:.1f} "
+                            f"(cap ₹{capital_service.get_capital():.0f})[/]"
+                        )
+                        log.info("Entry skipped: ATM %.1f > capital %.0f", atm_p, capital_service.get_capital())
+                    _log_blocked_entry(f"No viable strike — ATM ₹{atm_p:.1f}", option, ltp, total, entry_type)
+                    entry_type = None
+                elif entry_type is not None:
+                    # Daily limit check before opening
+                    can_trade, block_reason = trade_book.can_trade_today()
+                    if not can_trade:
+                        watch_tag = f"  [bold red]⚠ BLOCKED — {block_reason}[/]"
+                        _log_blocked_entry(block_reason or "daily limit", option, ltp, total, entry_type)
+                        entry_type = None
+                    else:
+                      delta  = entry_live.delta if entry_live else None
+                      iv     = entry_live.iv if entry_live else 0.0
+                      lvl    = capital_service.levels(
+                          entry_price, delta, iv=iv,
+                          repeat_count=trade_book.same_direction_streak(option),
+                      )
+                      sz = (
+                          capital_service.sizing_expiry(entry_price)
+                          if expiry_pm
+                          else capital_service.sizing_with_risk(entry_price, lvl["sl"])
+                      )
+                      if sz["lots"] == 0:
+                          watch_tag = "  [bold red]⚠ RISK BLOCK — 0 lots (SL too wide for capital)[/]"
+                          _log_blocked_entry("Risk block — 0 lots (SL too wide)", option, ltp, total, entry_type)
+                          entry_type = None
+                      else:
+                        _itm = (option == "CE" and entry_strike < atm) or (option == "PE" and entry_strike > atm)
+                        _strike_note = (
+                            f" ITM{entry_strike}" if (_itm and entry_strike != atm) else
+                            f" OTM{entry_strike}" if entry_strike != atm else ""
+                        )
+                        if expiry_pm:
+                            _strike_note = f"[EXPIRY{_strike_note or ' ATM'}]"
+                        reason = (
+                            f"{entry_type} | SMA{sma_score:+d} Flow{flow_score:+d}"
+                            f" | Nifty@{ltp:.0f} | {option}@{entry_strike}{_strike_note}"
+                            f" | {lvl['regime']} ATR={lvl['atr']:.0f}"
+                            f" | risk=₹{sz['risk_rs']:.0f} ({sz['risk_pct']:.1f}%)"
+                        )
+                        trade_book.open_trade(
+                            strike=entry_strike, option=option,
+                            expiry=option_chain_service.get_expiry() or "—",
+                            entry_price=entry_price,
+                            lots=sz["lots"], invested=sz["invested"],
+                            sl=lvl["sl"], target=lvl["target"],
+                            option_key=entry_key, delta=delta, spot=ltp,
+                            entry_reason=reason,
+                            score=total, sma_score=sma_score, flow_score=flow_score,
+                            atr_at_entry=lvl.get("atr", 0.0),
+                            expiry_day=capital_service.is_expiry_day(),
+                            regime=lvl.get("regime", "NORMAL"),
+                        )
+                        _loc = "ITM" if _itm else "OTM"
+                        log.info(
+                            "Trade opened (%s): %s %s @ %.1f  lots=%d  risk=₹%.0f (%.1f%%)  cap=%s%s",
+                            entry_type, option, entry_strike, entry_price,
+                            sz["lots"], sz["risk_rs"], sz["risk_pct"], sz["capped_by"],
+                            f"  [{_loc} from ATM {atm}]" if entry_strike != atm else "",
+                        )
+                        self._watch = "IDLE"
+                        self._why_tag = ""
+
+        self._last_option = composite_option if tradeable else self._last_option
 
         # ── live buy price (use affordable entry strike, not always ATM) ─────
         buy_price = entry_price if (tradeable and entry_key) else 0.0
